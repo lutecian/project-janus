@@ -1,0 +1,57 @@
+extends Control
+
+@onready var volume_label: Label = $VBox/VolumeLabel
+@onready var volume_slider: HSlider = $VBox/VolumeSlider
+@onready var fullscreen_label: Label = $VBox/FullscreenLabel
+@onready var fullscreen_toggle: CheckButton = $VBox/FullscreenToggle
+@onready var btn_reset_save: Button = $VBox/btn_reset_save
+@onready var btn_back: Button = $VBox/btn_back
+
+func _ready():
+	volume_slider.value_changed.connect(_on_volume_changed)
+	fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
+	btn_reset_save.pressed.connect(_on_reset_save)
+	btn_back.pressed.connect(_on_back)
+	_load_settings()
+
+func _load_settings():
+	var settings := ConfigFile.new()
+	if settings.load("user://settings.cfg") == OK:
+		var vol: float = settings.get_value("audio", "volume", 100.0)
+		volume_slider.value = vol
+		_update_volume_label(vol)
+		var fs: bool = settings.get_value("display", "fullscreen", false)
+		fullscreen_toggle.button_pressed = fs
+		_apply_fullscreen(fs)
+
+func _save_settings():
+	var settings := ConfigFile.new()
+	settings.set_value("audio", "volume", volume_slider.value)
+	settings.set_value("display", "fullscreen", fullscreen_toggle.button_pressed)
+	settings.save("user://settings.cfg")
+
+func _on_volume_changed(value: float):
+	_update_volume_label(value)
+	_save_settings()
+
+func _update_volume_label(value: float):
+	volume_label.text = "Volume: %d%%" % int(value)
+
+func _on_fullscreen_toggled(pressed: bool):
+	_apply_fullscreen(pressed)
+	_save_settings()
+
+func _apply_fullscreen(pressed: bool):
+	if pressed:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		fullscreen_label.text = "Fullscreen: ON"
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		fullscreen_label.text = "Fullscreen: OFF"
+
+func _on_reset_save():
+	SaveManager.delete_save()
+	get_tree().change_scene_to_file("res://scenes/main/main_menu.tscn")
+
+func _on_back():
+	get_tree().change_scene_to_file("res://scenes/main/main_menu.tscn")

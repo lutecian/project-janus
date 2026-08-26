@@ -1,0 +1,46 @@
+{
+  "intelligences": [
+    {
+      "progress_min": 15,
+      "progress_max": 29,
+      "reports": [
+        "HELIOS has allocated additional funding to their anomalous materials division.",
+        "Satellite imagery shows expanded construction at HELIOS Site Sigma.",
+        "Intercepted communications suggest HELIOS is pursuing multiple artifact research lines simultaneously.",
+        "HELIOS has published a classified internal report on 'non-standard material properties.'"
+      ]
+    },
+    {
+      "progress_min": 30,
+      "progress_max": 59,
+      "reports": [
+        "HELIOS researchers appear to be conducting systematic electromagnetic exposure tests.",
+        "A HELIOS patent filing describes a novel 'field perturbation measurement device.'",
+        "Intelligence indicates HELIOS has achieved reproducible anomalous readings from their artifact.",
+        "HELIOS has restricted access to their primary research wing. Something significant is underway.",
+        "A HELIOS defector claims the organization is 'close to something unprecedented.'"
+      ]
+    },
+    {
+      "progress_min": 60,
+      "progress_max": 89,
+      "reports": [
+        "HELIOS researchers appear to have demonstrated measurable alteration of local gravitational forces.",
+        "A classified HELIOS report references 'controlled field attenuation at resonance frequencies.'",
+        "HELIOS has begun assembling a specialized containment team for their artifact.",
+        "Intercepted data suggests HELIOS has identified a critical frequency response in their material.",
+        "HELIOS has filed for emergency funding. Their research is accelerating."
+      ]
+    },
+    {
+      "progress_min": 90,
+      "progress_max": 100,
+      "reports": [
+        "HELIOS appears to have confirmed a novel physical phenomenon. Their announcement is imminent.",
+        "HELIOS has demonstrated full gravitational attenuation in controlled conditions.",
+        "Intelligence confirms: HELIOS is preparing a formal discovery declaration.",
+        "HELIOS has named their discovery internally. Publication within days."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+[gd_scene load_steps=2 format=3 uid="uid://exp00001"]
+
+[ext_resource type="Script" path="res://scenes/experiment/experiment_selection.gd" id="1_script"]
+
+[node name="ExperimentSelection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="org_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Organization"
+horizontal_alignment = 1
+
+[node name="artifact_selector" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_prev_artifact" type="Button" parent="ScrollContainer/VBox/artifact_selector"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 30)
+text = "<"
+
+[node name="artifact_name_label" type="Label" parent="ScrollContainer/VBox/artifact_selector"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+text = "OBJECT J-001"
+horizontal_alignment = 1
+
+[node name="btn_next_artifact" type="Button" parent="ScrollContainer/VBox/artifact_selector"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 30)
+text = ">"
+
+[node name="day_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Day: 0"
+horizontal_alignment = 1
+
+[node name="budget_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+text = "Budget: $10,000"
+horizontal_alignment = 1
+
+[node name="briefing_panel" type="VBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BriefingTitle" type="Label" parent="ScrollContainer/VBox/briefing_panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+text = "RECOVERY BRIEFING"
+horizontal_alignment = 1
+
+[node name="BriefingText" type="RichTextLabel" parent="ScrollContainer/VBox/briefing_panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 13
+text = "Three days ago, a deep-sea mining operation off the coast of Greenland recovered an anomalous object from a depth of 4,200 meters. The object was embedded in basaltic rock estimated at 60 million years old.\n\nInitial analysis confirms the object does not match any known natural or artificial material. It has been designated OBJECT J-001 and transferred to your facility for investigation.\n\nYou have been given primary research authority. HELIOS Research Authority has also expressed interest."
+scroll_active = false
+autowrap_mode = 2
+
+[node name="BriefingDismiss" type="Button" parent="ScrollContainer/VBox/briefing_panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 30)
+size_flags_horizontal = 4
+text = "Acknowledge Briefing"
+
+[node name="artifact_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 13
+text = "OBJECT J-001"
+scroll_active = false
+autowrap_mode = 2
+
+[node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="knowledge_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Knowledge: 0%"
+horizontal_alignment = 1
+
+[node name="discovery_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+text = ""
+horizontal_alignment = 1
+visible = false
+
+[node name="tech_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+text = ""
+horizontal_alignment = 1
+visible = false
+
+[node name="helios_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.6, 0.2, 1)
+text = "HELIOS: 0%"
+horizontal_alignment = 1
+
+[node name="nav_container" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_artifact_detail" type="Button" parent="ScrollContainer/VBox/nav_container"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 30)
+text = "Artifact Detail"
+
+[node name="btn_helios_intel" type="Button" parent="ScrollContainer/VBox/nav_container"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 30)
+text = "HELIOS Intel (0)"
+
+[node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ScientistsHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SELECT SCIENTIST"
+horizontal_alignment = 1
+
+[node name="scientist_container" type="VBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Sep3" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ExperimentsHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SELECT EXPERIMENT"
+horizontal_alignment = 1
+
+[node name="experiment_container" type="VBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Sep4" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_main_menu" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Main Menu"
+
+[node name="btn_save" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Save"
+
+[node name="btn_run" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 40)
+size_flags_horizontal = 10
+disabled = true
+text = "Select Scientist & Experiment"
+
+[node name="status_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1

@@ -1,0 +1,27 @@
+{
+  "id": "J001",
+  "display_name": "Lattice Sphere",
+  "visible_description": "A metallic spherical object approximately 42 centimeters in diameter. Surface analysis reveals no seams, markings, fasteners, or apparent manufacturing artifacts.",
+  "known_initial_data": {
+    "mass_kg": 18.7,
+    "diameter_cm": 42.1,
+    "surface_temperature_c": 14.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "local_inertial_gravitational_attenuation",
+    "trigger": "electromagnetic_resonance",
+    "peak_resonance_ghz": 18.3,
+    "absorbs_applied_energy": true,
+    "temperature_stable_equilibrium_c": 14.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

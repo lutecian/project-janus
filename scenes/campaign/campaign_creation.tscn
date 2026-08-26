@@ -1,0 +1,96 @@
+[gd_scene load_steps=2 format=3 uid="uid://camp00001"]
+
+[ext_resource type="Script" path="res://scenes/campaign/campaign_creation.gd" id="1_script"]
+
+[node name="CampaignCreation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 150.0
+offset_top = 80.0
+offset_right = -150.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "ORGANIZATION CREATION"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="OrgNameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Organization Name"
+
+[node name="org_name_edit" type="LineEdit" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+placeholder_text = "Enter organization name..."
+
+[node name="OrgAbbrLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Abbreviation"
+
+[node name="org_abbr_edit" type="LineEdit" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+placeholder_text = "e.g. AARD"
+max_length = 10
+
+[node name="FacilityLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Facility Name"
+
+[node name="facility_edit" type="LineEdit" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+placeholder_text = "Enter facility name..."
+
+[node name="DirectorLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Director Name"
+
+[node name="director_edit" type="LineEdit" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+placeholder_text = "Enter director name..."
+
+[node name="Spacer" type="Control" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="btn_back" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 50)
+text = "Back"
+
+[node name="btn_begin" type="Button" parent="VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+size_flags_horizontal = 10
+text = "Begin Campaign"
+
+[node name="status_label" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1

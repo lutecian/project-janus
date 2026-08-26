@@ -1,0 +1,81 @@
+[gd_scene load_steps=2 format=3 uid="uid://main00001"]
+
+[ext_resource type="Script" path="res://scenes/main/main_menu.gd" id="1_script"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 200.0
+offset_top = 150.0
+offset_right = -200.0
+offset_bottom = -150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="title_label" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "PROJECT JANUS"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Scientific Research Simulation"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+size_flags_vertical = 3
+
+[node name="btn_new_campaign" type="Button" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 50)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "New Campaign"
+
+[node name="btn_load_campaign" type="Button" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 50)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Load Campaign"
+
+[node name="btn_settings" type="Button" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 50)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Settings"
+
+[node name="btn_quit" type="Button" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 50)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Quit"
+
+[node name="Spacer2" type="Control" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+size_flags_vertical = 3
+
+[node name="status_label" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1

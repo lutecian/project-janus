@@ -1,0 +1,21 @@
+{
+  "id": "SCIENTIST_VASQUEZ",
+  "first_name": "Elena",
+  "last_name": "Vasquez",
+  "portrait_id": "female_02",
+  "primary_specialty": "materials_science",
+  "skills": {
+    "physics": 70,
+    "engineering": 71,
+    "observation": 79,
+    "curiosity": 78,
+    "risk_tolerance": 60
+  },
+  "traits": ["skeptical", "resilient"],
+  "status": "ACTIVE",
+  "stress": 0,
+  "health": 100,
+  "loyalty": 100,
+  "experience": 0,
+  "days_at_facility": 0
+}

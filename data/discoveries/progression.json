@@ -1,0 +1,21 @@
+{
+  "disc_grav_attenuation": {
+    "discovery_id": "DISC_GRAV_ATTENUATION",
+    "internal_name": "Local Inertial/Gravitational Attenuation",
+    "display_name_before_naming": "Unclassified Field Effect",
+    "description": "Artifact exhibits local gravitational attenuation when exposed to electromagnetic resonance at ~18.3 GHz.",
+    "knowledge_states": {
+      "unknown": "Nothing is known about this phenomenon.",
+      "suspected": "Anomalous mass readings suggest gravitational effects during EM exposure.",
+      "confirmed": "Gravitational attenuation confirmed at 18.3 GHz resonance."
+    },
+    "player_namable": true,
+    "technology_unlock": "experimental_field_sensor",
+    "effect": {
+      "type": "gravitational_attenuation",
+      "peak_magnitude_percent": 31,
+      "frequency_ghz": 18.3,
+      "effective_radius_m": 1.7
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "DISC_GRAV_NULLIFICATION",
+  "name": "Gravitational Nullification",
+  "description": "The cylinder appears to completely nullify gravitational measurements in its vicinity under certain conditions.",
+  "required_knowledge_state": "confirmed",
+  "discovery_type": "phenomenon",
+  "significance": "If scalable, this could revolutionize transportation and energy systems."
+}

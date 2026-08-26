@@ -1,0 +1,84 @@
+[gd_scene load_steps=2 format=3 uid="uid://art00001"]
+
+[ext_resource type="Script" path="res://scenes/experiment/artifact_detail.gd" id="1_script"]
+
+[node name="ArtifactDetail" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="title_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "ARTIFACT DETAIL"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="desc_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 14
+scroll_active = false
+autowrap_mode = 2
+
+[node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="known_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "KNOWN PROPERTIES"
+autowrap_mode = 2
+
+[node name="knowledge_state" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+text = "Knowledge: Unknown"
+horizontal_alignment = 1
+
+[node name="Sep3" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ObsHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "OBSERVATIONS"
+horizontal_alignment = 1
+
+[node name="observations_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 150)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 13
+scroll_active = true
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_back" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+text = "Back to Lab"

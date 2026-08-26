@@ -1,0 +1,114 @@
+{
+  "incidents": [
+    {
+      "id": "INC_MINOR_LEAK",
+      "name": "Minor Containment Leak",
+      "description": "A small leak was detected in the artifact containment unit. The artifact was briefly exposed to ambient conditions.",
+      "severity": "minor",
+      "trigger_chance": 0.03,
+      "knowledge_state_required": "unknown",
+      "effects": {
+        "observation_quality_reduction": 0.1,
+        "budget_cost": 500,
+        "days_lost": 1
+      },
+      "observations": [
+        "Containment breach detected. Artifact surface briefly exposed to air.",
+        "Minor seal failure. Artifact integrity appears unaffected."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_EQUIPMENT_FAILURE",
+      "name": "Equipment Malfunction",
+      "description": "One of the measurement instruments malfunctioned during an experiment, producing unreliable data.",
+      "severity": "minor",
+      "trigger_chance": 0.04,
+      "knowledge_state_required": "unknown",
+      "effects": {
+        "observation_quality_reduction": 0.15,
+        "budget_cost": 800,
+        "days_lost": 0
+      },
+      "observations": [
+        "Instrument calibration drift detected during measurement cycle.",
+        "Sensor array returned anomalous readings. Recalibration required."
+      ],
+      "discovery_chance_increase": 0.0
+    },
+    {
+      "id": "INC_UNEXPECTED_READING",
+      "name": "Unexpected Gravitational Reading",
+      "description": "A sudden gravitational anomaly was recorded near the artifact. All personnel reported momentary disorientation.",
+      "severity": "moderate",
+      "trigger_chance": 0.02,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.0,
+        "budget_cost": 0,
+        "days_lost": 0
+      },
+      "observations": [
+        "Gravitational sensor spike detected. Duration: 0.3 seconds.",
+        "All personnel within 5m reported brief vertigo. Artifact appeared unchanged."
+      ],
+      "discovery_chance_increase": 0.1
+    },
+    {
+      "id": "INC_POWER_SURGE",
+      "name": "Power Surge",
+      "description": "A power surge affected the laboratory. Several instruments need recalibration.",
+      "severity": "minor",
+      "trigger_chance": 0.03,
+      "knowledge_state_required": "unknown",
+      "effects": {
+        "observation_quality_reduction": 0.05,
+        "budget_cost": 300,
+        "days_lost": 0
+      },
+      "observations": [
+        "Power fluctuation detected. All instruments momentarily affected.",
+        "Electrical surge caused brief data loss in recording systems."
+      ],
+      "discovery_chance_increase": 0.0
+    },
+    {
+      "id": "INC_SCIENTIST_STRESS",
+      "name": "Researcher Stress Incident",
+      "description": "One of the researchers reported unusual symptoms after prolonged exposure to the artifact.",
+      "severity": "moderate",
+      "trigger_chance": 0.02,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.2,
+        "budget_cost": 0,
+        "days_lost": 2
+      },
+      "observations": [
+        "Researcher reported headaches and vivid dreams after extended artifact proximity.",
+        "Staff member requesting reassignment. Claims artifact 'hums' at night."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_MASS_FLUCTUATION",
+      "name": "Artifact Mass Fluctuation",
+      "description": "The artifact's measured mass fluctuated unexpectedly during a routine check.",
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.0,
+        "budget_cost": 200,
+        "days_lost": 0
+      },
+      "observations": [
+        "Artifact mass readings fluctuated by 0.3% over 10 minutes.",
+        "Scale calibration appears stable. Artifact mass variation is real."
+      ],
+      "discovery_chance_increase": 0.15
+    }
+  ],
+  "incident_cooldown_days": 5,
+  "max_incidents_per_campaign": 8
+}

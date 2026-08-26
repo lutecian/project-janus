@@ -1,0 +1,17 @@
+{
+  "id": "HELIOS",
+  "name": "HELIOS RESEARCH AUTHORITY",
+  "description": "Larger, established, well-funded rival organization researching the same anomalous phenomena.",
+  "research_capability": 0.8,
+  "funding": "high",
+  "risk_tolerance": "medium",
+  "scientific_efficiency": 0.7,
+  "current_projects": ["electromagnetic_interactions", "gravitational_fields"],
+  "known_discoveries": [],
+  "technology_level": "advanced",
+  "reputation": "secretive",
+  "artifact_inventory": [],
+  "progress": 0,
+  "base_research_rate": 5,
+  "seed": null
+}

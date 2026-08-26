@@ -1,0 +1,25 @@
+{
+  "starting_budget": 10000,
+  "experiment_costs": {
+    "EXP_PASSIVE": 200,
+    "EXP_HEATING": 400,
+    "EXP_COOLING": 400,
+    "EXP_ELECTRICAL": 400,
+    "EXP_XRAY": 600,
+    "EXP_EM_LOW": 500,
+    "EXP_EM_MID": 700,
+    "EXP_EM_RESONANCE": 900
+  },
+  "daily_overhead": 150,
+  "funding_intervals": [
+    {"day": 1, "amount": 0, "label": "Initial allocation"},
+    {"day": 30, "amount": 5000, "label": "Monthly research grant"},
+    {"day": 60, "amount": 5000, "label": "Monthly research grant"},
+    {"day": 90, "amount": 7500, "label": "Quarterly review funding"},
+    {"day": 120, "amount": 5000, "label": "Monthly research grant"}
+  ],
+  "budget_events": [
+    {"trigger": "discovery_suspected", "amount": 3000, "label": "Emergency research funding"},
+    {"trigger": "helios_60", "amount": 2000, "label": "Competitive pressure bonus"}
+  ]
+}

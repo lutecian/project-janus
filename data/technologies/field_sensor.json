@@ -1,0 +1,12 @@
+{
+  "id": "TECH_EXPERIMENTAL_FIELD_SENSOR",
+  "name": "Experimental Field Sensor",
+  "description": "Improves measurements during future experiments.",
+  "unlock_condition": "discovery_confirmed:DISC_GRAV_ATTENUATION",
+  "effect": {
+    "observation_bonus_percent": 20,
+    "description": "Provides +20% observation quality during all future experiments."
+  },
+  "category": "sensor",
+  "unlocked_at_elapsed_days": 0
+}

@@ -1,0 +1,139 @@
+[gd_scene load_steps=2 format=3 uid="uid://res00001"]
+
+[ext_resource type="Script" path="res://scenes/experiment/results/experiment_result.gd" id="1_script"]
+
+[node name="ExperimentResult" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="title_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "EXPERIMENT RESULT"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="result_text" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 180)
+scroll_following = true
+
+[node name="skill_breakdown" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+text = ""
+scroll_active = false
+autowrap_mode = 2
+
+[node name="Sep1b" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="NarrativeHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+text = "RESEARCH REPORT"
+horizontal_alignment = 1
+
+[node name="narrative_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 14
+scroll_active = false
+autowrap_mode = 2
+
+[node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="knowledge_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Knowledge: 0%"
+horizontal_alignment = 1
+
+[node name="helios_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.6, 0.2, 1)
+text = "HELIOS: 0%"
+horizontal_alignment = 1
+
+[node name="Sep3" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="discovery_panel" type="VBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="DiscoveryTitle" type="Label" parent="ScrollContainer/VBox/discovery_panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+text = "DISCOVERY CONFIRMED"
+horizontal_alignment = 1
+
+[node name="DiscoveryDesc" type="Label" parent="ScrollContainer/VBox/discovery_panel"]
+layout_mode = 2
+text = "Your researchers have confirmed a previously unknown phenomenon.\nPlease provide a name for this discovery."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="discovery_input" type="LineEdit" parent="ScrollContainer/VBox/discovery_panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+placeholder_text = "Enter discovery name..."
+
+[node name="btn_name_discovery" type="Button" parent="ScrollContainer/VBox/discovery_panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 40)
+size_flags_horizontal = 4
+text = "Name Discovery"
+
+[node name="Sep4" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_save" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Save"
+
+[node name="btn_continue" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 40)
+size_flags_horizontal = 10
+text = "Continue Research"
+
+[node name="status_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1

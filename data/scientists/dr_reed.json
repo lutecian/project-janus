@@ -1,0 +1,21 @@
+{
+  "id": "SCIENTIST_REED",
+  "first_name": "Marcus",
+  "last_name": "Reed",
+  "portrait_id": "male_01",
+  "primary_specialty": "engineering",
+  "skills": {
+    "physics": 58,
+    "engineering": 88,
+    "observation": 67,
+    "curiosity": 55,
+    "risk_tolerance": 38
+  },
+  "traits": ["methodical", "careful"],
+  "status": "ACTIVE",
+  "stress": 0,
+  "health": 100,
+  "loyalty": 100,
+  "experience": 0,
+  "days_at_facility": 0
+}

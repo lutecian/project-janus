@@ -1,0 +1,15 @@
+extends Node
+
+signal experiment_completed(experiment_id: String, scientist_id: String, observations: Array, knowledge_gain: int)
+signal observation_created(artifact_id: String, observation: Dictionary)
+signal discovery_suspected(discovery_id: String)
+signal discovery_confirmed(discovery_id: String)
+signal discovery_named(discovery_id: String, player_name: String)
+signal technology_unlocked(tech_id: String, tech_name: String)
+signal rival_progressed(progress: int, message: String)
+signal knowledge_updated(progress: int, state: String)
+signal campaign_saved()
+signal campaign_loaded()
+signal budget_updated(funds: int, spent: int)
+signal incident_occurred(incident: Dictionary)
+signal incident_resolved(incident_id: String)

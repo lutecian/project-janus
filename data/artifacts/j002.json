@@ -1,0 +1,24 @@
+{
+  "id": "J-002",
+  "display_name": "Coherent Lens",
+  "visible_description": "A smooth, lens-shaped disc approximately 8cm in diameter. Transparent with a faint blue tint. Light passing through it appears slightly bent.",
+  "category": "unknown",
+  "properties": {
+    "mass_kg": 0.4,
+    "diameter_cm": 8.0,
+    "surface_temperature_c": 14.0
+  },
+  "hidden_properties": {
+    "material": "unknown_crystalline",
+    "origin": "deep_sea_basalt_60mya",
+    "gravitational_effect": "amplification"
+  },
+  "known_initial_data": {
+    "mass_kg": 0.4,
+    "diameter_cm": 8.0,
+    "surface_temperature_c": 14.0,
+    "color": "transparent_blue",
+    "texture": "smooth"
+  },
+  "description": "A lens-shaped object recovered from ocean floor basalt. Appears to focus gravitational measurements rather than attenuate them."
+}

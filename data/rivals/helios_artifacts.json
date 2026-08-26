@@ -1,0 +1,34 @@
+{
+  "artifacts": [
+    {
+      "id": "H003",
+      "display_name": "Crystalline Matrix",
+      "description": "HELIOS artifact: An octahedral crystalline structure exhibiting anomalous optical refraction properties.",
+      "phenomenon_type": "optical_distortion"
+    },
+    {
+      "id": "H007",
+      "display_name": "Resonant Cylinder",
+      "description": "HELIOS artifact: A hollow metallic cylinder that produces self-sustaining acoustic resonance without external input.",
+      "phenomenon_type": "acoustic_resonance"
+    },
+    {
+      "id": "H012",
+      "display_name": "Plasma Fragment",
+      "description": "HELIOS artifact: A suspended plasma mass contained within an invisible force boundary.",
+      "phenomenon_type": "field_containment"
+    },
+    {
+      "id": "H019",
+      "display_name": "Dense Core",
+      "description": "HELIOS artifact: A small, extremely dense object with gravitational properties exceeding predicted mass.",
+      "phenomenon_type": "gravitational_anomaly"
+    },
+    {
+      "id": "H025",
+      "display_name": "Fluid Lens",
+      "description": "HELIOS artifact: A liquid substance that maintains perfect spherical form and focuses electromagnetic radiation.",
+      "phenomenon_type": "em_focusing"
+    }
+  ]
+}

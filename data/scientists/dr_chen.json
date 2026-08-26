@@ -1,0 +1,21 @@
+{
+  "id": "SCIENTIST_CHEN",
+  "first_name": "Sarah",
+  "last_name": "Chen",
+  "portrait_id": "female_01",
+  "primary_specialty": "experimental_physics",
+  "skills": {
+    "physics": 85,
+    "engineering": 61,
+    "observation": 91,
+    "curiosity": 92,
+    "risk_tolerance": 72
+  },
+  "traits": ["brilliant", "curious"],
+  "status": "ACTIVE",
+  "stress": 0,
+  "health": 100,
+  "loyalty": 100,
+  "experience": 0,
+  "days_at_facility": 0
+}

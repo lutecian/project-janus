@@ -1,0 +1,8 @@
+{
+  "id": "DISC_GRAV_AMPLIFICATION",
+  "name": "Gravitational Amplification",
+  "description": "Certain materials appear to amplify gravitational measurements when exposed to specific EM frequencies.",
+  "required_knowledge_state": "confirmed",
+  "discovery_type": "phenomenon",
+  "significance": "Suggests the artifact family interacts with gravitational fields in diverse ways."
+}
