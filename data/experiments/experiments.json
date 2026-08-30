@@ -79,6 +79,52 @@
       "required_skills": ["physics"],
       "result_template": "em_resonance",
       "knowledge_gain": 5
+    },
+    {
+      "id": "EXP_ACOUSTIC",
+      "name": "Acoustic Resonance",
+      "description": "Apply acoustic vibrations and listen for internal resonance or structural response.",
+      "category": "active",
+      "duration_minutes": 8,
+      "required_skills": ["engineering"],
+      "result_template": "acoustic",
+      "knowledge_gain": 2,
+      "unlock_threshold": 30
+    },
+    {
+      "id": "EXP_LASER",
+      "name": "Laser Spectroscopy",
+      "description": "Analyze surface reflectivity and emission spectrum using a focused laser.",
+      "category": "passive",
+      "duration_minutes": 8,
+      "required_skills": ["observation"],
+      "result_template": "laser",
+      "knowledge_gain": 2,
+      "unlock_threshold": 30
+    },
+    {
+      "id": "EXP_VIBRATION",
+      "name": "Vibration Analysis",
+      "description": "Measure the artifact's vibrational modes and damping behavior.",
+      "category": "active",
+      "duration_minutes": 8,
+      "required_skills": ["engineering"],
+      "result_template": "vibration",
+      "knowledge_gain": 2,
+      "unlock_threshold": 45
+    },
+    {
+      "id": "EXP_RADIOACTIVE",
+      "name": "Radioactive Exposure",
+      "description": "Expose the artifact to low-level radiation and measure absorption or emission.",
+      "category": "active",
+      "duration_minutes": 12,
+      "required_skills": ["physics"],
+      "result_template": "radioactive",
+      "knowledge_gain": 3,
+      "unlock_threshold": 50,
+      "requires_tech": "TECH_THERMAL_CONTAINMENT",
+      "dangerous": true
     }
   ]
 }

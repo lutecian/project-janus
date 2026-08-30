@@ -20,7 +20,10 @@ var discovery: Dictionary = {
 	"player_name": "",
 	"discovery_id": "DISC_GRAV_ATTENUATION"
 }
+var discoveries: Array = []
+var confirmed_discoveries: Array = []
 var technology_unlocked: bool = false
+var unlocked_technologies: Array = []
 var helios: Dictionary = {
 	"progress": 0,
 	"artifact_id": "",
@@ -63,7 +66,11 @@ const EXPERIMENT_UNLOCK_THRESHOLDS := {
 	"EXP_XRAY": 10,
 	"EXP_EM_LOW": 15,
 	"EXP_EM_MID": 25,
-	"EXP_EM_RESONANCE": 40
+	"EXP_EM_RESONANCE": 40,
+	"EXP_ACOUSTIC": 30,
+	"EXP_LASER": 30,
+	"EXP_VIBRATION": 45,
+	"EXP_RADIOACTIVE": 50
 }
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -117,8 +124,6 @@ func _load_budget_data():
 		"events_received": []
 	}
 
-var _seed: int = 0
-
 func _load_json(path: String) -> Dictionary:
 	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
@@ -160,16 +165,23 @@ func select_artifact(index: int):
 		per_artifact_data[prev_id] = {
 			"knowledge": knowledge.duplicate(true),
 			"discovery": discovery.duplicate(true),
+			"discoveries": discoveries.duplicate(true),
 			"experiment_history": experiment_history.duplicate(),
 			"intelligence_reports": intelligence_reports.duplicate()
 		}
 	selected_artifact_index = index
 	artifact = available_artifacts[index]
+	_set_discovery_for_artifact()
 	var new_id: String = artifact.get("id", "")
 	if per_artifact_data.has(new_id):
 		var saved: Dictionary = per_artifact_data[new_id]
 		knowledge = saved.get("knowledge", {"progress": 0, "state": "unknown", "observations": [], "experiment_counts": {}})
 		discovery = saved.get("discovery", {"state": "unknown", "player_name": "", "discovery_id": ""})
+		var saved_disc: Array = saved.get("discoveries", [])
+		if saved_disc.is_empty():
+			_discoveries_restore_from_saved()
+		else:
+			discoveries = saved_disc.duplicate(true)
 		experiment_history = saved.get("experiment_history", [])
 		intelligence_reports = saved.get("intelligence_reports", [])
 	else:
@@ -177,19 +189,47 @@ func select_artifact(index: int):
 		_reset_discovery()
 		experiment_history = []
 		intelligence_reports = []
-	_set_discovery_for_artifact()
 
 func _set_discovery_for_artifact():
 	var art_id: String = artifact.get("id", "")
-	match art_id:
-		"J001":
-			discovery["discovery_id"] = "DISC_GRAV_ATTENUATION"
-		"J002":
-			discovery["discovery_id"] = "DISC_GRAV_AMPLIFICATION"
-		"J003":
-			discovery["discovery_id"] = "DISC_GRAV_NULLIFICATION"
-		_:
-			discovery["discovery_id"] = "DISC_GRAV_ATTENUATION"
+	discoveries = []
+	var data := _load_json("res://data/discoveries/discoveries.json")
+	var all_discoveries: Array = data.get("discoveries", [])
+	for d in all_discoveries:
+		var d_dict: Dictionary = d as Dictionary
+		if d_dict.get("artifact_id", "") == art_id:
+			discoveries.append({
+				"discovery_id": d_dict.get("discovery_id", ""),
+				"internal_name": d_dict.get("internal_name", ""),
+				"display_name_before_naming": d_dict.get("display_name_before_naming", ""),
+				"description": d_dict.get("description", ""),
+				"player_namable": d_dict.get("player_namable", true),
+				"technology_unlock": d_dict.get("technology_unlock", ""),
+				"state": "unknown",
+				"player_name": ""
+			})
+	if discoveries.is_empty():
+		var fallback := {
+			"discovery_id": "DISC_GRAV_ATTENUATION",
+			"internal_name": "Local Inertial/Gravitational Attenuation",
+			"display_name_before_naming": "Unclassified Field Effect",
+			"description": "Artifact exhibits local gravitational attenuation.",
+			"player_namable": true,
+			"technology_unlock": "experimental_field_sensor",
+			"state": "unknown",
+			"player_name": ""
+		}
+		discoveries.append(fallback)
+	discovery["discovery_id"] = discoveries[0].get("discovery_id", "DISC_GRAV_ATTENUATION")
+	discovery["state"] = discoveries[0].get("state", "unknown")
+
+func _discoveries_restore_from_saved():
+	_set_discovery_for_artifact()
+	var saved_state: String = discovery.get("state", "unknown")
+	for d in discoveries:
+		var d_dict: Dictionary = d as Dictionary
+		d_dict["state"] = saved_state
+		d_dict["player_name"] = discovery.get("player_name", "")
 
 func _load_scientist_data():
 	scientists = []
@@ -233,7 +273,35 @@ func _reset_discovery():
 
 func is_experiment_unlocked(experiment_id: String) -> bool:
 	var threshold: int = EXPERIMENT_UNLOCK_THRESHOLDS.get(experiment_id, 999)
-	return knowledge["progress"] >= threshold
+	if knowledge["progress"] < threshold:
+		return false
+	# Per-experiment unlock thresholds from data drive (Acoustic, Laser, etc.)
+	var exps := load_experiment_definitions()
+	for exp in exps:
+		var exp_dict: Dictionary = exp as Dictionary
+		if exp_dict.get("id", "") == experiment_id:
+			var per_threshold: int = exp_dict.get("unlock_threshold", 0)
+			if knowledge["progress"] < per_threshold:
+				return false
+			var requires_tech: String = exp_dict.get("requires_tech", "")
+			if not requires_tech.is_empty() and not _has_technology(requires_tech):
+				return false
+			return true
+	return false
+
+func _has_technology(tech_id: String) -> bool:
+	match tech_id:
+		"TECH_THERMAL_CONTAINMENT":
+			return unlocked_technologies.has("TECH_THERMAL_CONTAINMENT")
+		"TECH_GRAVITY_SENSOR":
+			return unlocked_technologies.has("TECH_GRAVITY_SENSOR")
+		"TECH_FIELD_STABILIZER":
+			return unlocked_technologies.has("TECH_FIELD_STABILIZER")
+	return false
+
+func load_experiment_definitions() -> Array:
+	var data := _load_json("res://data/experiments/experiments.json")
+	return data.get("experiments", [])
 
 func get_unlocked_experiments(all_experiments: Array) -> Array:
 	var unlocked: Array = []
@@ -268,6 +336,7 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 	elapsed_days += experiment_def.get("duration_minutes", 5) / (60 * 8)
 
 	_update_knowledge_state()
+	_check_secondary_discoveries(exp_id)
 
 	var exp_record := {
 		"experiment_id": exp_id,
@@ -326,10 +395,12 @@ func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dicti
 	elif roll < critical_chance + 0.10:
 		quality *= 1.2
 	else:
-		quality += _rng._rng.randf_range(-0.15, 0.15)
+		quality += _rng.randf_range(-0.15, 0.15)
 
-	if technology_unlocked:
+	if technology_unlocked or unlocked_technologies.has("TECH_EXPERIMENTAL_FIELD_SENSOR"):
 		quality *= 1.2
+	if unlocked_technologies.has("TECH_GRAVITY_SENSOR"):
+		quality *= 1.1
 
 	return clampf(quality, 0.1, 2.0)
 
@@ -352,7 +423,7 @@ func _generate_observations(experiment_def: Dictionary, quality: float) -> Array
 				"Object mass reads consistently across multiple measurement attempts."
 			]
 			observations.append({
-				"content": variants[_rng._rng.randi() % variants.size()],
+				"content": variants[_rng.randi() % variants.size()],
 				"interpretation": "Thermal stability appears anomalous.",
 				"confidence": confidence,
 				"type": "passive"
@@ -447,10 +518,67 @@ func _generate_observations(experiment_def: Dictionary, quality: float) -> Array
 				"Thermal equilibrium appears fixed at ambient baseline regardless of cooling."
 			]
 			observations.append({
-				"content": variants[_rng._rng.randi() % variants.size()],
+				"content": variants[_rng.randi() % variants.size()],
 				"interpretation": "Object maintains fixed thermal equilibrium.",
 				"confidence": confidence,
 				"type": "active"
+			})
+		"acoustic":
+			var variants := [
+				"No acoustic resonance detected across the frequency range.",
+				"No transmitted vibrations return at expected frequencies.",
+				"Acoustic signals are absorbed almost entirely by the surface.",
+				"Tone impulses produce no measurable echo or internal ring."
+			]
+			observations.append({
+				"content": variants[_rng.randi() % variants.size()],
+				"interpretation": "Acoustic energy is absorbed rather than reflected.",
+				"confidence": confidence,
+				"type": "active"
+			})
+		"laser":
+			var reflectance: float = _rng.randf_range(1.0, 4.0) * clampf(quality, 0.2, 1.0)
+			var variants := [
+				"Chromatic sampling indicates zero reflectance at visible wavelengths (%.1f%% reflectivity)." % reflectance,
+				"Surface reflects less than %.1f%% of incident photons." % reflectance,
+				"Spectroscopy shows no emission lines matching known elements (%.1f%% reflectivity)." % reflectance,
+				"Laser spot produces no measurable scattering (reflectance %.1f%%)." % reflectance
+			]
+			observations.append({
+				"content": variants[_rng.randi() % variants.size()],
+				"interpretation": "Surface is exceptionally absorptive at optical frequencies.",
+				"confidence": confidence,
+				"type": "passive",
+				"reflectivity_pct": reflectance
+			})
+		"vibration":
+			var decay: float = _rng.randf_range(0.3, 1.5) * quality
+			var variants := [
+				"Induced vibration decays anomalously fast (time constant %.1fs)." % decay,
+				"Mechanical impulse returns no identifiable modal signature (%.1fs decay)." % decay,
+				"Vibration analysis shows aperiodic damping (%.1fs)." % decay,
+				"Structure appears overdamped beyond any known material (%.1fs)." % decay
+			]
+			observations.append({
+				"content": variants[_rng.randi() % variants.size()],
+				"interpretation": "Artifact absorbs mechanical energy unusually well.",
+				"confidence": confidence,
+				"type": "active"
+			})
+		"radioactive":
+			var absorption: float = _rng.randf_range(40.0, 99.0) * clampf(quality, 0.2, 1.0)
+			var variants := [
+				"Radiation counts drop sharply near the artifact (%.1f%% absorption)." % absorption,
+				"Detector shows %.1f%% attenuation within 0.5m of the object." % absorption,
+				"Artifact absorbs %.1f%% of incident radiation without re-emitting." % absorption,
+				"Shielding effect measured at %.1f%%." % absorption
+			]
+			observations.append({
+				"content": variants[_rng.randi() % variants.size()],
+				"interpretation": "Artifact absorbs ionizing radiation without measurable emission.",
+				"confidence": confidence,
+				"type": "active",
+				"radiation_absorption_pct": absorption
 			})
 		_:
 			observations.append({
@@ -466,23 +594,33 @@ func _generate_narrative(experiment_def: Dictionary, scientist: Dictionary, obse
 	var scientist_name: String = scientist.get("first_name", "?") + " " + scientist.get("last_name", "?")
 	var exp_name: String = experiment_def.get("name", "experiment")
 	var templates := [
-		"%s conducted %s and recorded the following: %s",
-		"%s reported: %s",
-		"During %s, %s observed: %s",
-		"%s performed %s. Result: %s"
+		"{scientist} conducted {experiment} and recorded the following: {obs}",
+		"{scientist} reported: {obs}",
+		"During {experiment}, {scientist} observed: {obs}",
+		"{scientist} performed {experiment}. Result: {obs}"
 	]
 	var template: String = templates[_rng.randi() % templates.size()]
 	var obs_text: String = "No significant findings."
 	if observations.size() > 0:
 		var first_obs: Dictionary = observations[0] as Dictionary
 		obs_text = first_obs.get("content", "No significant findings.")
-	return template % [scientist_name, exp_name, obs_text]
+	return template.format({
+		"scientist": scientist_name,
+		"experiment": exp_name,
+		"obs": obs_text
+	})
 
 func _update_knowledge_state():
 	var progress: int = knowledge["progress"]
 	if progress >= CONFIRMED_THRESHOLD and knowledge["state"] != "confirmed":
 		knowledge["state"] = "confirmed"
 		discovery["state"] = "confirmed"
+		for d in discoveries:
+			var d_dict: Dictionary = d as Dictionary
+			d_dict["state"] = "confirmed"
+			var unlock: String = d_dict.get("technology_unlock", "")
+			if not unlock.is_empty():
+				_unlock_technology_for_discovery(d_dict.get("discovery_id", ""), unlock)
 		if not helios["discovered_first"] and helios["progress"] < 100:
 			pass
 		else:
@@ -491,9 +629,76 @@ func _update_knowledge_state():
 	elif progress >= SUSPECTED_THRESHOLD and knowledge["state"] == "unknown":
 		knowledge["state"] = "suspected"
 		discovery["state"] = "suspected"
+		for d in discoveries:
+			var d_dict: Dictionary = d as Dictionary
+			if d_dict["state"] == "unknown":
+				d_dict["state"] = "suspected"
 		EventBus.discovery_suspected.emit(discovery["discovery_id"])
 
 	EventBus.knowledge_updated.emit(knowledge["progress"], knowledge["state"])
+
+func _unlock_technology_for_discovery(discovery_id: String, tech_key: String):
+	var tech_map := {
+		"experimental_field_sensor": "TECH_EXPERIMENTAL_FIELD_SENSOR",
+		"thermal_containment": "TECH_THERMAL_CONTAINMENT",
+		"gravity_sensor": "TECH_GRAVITY_SENSOR",
+		"field_stabilizer": "TECH_FIELD_STABILIZER"
+	}
+	var tech_id: String = tech_map.get(tech_key, "")
+	if tech_id.is_empty() or tech_id in unlocked_technologies:
+		return
+	unlocked_technologies.append(tech_id)
+	if tech_id == "TECH_EXPERIMENTAL_FIELD_SENSOR":
+		technology_unlocked = true
+	var tech_def := _get_technology_definition(tech_id)
+	var tech_name: String = tech_def.get("name", "Unknown Technology")
+	if discovery_id not in confirmed_discoveries:
+		confirmed_discoveries.append(discovery_id)
+	EventBus.technology_unlocked.emit(tech_id, tech_name)
+
+func _get_technology_definition(tech_id: String) -> Dictionary:
+	var data := _load_json("res://data/technologies/technologies.json")
+	var techs: Array = data.get("technologies", [])
+	for t in techs:
+		var t_dict: Dictionary = t as Dictionary
+		if t_dict.get("id", "") == tech_id:
+			return t_dict
+	return {}
+
+func _check_secondary_discoveries(exp_id: String):
+	for d in discoveries:
+		var d_dict: Dictionary = d as Dictionary
+		if d_dict["state"] == "confirmed":
+			continue
+		var did: String = d_dict.get("discovery_id", "")
+		var count_threshold := _discovery_count_threshold(did)
+		var count_needed: int = count_threshold.get("required_count", 0)
+		var exp_key: String = count_threshold.get("experiment", "")
+		if exp_key.is_empty():
+			continue
+		var count: int = knowledge["experiment_counts"].get(exp_key, 0)
+		if count >= count_needed and d_dict["state"] == "unknown":
+			d_dict["state"] = "suspected"
+			EventBus.discovery_suspected.emit(did)
+		elif count >= count_needed + 2 and d_dict["state"] == "suspected":
+			d_dict["state"] = "confirmed"
+			var unlock: String = d_dict.get("technology_unlock", "")
+			if not unlock.is_empty():
+				_unlock_technology_for_discovery(did, unlock)
+			EventBus.discovery_confirmed.emit(did)
+
+func _discovery_count_threshold(discovery_id: String) -> Dictionary:
+	match discovery_id:
+		"DISC_ENERGY_ABSORPTION":
+			return {"experiment": "EXP_HEATING", "required_count": 2}
+		"DISC_GRAV_ATTENUATION":
+			return {"experiment": "EXP_EM_RESONANCE", "required_count": 1}
+		"DISC_GRAV_AMPLIFICATION":
+			return {"experiment": "EXP_EM_MID", "required_count": 2}
+		"DISC_GRAV_NULLIFICATION":
+			return {"experiment": "EXP_EM_LOW", "required_count": 2}
+		_:
+			return {}
 
 func name_discovery(player_name: String):
 	discovery["player_name"] = player_name
@@ -563,6 +768,8 @@ func _check_incidents():
 		if state_filter != required_state and required_state != "any":
 			continue
 		var chance: float = inc_dict.get("trigger_chance", 0.0)
+		if unlocked_technologies.has("TECH_THERMAL_CONTAINMENT"):
+			chance *= 0.5
 		if _rng.randf() < chance:
 			_apply_incident(inc_dict)
 			break
@@ -637,6 +844,9 @@ func get_save_data() -> Dictionary:
 		"scientists": scientists,
 		"knowledge": knowledge,
 		"discovery": discovery,
+		"discoveries": discoveries,
+		"confirmed_discoveries": confirmed_discoveries,
+		"unlocked_technologies": unlocked_technologies,
 		"technology_unlocked": technology_unlocked,
 		"helios": helios,
 		"experiment_history": experiment_history,
@@ -653,6 +863,7 @@ func _save_current_artifact_data():
 		per_artifact_data[art_id] = {
 			"knowledge": knowledge.duplicate(true),
 			"discovery": discovery.duplicate(true),
+			"discoveries": discoveries.duplicate(true),
 			"experiment_history": experiment_history.duplicate(),
 			"intelligence_reports": intelligence_reports.duplicate()
 		}
@@ -677,6 +888,13 @@ func load_save_data(data: Dictionary):
 		"state": "unknown", "player_name": "", "discovery_id": "DISC_GRAV_ATTENUATION"
 	})
 	_set_discovery_for_artifact()
+	var saved_disc: Array = data.get("discoveries", [])
+	if not saved_disc.is_empty():
+		discoveries = saved_disc.duplicate(true)
+	else:
+		_discoveries_restore_from_saved()
+	confirmed_discoveries = data.get("confirmed_discoveries", [])
+	unlocked_technologies = data.get("unlocked_technologies", [])
 	technology_unlocked = data.get("technology_unlocked", false)
 	helios = data.get("helios", {"progress": 0, "artifact_id": "", "artifact_name": "", "thresholds_hit": [], "discovered_first": false})
 	if helios.get("artifact_id", "").is_empty():

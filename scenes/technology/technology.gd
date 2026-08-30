@@ -29,15 +29,27 @@ func _refresh():
 			text += "  Effect: %s\n" % t.get("effect", "")
 		else:
 			text += "  Effect: ???\n"
-			text += "  Unlock: %s\n" % t.get("unlock_condition", "unknown")
+			text += "  Unlock: %s\n" % _unlock_text(t)
 		text += "\n"
 
 	tech_label.text = text
 
+func _unlock_text(tech: Dictionary) -> String:
+	var disc: String = tech.get("unlock_discovery", "")
+	var techs := {
+		"DISC_ENERGY_ABSORPTION": "Confirm the artifact's energy absorption effect",
+		"DISC_GRAV_AMPLIFICATION": "Confirm gravitational amplification",
+		"DISC_GRAV_NULLIFICATION": "Confirm gravitational nullification",
+		"DISC_GRAV_ATTENUATION": "Confirm gravitational attenuation"
+	}
+	if disc in techs:
+		return techs[disc]
+	return "confirm the associated discovery"
+
 func _is_unlocked(tech_id: String, tech: Dictionary) -> bool:
 	if tech_id == "TECH_EXPERIMENTAL_FIELD_SENSOR":
-		return GameState.technology_unlocked
-	return false
+		return GameState.technology_unlocked or GameState.unlocked_technologies.has(tech_id)
+	return GameState.unlocked_technologies.has(tech_id)
 
 func _load_json(path: String) -> Dictionary:
 	var file := FileAccess.open(path, FileAccess.READ)

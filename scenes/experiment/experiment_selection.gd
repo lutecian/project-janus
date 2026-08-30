@@ -88,17 +88,29 @@ func _refresh_ui():
 		GameState.helios.get("artifact_name", "Unknown")
 	]
 
-	if GameState.discovery["state"] == "confirmed":
-		var dname: String = GameState.discovery["player_name"]
-		if dname.is_empty():
-			dname = "Awaiting naming..."
-		discovery_label.text = "Discovery: %s" % dname
+	var confirmed_names: Array = []
+	for d in GameState.discoveries:
+		var d_dict: Dictionary = d as Dictionary
+		if d_dict.get("state", "unknown") == "confirmed":
+			var dname: String = d_dict.get("player_name", "")
+			if dname.is_empty():
+				dname = d_dict.get("internal_name", "??")
+			confirmed_names.append(dname)
+	if confirmed_names.size() > 0:
+		discovery_label.text = "Confirmed Phenomena: %s" % ", ".join(confirmed_names)
 		discovery_label.visible = true
 	else:
 		discovery_label.visible = false
 
-	if GameState.technology_unlocked:
-		tech_label.text = "Technology: Experimental Field Sensor (+20%% observation quality)"
+	var unlocked_tech_names: Array = []
+	for tech_id in GameState.unlocked_technologies:
+		var td := _find_tech(tech_id)
+		if not td.is_empty():
+			unlocked_tech_names.append(td.get("name", tech_id))
+	if GameState.technology_unlocked and unlocked_tech_names.is_empty():
+		unlocked_tech_names.append("Experimental Field Sensor")
+	if unlocked_tech_names.size() > 0:
+		tech_label.text = "Technology: %s" % ", ".join(unlocked_tech_names)
 		tech_label.visible = true
 	else:
 		tech_label.visible = false
@@ -180,7 +192,14 @@ func _populate_experiments():
 			var thresholds: Dictionary = GameState.EXPERIMENT_UNLOCK_THRESHOLDS
 			if thresholds.has(exp_id):
 				threshold = thresholds[exp_id]
-			btn.text = "%s [LOCKED — requires %d%% knowledge]" % [exp_dict.get("name", "?"), threshold]
+			var requires_tech: String = exp_dict.get("requires_tech", "")
+			var lock_reason := "requires %d%% knowledge" % threshold
+			var per_threshold: int = exp_dict.get("unlock_threshold", 0)
+			if per_threshold > threshold:
+				lock_reason = "requires %d%% knowledge" % per_threshold
+			if not requires_tech.is_empty() and not GameState.unlocked_technologies.has(requires_tech):
+				lock_reason = "requires a technology"
+			btn.text = "%s [LOCKED — %s]" % [exp_dict.get("name", "?"), lock_reason]
 			btn.disabled = true
 
 		btn.custom_minimum_size = Vector2(0, 36)
@@ -190,7 +209,7 @@ func _populate_experiments():
 	_update_experiment_buttons()
 
 func _on_scientist_selected(index: int):
-	GameState.selected_scientist = index
+	GameState.selected_scientist_index = index
 	_update_scientist_buttons()
 	_update_run_button()
 
@@ -321,6 +340,22 @@ func _load_experiments() -> Array:
 	if json.data is Dictionary:
 		return (json.data as Dictionary).get("experiments", []) as Array
 	return []
+
+func _find_tech(tech_id: String) -> Dictionary:
+	var file := FileAccess.open("res://data/technologies/technologies.json", FileAccess.READ)
+	if not file:
+		return {}
+	var text := file.get_as_text()
+	file.close()
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		return {}
+	var techs: Array = (json.data as Dictionary).get("technologies", []) as Array
+	for t in techs:
+		var t_dict: Dictionary = t as Dictionary
+		if t_dict.get("id", "") == tech_id:
+			return t_dict
+	return {}
 
 func _get_experiment_by_id(id: String) -> Dictionary:
 	for exp in _load_experiments():

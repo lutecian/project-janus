@@ -4,6 +4,7 @@ extends Control
 @onready var desc_label: RichTextLabel = $ScrollContainer/VBox/desc_label
 @onready var known_label: Label = $ScrollContainer/VBox/known_label
 @onready var knowledge_state: Label = $ScrollContainer/VBox/knowledge_state
+@onready var discoveries_label: RichTextLabel = $ScrollContainer/VBox/discoveries_label
 @onready var observations_label: RichTextLabel = $ScrollContainer/VBox/observations_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
 
@@ -28,6 +29,27 @@ func _display_artifact():
 	var state: String = GameState.knowledge["state"]
 	var progress: int = GameState.knowledge["progress"]
 	knowledge_state.text = "Knowledge State: %s (%d%%)" % [state.capitalize(), progress]
+
+	var disc_text := ""
+	var discoveries: Array = GameState.discoveries
+	for d in discoveries:
+		var d_dict: Dictionary = d as Dictionary
+		var dname: String = d_dict.get("player_name", "")
+		var dstate: String = d_dict.get("state", "unknown")
+		var display: String = dname
+		if display.is_empty():
+			display = d_dict.get("internal_name", "??")
+		var status_tag := ""
+		if dstate == "confirmed":
+			status_tag = "CONFIRMED"
+		elif dstate == "suspected":
+			status_tag = "SUSPECTED"
+		else:
+			status_tag = "UNCONFIRMED"
+		disc_text += "%s [%s]\n" % [display, status_tag]
+	if disc_text.is_empty():
+		disc_text = "No phenomena identified yet."
+	discoveries_label.text = disc_text
 
 	var obs_text := ""
 	var observations: Array = GameState.knowledge["observations"]

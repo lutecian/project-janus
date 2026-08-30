@@ -1,0 +1,44 @@
+{
+  "discoveries": [
+    {
+      "discovery_id": "DISC_GRAV_ATTENUATION",
+      "artifact_id": "J001",
+      "internal_name": "Local Inertial/Gravitational Attenuation",
+      "display_name_before_naming": "Unclassified Field Effect",
+      "description": "Artifact exhibits local gravitational attenuation when exposed to electromagnetic resonance at ~18.3 GHz.",
+      "player_namable": true,
+      "technology_unlock": "experimental_field_sensor",
+      "effect": {"type": "gravitational_attenuation", "peak_magnitude_percent": 31, "frequency_ghz": 18.3, "effective_radius_m": 1.7}
+    },
+    {
+      "discovery_id": "DISC_ENERGY_ABSORPTION",
+      "artifact_id": "J001",
+      "internal_name": "Anomalous Energy Absorption",
+      "display_name_before_naming": "Unclassified Thermal Behavior",
+      "description": "The artifact absorbs applied thermal energy without measurable temperature change, maintaining fixed equilibrium near 14C.",
+      "player_namable": true,
+      "technology_unlock": "thermal_containment",
+      "effect": {"type": "energy_absorption", "temperature_equilibrium_c": 14.0, "absorption_efficiency": 0.95}
+    },
+    {
+      "discovery_id": "DISC_GRAV_AMPLIFICATION",
+      "artifact_id": "J002",
+      "internal_name": "Gravitational Amplification",
+      "display_name_before_naming": "Unclassified Field Intensification",
+      "description": "Artifact amplifies gravitational measurements when exposed to specific EM frequencies.",
+      "player_namable": true,
+      "technology_unlock": "gravity_sensor",
+      "effect": {"type": "gravitational_amplification", "peak_magnitude_percent": 22, "frequency_ghz": 14.7, "effective_radius_m": 0.9}
+    },
+    {
+      "discovery_id": "DISC_GRAV_NULLIFICATION",
+      "artifact_id": "J003",
+      "internal_name": "Gravitational Nullification",
+      "display_name_before_naming": "Unclassified Field Cancellation",
+      "description": "Artifact appears to nullify gravitational measurements in its immediate vicinity.",
+      "player_namable": true,
+      "technology_unlock": "gravity_sensor",
+      "effect": {"type": "gravitational_nullification", "effective_radius_m": 0.4}
+    }
+  ]
+}

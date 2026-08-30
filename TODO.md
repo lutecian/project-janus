@@ -45,16 +45,18 @@
 - [ ] Measure completion rate
 - [ ] Analyze experimentation patterns
 
-## Phase 3 — JANUS 0.1
-- [ ] Multiple artifacts for player
-- [ ] Multiple discoveries
+## Phase 3 — JANUS 0.1 (in progress)
+- [x] Multiple artifacts for player (3 artifacts, artifact selector)
+- [x] Multiple discoveries (4 discoveries, per-artifact multi-discovery tracking)
+- [x] Research budget (budget screen, funding schedule)
+- [x] Basic incidents (incident reports screen, log)
 - [ ] Limited facility layout
-- [ ] Research budget
 - [ ] Scientist experience system
 - [ ] Scientist injuries
-- [ ] Basic incidents
 - [ ] More HELIOS behavior
 - [ ] Artifact interactions
+- [x] Technology progression (4-tech tree, unlock conditions)
+- [x] Expanded experiment set (acoustic, laser, vibration, radioactive)
 
 ## Phase 4 — Vertical Slice
 - [ ] Polished art direction
@@ -62,9 +64,7 @@
 - [ ] Attractive facility
 - [ ] Stronger UI
 - [ ] 5-10 artifacts
-- [ ] Technology progression
 - [ ] Basic commercialization
-- [ ] Incidents
 - [ ] Campaign progression
 - [ ] Player organization customization
 
