@@ -8,7 +8,7 @@
       "duration_minutes": 5,
       "required_skills": ["observation"],
       "result_template": "passive_observation",
-      "knowledge_gain": 2
+      "knowledge_gain": 3
     },
     {
       "id": "EXP_HEATING",
@@ -18,7 +18,7 @@
       "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "heating",
-      "knowledge_gain": 3
+      "knowledge_gain": 4
     },
     {
       "id": "EXP_COOLING",
@@ -28,7 +28,7 @@
       "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "cooling",
-      "knowledge_gain": 3
+      "knowledge_gain": 4
     },
     {
       "id": "EXP_ELECTRICAL",
@@ -38,7 +38,7 @@
       "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "electrical_exposure",
-      "knowledge_gain": 3
+      "knowledge_gain": 4
     },
     {
       "id": "EXP_XRAY",
@@ -48,7 +48,7 @@
       "duration_minutes": 8,
       "required_skills": ["observation"],
       "result_template": "xray",
-      "knowledge_gain": 2
+      "knowledge_gain": 3
     },
     {
       "id": "EXP_EM_LOW",
@@ -58,7 +58,7 @@
       "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "em_low",
-      "knowledge_gain": 2
+      "knowledge_gain": 3
     },
     {
       "id": "EXP_EM_MID",
@@ -68,7 +68,7 @@
       "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "em_mid",
-      "knowledge_gain": 3
+      "knowledge_gain": 4
     },
     {
       "id": "EXP_EM_RESONANCE",
@@ -78,7 +78,7 @@
       "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "em_resonance",
-      "knowledge_gain": 5
+      "knowledge_gain": 6
     },
     {
       "id": "EXP_ACOUSTIC",
@@ -88,7 +88,7 @@
       "duration_minutes": 8,
       "required_skills": ["engineering"],
       "result_template": "acoustic",
-      "knowledge_gain": 2,
+      "knowledge_gain": 3,
       "unlock_threshold": 30
     },
     {
@@ -99,7 +99,7 @@
       "duration_minutes": 8,
       "required_skills": ["observation"],
       "result_template": "laser",
-      "knowledge_gain": 2,
+      "knowledge_gain": 3,
       "unlock_threshold": 30
     },
     {
@@ -110,7 +110,7 @@
       "duration_minutes": 8,
       "required_skills": ["engineering"],
       "result_template": "vibration",
-      "knowledge_gain": 2,
+      "knowledge_gain": 3,
       "unlock_threshold": 45
     },
     {
@@ -121,7 +121,7 @@
       "duration_minutes": 12,
       "required_skills": ["physics"],
       "result_template": "radioactive",
-      "knowledge_gain": 3,
+      "knowledge_gain": 4,
       "unlock_threshold": 50,
       "requires_tech": "TECH_THERMAL_CONTAINMENT",
       "dangerous": true

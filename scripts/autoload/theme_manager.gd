@@ -96,6 +96,28 @@ func _build_theme_resource() -> Theme:
 	panel_container_style.set_corner_radius_all(8)
 	theme.set_stylebox("panel", "PanelContainer", panel_container_style)
 
+	# Accent card — used to elevate a highlight panel above the flat background.
+	theme.set_type_variation("accent_card", "PanelContainer")
+	var accent_card := StyleBoxFlat.new()
+	accent_card.bg_color = Color("#131a22")
+	accent_card.border_color = palette["accent"]
+	accent_card.border_width_left = 1
+	accent_card.border_width_right = 1
+	accent_card.border_width_top = 2
+	accent_card.border_width_bottom = 1
+	accent_card.set_corner_radius_all(8)
+	accent_card.set_content_margin_all(12)
+	theme.set_stylebox("panel", "accent_card", accent_card)
+
+	# Section header bar — thin accent underline used under screen titles.
+	theme.set_type_variation("section_header", "PanelContainer")
+	var header_bar := StyleBoxFlat.new()
+	header_bar.bg_color = Color(0, 0, 0, 0)
+	header_bar.border_color = palette["accent"]
+	header_bar.border_width_bottom = 2
+	header_bar.content_margin_bottom = 6
+	theme.set_stylebox("panel", "section_header", header_bar)
+
 	# LineEdit
 	var le_normal := StyleBoxFlat.new()
 	le_normal.bg_color = palette["panel_dark"]

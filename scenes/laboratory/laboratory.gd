@@ -2,8 +2,8 @@ extends Control
 
 @onready var org_label: Label = $MarginContainer/VBox/header_row/org_label
 @onready var day_budget_label: Label = $MarginContainer/VBox/header_row/day_budget_label
-@onready var artifact_container: VBoxContainer = $MarginContainer/VBox/artifact_container
-@onready var scientist_container: VBoxContainer = $MarginContainer/VBox/scientist_container
+@onready var artifact_container: VBoxContainer = $MarginContainer/VBox/artifacts_panel/artifacts_vbox/artifact_container
+@onready var scientist_container: VBoxContainer = $MarginContainer/VBox/scientists_panel/scientists_vbox/scientist_container
 @onready var status_label: Label = $MarginContainer/VBox/status_label
 
 @onready var btn_artifact: Button = $MarginContainer/VBox/nav_row/btn_artifact

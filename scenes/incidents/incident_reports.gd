@@ -27,11 +27,15 @@ func _refresh():
 	for incident in incidents:
 		var inc: Dictionary = incident as Dictionary
 		var severity: String = inc.get("severity", "minor")
+		var color: Color = SEVERITY_COLORS.get(severity, Color.WHITE)
+		var sev_html: String = "[color=#%s]%s[/color]" % [color.to_html(false), severity.capitalize()]
 		text += "--- DAY %d: %s (%s) ---\n" % [
 			inc.get("day", 0),
 			inc.get("name", "Unknown Incident"),
-			severity.capitalize()
+			sev_html
 		]
+		if inc.get("mitigated", false):
+			text += "[color=#7f8fa6](severity reduced by Field Stabilizer)[/color]\n"
 		text += "%s\n\n" % inc.get("description", "")
 	incidents_label.text = text
 

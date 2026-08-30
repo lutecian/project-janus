@@ -50,6 +50,8 @@ var incident_cooldown: int = 0
 var active_incidents: Array = []
 var selected_scientist_index: int = 0
 
+const SEVERITY_ORDER := ["minor", "moderate", "severe", "critical"]
+
 const SUSPECTED_THRESHOLD := 30
 const CONFIRMED_THRESHOLD := 70
 
@@ -323,8 +325,11 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 
 	var quality := _calculate_observation_quality(experiment_def, scientist)
 	var observations := _generate_observations(experiment_def, quality)
-	var knowledge_gain := int(experiment_def.get("knowledge_gain", 2) * quality)
-	knowledge_gain = maxi(knowledge_gain, 1)
+	# Knowledge gain keeps a guaranteed base so experiments always meaningfully progress,
+	# with a modest quality bonus on top (base_gain + round((quality-1)*base_gain*0.5)).
+	var base_gain := int(experiment_def.get("knowledge_gain", 2))
+	var knowledge_gain := base_gain + int(round((quality - 1.0) * base_gain * 0.5))
+	knowledge_gain = maxi(knowledge_gain, base_gain)
 
 	for obs in observations:
 		knowledge["observations"].append(obs)
@@ -361,10 +366,33 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 
 	_check_incidents()
+	_check_dangerous_experiment(exp_id)
 	_advance_helios()
 	_generate_intelligence()
 
 	return exp_record
+
+func _check_dangerous_experiment(exp_id: String):
+	var exps := load_experiment_definitions()
+	for exp in exps:
+		var exp_dict: Dictionary = exp as Dictionary
+		if exp_dict.get("id", "") != exp_id:
+			continue
+		if not exp_dict.get("dangerous", false):
+			return
+		# Field stabilizer mitigates the risk of high-energy experiments.
+		var base_chance: float = 0.12
+		if unlocked_technologies.has("TECH_FIELD_STABILIZER"):
+			base_chance = 0.04
+		if _rng.randf() >= base_chance:
+			return
+		var incident_data := _load_json("res://data/events/incidents.json")
+		var possible: Array = incident_data.get("incidents", [])
+		for inc in possible:
+			var inc_dict: Dictionary = inc as Dictionary
+			if inc_dict.get("id", "") == "INC_EQUIPMENT_FAILURE":
+				_apply_incident(inc_dict)
+				break
 
 func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dictionary) -> float:
 	var skills: Dictionary = scientist.get("skills", {})
@@ -485,39 +513,54 @@ func _get_technology_definition(tech_id: String) -> Dictionary:
 	return {}
 
 func _check_secondary_discoveries(exp_id: String):
+	# Evidence-driven (simulation-authoritative): secondary discoveries are promoted by
+	# tallying the discovery_hint tags on observations accumulated during experiments.
 	for d in discoveries:
 		var d_dict: Dictionary = d as Dictionary
 		if d_dict["state"] == "confirmed":
 			continue
 		var did: String = d_dict.get("discovery_id", "")
-		var count_threshold := _discovery_count_threshold(did)
-		var count_needed: int = count_threshold.get("required_count", 0)
-		var exp_key: String = count_threshold.get("experiment", "")
-		if exp_key.is_empty():
+		var hint: String = _discovery_hint_for(did)
+		if hint.is_empty():
 			continue
-		var count: int = knowledge["experiment_counts"].get(exp_key, 0)
-		if count >= count_needed and d_dict["state"] == "unknown":
+		var evidence_count := 0
+		var distinct_types := {}
+		var high_confidence_count := 0
+		for obs in knowledge["observations"]:
+			var o: Dictionary = obs as Dictionary
+			if o.get("discovery_hint", "") != hint:
+				continue
+			evidence_count += 1
+			distinct_types[o.get("type", "?")] = true
+			if o.get("confidence", "low") == "high":
+				high_confidence_count += 1
+
+		if d_dict["state"] == "unknown" and evidence_count >= 2:
 			d_dict["state"] = "suspected"
 			EventBus.discovery_suspected.emit(did)
-		elif count >= count_needed + 2 and d_dict["state"] == "suspected":
-			d_dict["state"] = "confirmed"
-			var unlock: String = d_dict.get("technology_unlock", "")
-			if not unlock.is_empty():
-				_unlock_technology_for_discovery(did, unlock)
-			EventBus.discovery_confirmed.emit(did)
+		elif d_dict["state"] == "suspected":
+			var confirmed := evidence_count >= 4
+			if not confirmed and evidence_count >= 2 and distinct_types.size() >= 2 and high_confidence_count >= 1:
+				confirmed = true
+			if confirmed:
+				d_dict["state"] = "confirmed"
+				var unlock: String = d_dict.get("technology_unlock", "")
+				if not unlock.is_empty():
+					_unlock_technology_for_discovery(did, unlock)
+				EventBus.discovery_confirmed.emit(did)
 
-func _discovery_count_threshold(discovery_id: String) -> Dictionary:
+func _discovery_hint_for(discovery_id: String) -> String:
 	match discovery_id:
 		"DISC_ENERGY_ABSORPTION":
-			return {"experiment": "EXP_HEATING", "required_count": 2}
+			return "energy_absorption"
 		"DISC_GRAV_ATTENUATION":
-			return {"experiment": "EXP_EM_RESONANCE", "required_count": 1}
+			return "grav_attenuation"
 		"DISC_GRAV_AMPLIFICATION":
-			return {"experiment": "EXP_EM_MID", "required_count": 2}
+			return "grav_amplification"
 		"DISC_GRAV_NULLIFICATION":
-			return {"experiment": "EXP_EM_LOW", "required_count": 2}
+			return "grav_nullification"
 		_:
-			return {}
+			return ""
 
 func name_discovery(player_name: String):
 	discovery["player_name"] = player_name
@@ -595,21 +638,36 @@ func _check_incidents():
 
 func _apply_incident(incident: Dictionary):
 	var inc_id: String = incident.get("id", "")
-	incidents.append({
+	var base_severity: String = incident.get("severity", "minor")
+	var effects: Dictionary = incident.get("effects", {}).duplicate(true)
+	var mitigated := false
+
+	var stabilizer: bool = unlocked_technologies.has("TECH_FIELD_STABILIZER")
+	if stabilizer:
+		mitigated = true
+		effects["budget_cost"] = int(effects.get("budget_cost", 0) * 0.5)
+		effects["days_lost"] = int(effects.get("days_lost", 0) * 0.5)
+		effects["observation_quality_reduction"] = effects.get("observation_quality_reduction", 0.0) * 0.5
+		var base_sev_index: int = SEVERITY_ORDER.find(base_severity)
+		if base_sev_index > 0:
+			base_severity = SEVERITY_ORDER[base_sev_index - 1]
+
+	var record := {
 		"id": inc_id,
 		"name": incident.get("name", "Unknown Incident"),
 		"description": incident.get("description", ""),
-		"severity": incident.get("severity", "minor"),
-		"day": elapsed_days
-	})
-	var effects: Dictionary = incident.get("effects", {})
+		"severity": base_severity,
+		"day": elapsed_days,
+		"mitigated": mitigated
+	}
+	incidents.append(record)
 	budget["funds"] -= effects.get("budget_cost", 0)
 	elapsed_days += effects.get("days_lost", 0)
 	var discovery_bonus: float = incident.get("discovery_chance_increase", 0.0)
 	if discovery_bonus > 0 and knowledge["progress"] < CONFIRMED_THRESHOLD:
 		knowledge["progress"] = mini(knowledge["progress"] + int(discovery_bonus * 100), CONFIRMED_THRESHOLD)
 	incident_cooldown = 5
-	EventBus.incident_occurred.emit(incident)
+	EventBus.incident_occurred.emit(record)
 
 func resolve_incident(incident_id: String):
 	for i in range(active_incidents.size()):

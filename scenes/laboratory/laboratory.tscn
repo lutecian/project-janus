@@ -90,28 +90,44 @@ text = "Incidents"
 [node name="Sep2" type="HSeparator" parent="MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="artifacts_header" type="Label" parent="MarginContainer/VBox"]
+[node name="artifacts_panel" type="PanelContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_type_variation = &"accent_card"
+
+[node name="artifacts_vbox" type="VBoxContainer" parent="MarginContainer/VBox/artifacts_panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="artifacts_header" type="Label" parent="MarginContainer/VBox/artifacts_panel/artifacts_vbox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
 text = "ARTIFACTS IN CONTAINMENT"
 horizontal_alignment = 1
 
-[node name="artifact_container" type="VBoxContainer" parent="MarginContainer/VBox"]
+[node name="artifact_container" type="VBoxContainer" parent="MarginContainer/VBox/artifacts_panel/artifacts_vbox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="Sep3" type="HSeparator" parent="MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="scientists_header" type="Label" parent="MarginContainer/VBox"]
+[node name="scientists_panel" type="PanelContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_type_variation = &"accent_card"
+
+[node name="scientists_vbox" type="VBoxContainer" parent="MarginContainer/VBox/scientists_panel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="scientists_header" type="Label" parent="MarginContainer/VBox/scientists_panel/scientists_vbox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
 text = "RESEARCH STAFF"
 horizontal_alignment = 1
 
-[node name="scientist_container" type="VBoxContainer" parent="MarginContainer/VBox"]
+[node name="scientist_container" type="VBoxContainer" parent="MarginContainer/VBox/scientists_panel/scientists_vbox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 

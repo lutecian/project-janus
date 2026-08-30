@@ -59,9 +59,14 @@ theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
 text = "RESEARCH REPORT"
 horizontal_alignment = 1
 
-[node name="narrative_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+[node name="NarrativePanel" type="PanelContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_type_variation = &"accent_card"
+
+[node name="narrative_label" type="RichTextLabel" parent="ScrollContainer/VBox/NarrativePanel"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 60)
+size_flags_vertical = 3
 bbcode_enabled = false
 theme_override_font_sizes/normal_font_size = 14
 scroll_active = false

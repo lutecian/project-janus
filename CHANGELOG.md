@@ -1,6 +1,28 @@
 # CHANGELOG
 
-## [Unreleased]
+## [Unreleased / 0.2.0] - current
+### Added
+- Screens: Laboratory hub, Budget, Technology, Incident Reports + navigation (all return to laboratory)
+- Experiment selection reachable from lab "Experiments" button
+- 4 branch tech tree (Experimental Field Sensor, Thermal Containment, Gravity Sensor, Field Stabilizer)
+- 4 secondary discoveries (Grav Attenuation, Energy Absorption, Grav Amplification, Grav Nullification), player-namable
+- 4 new experiments (Acoustic, Laser, Vibration, Radioactive) with per-experiment unlock thresholds + tech gates
+- Dangerous experiments (Radioactive) with incident risk
+- Field Stabilizer technical: -50% incident severity + halves budget/days effects
+- Dark science-lab theme (ThemeManager autoload): palette, root background, themed buttons/panels/inputs
+- Accent-carded section panels on laboratory + experiment result screens (reusable accent_card / section_header variations)
+- ObservationSimulator refactor: data-driven observation generation with `discovery_hint` tags
+- Simulation-driven secondary discovery confirmation (evidence-tallied, not hardcoded counts)
+- Consolidated automated test suite (scene_test_runner: ALL_SCENES_OK + LOGIC_OK + SIM_OK), theme_check, balance_sim
+
+### Changed
+- Knowledge gain formula: guaranteed base gain (no longer floored by low quality) + modest quality bonus
+- Rebalanced experiment base gains + economy (verified 14-22 experiments to confirm, no bankruptcy)
+- Scientist reference fixed: `selected_scientist_index`
+- Narrative generation `%`-formatting crash fixed (String.format named placeholders)
+
+### Fixed
+- `GameState.selected_scientist` -> `selected_scientist_index` bug in experiment_selection.gd
 
 ## [0.0.1] - YYYY-MM-DD
 ### Added

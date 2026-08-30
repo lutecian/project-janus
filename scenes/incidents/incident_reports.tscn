@@ -46,8 +46,8 @@ layout_mode = 2
 
 [node name="incidents_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 300)
-bbcode_enabled = false
+custom_minimum_size = Vector2(0, 150)
+bbcode_enabled = true
 theme_override_font_sizes/normal_font_size = 13
 scroll_active = true
 autowrap_mode = 2

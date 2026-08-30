@@ -13,6 +13,7 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 	var content := ""
 	var interpretation := ""
 	var obs_type := "active"
+	var hint := ""
 	var extras := {}
 
 	match template:
@@ -24,9 +25,11 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 				"Acoustic sensors detect no internal vibration or resonance.",
 				"Object mass reads consistently across multiple measurement attempts."
 			]
-			content = variants[rng.randi() % variants.size()]
+			var picked: int = rng.randi() % variants.size()
+			content = variants[picked]
 			interpretation = "Thermal stability appears anomalous."
 			obs_type = "passive"
+			hint = "energy_absorption" if picked == 0 else ""
 		"heating":
 			var variants := [
 				"Large amounts of energy enter the environment but sphere temperature remains nearly constant.",
@@ -36,6 +39,7 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 			]
 			content = variants[rng.randi() % variants.size()]
 			interpretation = "Object resists conventional heating."
+			hint = "energy_absorption"
 		"electrical_exposure":
 			var deviation: float = rng.randf_range(1.0, 8.0) * quality
 			var variants := [
@@ -66,6 +70,7 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 			content = variants[rng.randi() % variants.size()]
 			interpretation = "No significant response detected."
 			confidence = "low"
+			hint = "grav_nullification"
 		"em_mid":
 			var fluctuation: float = rng.randf_range(1.0, 4.0) * quality
 			var variants := [
@@ -76,6 +81,7 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 			]
 			content = variants[rng.randi() % variants.size()]
 			interpretation = "Possible interaction with electromagnetic fields."
+			hint = "grav_amplification"
 		"em_resonance":
 			var weight_change: float = rng.randf_range(15.0, 45.0) * clampf(quality, 0.0, 1.0)
 			var variants := [
@@ -86,6 +92,7 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 			]
 			content = variants[rng.randi() % variants.size()]
 			interpretation = "Electromagnetic exposure at resonance range affects gravitational measurements."
+			hint = "grav_attenuation"
 			extras["weight_decrease_pct"] = weight_change
 		"cooling":
 			var variants := [
@@ -96,6 +103,7 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 			]
 			content = variants[rng.randi() % variants.size()]
 			interpretation = "Object maintains fixed thermal equilibrium."
+			hint = "energy_absorption"
 		"acoustic":
 			var variants := [
 				"No acoustic resonance detected across the frequency range.",
@@ -150,6 +158,8 @@ static func generate(experiment_def: Dictionary, quality: float, rng: RandomNumb
 		"confidence": confidence,
 		"type": obs_type
 	}
+	if not hint.is_empty():
+		obs["discovery_hint"] = hint
 	for key in extras:
 		obs[key] = extras[key]
 	observations.append(obs)

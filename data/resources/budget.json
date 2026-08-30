@@ -8,7 +8,11 @@
     "EXP_XRAY": 600,
     "EXP_EM_LOW": 500,
     "EXP_EM_MID": 700,
-    "EXP_EM_RESONANCE": 900
+    "EXP_EM_RESONANCE": 900,
+    "EXP_ACOUSTIC": 500,
+    "EXP_LASER": 650,
+    "EXP_VIBRATION": 600,
+    "EXP_RADIOACTIVE": 1200
   },
   "daily_overhead": 150,
   "funding_intervals": [
