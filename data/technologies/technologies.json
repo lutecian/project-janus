@@ -1,0 +1,31 @@
+{
+  "technologies": [
+    {
+      "id": "TECH_EXPERIMENTAL_FIELD_SENSOR",
+      "name": "Experimental Field Sensor",
+      "description": "A prototype sensor capable of measuring subtle local field variations near anomalous objects.",
+      "category": "measurement",
+      "effect": "+20% observation quality on all experiments",
+      "unlock_condition": "name discovery",
+      "unlock_event": "DISC_GRAV_ATTENUATION"
+    },
+    {
+      "id": "TECH_GRAVITY_SENSOR",
+      "name": "Gravity Sensor",
+      "description": "A precision gravitational measurement array for detecting micro-variations in local gravity fields.",
+      "category": "measurement",
+      "effect": "Unlocks gravity-focused experiments",
+      "unlock_condition": "future",
+      "unlock_event": ""
+    },
+    {
+      "id": "TECH_FIELD_STABILIZER",
+      "name": "Field Stabilizer",
+      "description": "A containment unit that stabilizes local field fluctuations around artifacts.",
+      "category": "containment",
+      "effect": "Reduces incident probability",
+      "unlock_condition": "future",
+      "unlock_event": ""
+    }
+  ]
+}

@@ -135,15 +135,35 @@ horizontal_alignment = 1
 [node name="nav_container" type="HBoxContainer" parent="ScrollContainer/VBox"]
 layout_mode = 2
 
+[node name="btn_lab" type="Button" parent="ScrollContainer/VBox/nav_container"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 30)
+text = "Lab Overview"
+
 [node name="btn_artifact_detail" type="Button" parent="ScrollContainer/VBox/nav_container"]
 layout_mode = 2
-custom_minimum_size = Vector2(140, 30)
+custom_minimum_size = Vector2(130, 30)
 text = "Artifact Detail"
 
 [node name="btn_helios_intel" type="Button" parent="ScrollContainer/VBox/nav_container"]
 layout_mode = 2
-custom_minimum_size = Vector2(140, 30)
+custom_minimum_size = Vector2(130, 30)
 text = "HELIOS Intel (0)"
+
+[node name="btn_budget" type="Button" parent="ScrollContainer/VBox/nav_container"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 30)
+text = "Budget"
+
+[node name="btn_technology" type="Button" parent="ScrollContainer/VBox/nav_container"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 30)
+text = "Technology"
+
+[node name="btn_incidents" type="Button" parent="ScrollContainer/VBox/nav_container"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 30)
+text = "Incidents"
 
 [node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2

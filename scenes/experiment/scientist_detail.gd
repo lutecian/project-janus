@@ -12,7 +12,8 @@ var scientist: Dictionary = {}
 
 func _ready():
 	btn_back.pressed.connect(_on_back)
-	scientist = GameState.get_meta("selected_scientist", {})
+	if GameState.selected_scientist_index >= 0 and GameState.selected_scientist_index < GameState.scientists.size():
+		scientist = GameState.scientists[GameState.selected_scientist_index]
 	if scientist.is_empty():
 		title_label.text = "No scientist selected."
 		return
@@ -70,4 +71,4 @@ func _display_scientist():
 	history_label.text = history_text
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/experiment/experiment_selection.tscn")
+	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

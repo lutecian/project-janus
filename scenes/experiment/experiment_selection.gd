@@ -16,8 +16,12 @@ extends Control
 @onready var briefing_dismiss: Button = $ScrollContainer/VBox/briefing_panel/BriefingDismiss
 @onready var day_label: Label = $ScrollContainer/VBox/day_label
 @onready var nav_container: HBoxContainer = $ScrollContainer/VBox/nav_container
+@onready var btn_lab: Button = $ScrollContainer/VBox/nav_container/btn_lab
 @onready var btn_artifact_detail: Button = $ScrollContainer/VBox/nav_container/btn_artifact_detail
 @onready var btn_helios_intel: Button = $ScrollContainer/VBox/nav_container/btn_helios_intel
+@onready var btn_budget: Button = $ScrollContainer/VBox/nav_container/btn_budget
+@onready var btn_technology: Button = $ScrollContainer/VBox/nav_container/btn_technology
+@onready var btn_incidents: Button = $ScrollContainer/VBox/nav_container/btn_incidents
 @onready var artifact_name_label: Label = $ScrollContainer/VBox/artifact_selector/artifact_name_label
 @onready var btn_prev_artifact: Button = $ScrollContainer/VBox/artifact_selector/btn_prev_artifact
 @onready var btn_next_artifact: Button = $ScrollContainer/VBox/artifact_selector/btn_next_artifact
@@ -33,8 +37,12 @@ func _ready():
 	btn_save.pressed.connect(_on_save_pressed)
 	btn_main_menu.pressed.connect(_on_menu_pressed)
 	briefing_dismiss.pressed.connect(_on_briefing_dismissed)
+	btn_lab.pressed.connect(_on_lab)
 	btn_artifact_detail.pressed.connect(_on_artifact_detail)
 	btn_helios_intel.pressed.connect(_on_helios_intel)
+	btn_budget.pressed.connect(_on_budget)
+	btn_technology.pressed.connect(_on_technology)
+	btn_incidents.pressed.connect(_on_incidents)
 	btn_prev_artifact.pressed.connect(_on_prev_artifact)
 	btn_next_artifact.pressed.connect(_on_next_artifact)
 	experiments = _load_experiments()
@@ -187,7 +195,7 @@ func _on_scientist_selected(index: int):
 	_update_run_button()
 
 func _on_scientist_detail(index: int):
-	GameState.meta["selected_scientist_index"] = index
+	GameState.selected_scientist_index = index
 	get_tree().change_scene_to_file("res://scenes/experiment/scientist_detail.tscn")
 
 func _on_experiment_selected(experiment_id: String):
@@ -264,6 +272,18 @@ func _on_next_artifact():
 		selected_scientist_index = -1
 		selected_experiment_id = ""
 		_refresh_ui()
+
+func _on_lab():
+	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
+
+func _on_budget():
+	get_tree().change_scene_to_file("res://scenes/budget/budget.tscn")
+
+func _on_technology():
+	get_tree().change_scene_to_file("res://scenes/technology/technology.tscn")
+
+func _on_incidents():
+	get_tree().change_scene_to_file("res://scenes/incidents/incident_reports.tscn")
 
 func _on_knowledge_updated(_progress: int, _state: String):
 	pass

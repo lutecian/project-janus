@@ -1,0 +1,138 @@
+[gd_scene load_steps=2 format=3 uid="uid://lab00001"]
+
+[ext_resource type="Script" path="res://scenes/laboratory/laboratory.gd" id="1_script"]
+
+[node name="Laboratory" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="header_row" type="HBoxContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="org_label" type="Label" parent="MarginContainer/VBox/header_row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "ORGANIZATION"
+vertical_alignment = 1
+
+[node name="day_budget_label" type="Label" parent="MarginContainer/VBox/header_row"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+text = "Day 0 | $10,000"
+vertical_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="nav_row" type="HBoxContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btn_artifact" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Artifact"
+
+[node name="btn_scientists" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Scientists"
+
+[node name="btn_experiments" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Experiments"
+
+[node name="btn_helios" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "HELIOS Intel"
+
+[node name="btn_budget" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Budget"
+
+[node name="btn_technology" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Technology"
+
+[node name="btn_incidents" type="Button" parent="MarginContainer/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Incidents"
+
+[node name="Sep2" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="artifacts_header" type="Label" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "ARTIFACTS IN CONTAINMENT"
+horizontal_alignment = 1
+
+[node name="artifact_container" type="VBoxContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Sep3" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="scientists_header" type="Label" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "RESEARCH STAFF"
+horizontal_alignment = 1
+
+[node name="scientist_container" type="VBoxContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Sep4" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="status_label" type="Label" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1
+
+[node name="Sep5" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="footer_row" type="HBoxContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_main_menu" type="Button" parent="MarginContainer/VBox/footer_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Main Menu"
+
+[node name="btn_save" type="Button" parent="MarginContainer/VBox/footer_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Save"

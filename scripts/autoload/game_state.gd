@@ -43,6 +43,7 @@ var budget: Dictionary = {
 var incidents: Array = []
 var incident_cooldown: int = 0
 var active_incidents: Array = []
+var selected_scientist_index: int = 0
 
 const SUSPECTED_THRESHOLD := 30
 const CONFIRMED_THRESHOLD := 70

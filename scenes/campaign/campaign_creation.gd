@@ -36,7 +36,7 @@ func _on_begin_pressed():
 
 	GameState.initialize_new_campaign(org)
 	SaveManager.save_game()
-	get_tree().change_scene_to_file("res://scenes/experiment/experiment_selection.tscn")
+	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 
 func _on_back_pressed():
 	get_tree().change_scene_to_file("res://scenes/main/main_menu.tscn")

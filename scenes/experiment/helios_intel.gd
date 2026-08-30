@@ -32,4 +32,4 @@ func _display_intel():
 	reports_label.text = reports_text
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/experiment/experiment_selection.tscn")
+	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

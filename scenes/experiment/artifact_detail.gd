@@ -45,4 +45,4 @@ func _display_artifact():
 	observations_label.text = obs_text
 
 func _on_back():
-	get_tree().change_scene_to_file("res://scenes/experiment/experiment_selection.tscn")
+	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

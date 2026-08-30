@@ -35,7 +35,7 @@ func _on_new_confirmed():
 
 func _on_load_pressed():
 	if SaveManager.load_game():
-		get_tree().change_scene_to_file("res://scenes/experiment/experiment_selection.tscn")
+		get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 	else:
 		status_label.text = "Failed to load save file."
 
