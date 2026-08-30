@@ -34,6 +34,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.2, 0.84, 1, 1)
 text = "ORGANIZATION"
 vertical_alignment = 1
 
@@ -92,6 +93,7 @@ layout_mode = 2
 [node name="artifacts_header" type="Label" parent="MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
 text = "ARTIFACTS IN CONTAINMENT"
 horizontal_alignment = 1
 
@@ -105,6 +107,7 @@ layout_mode = 2
 [node name="scientists_header" type="Label" parent="MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
 text = "RESEARCH STAFF"
 horizontal_alignment = 1
 
