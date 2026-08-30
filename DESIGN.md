@@ -64,3 +64,26 @@ All 18 steps verified:
 16. Exit ✅
 17. Reload ✅
 18. See identical campaign state ✅
+
+## Architecture (JANUS 0.1)
+Separation of concerns per spec §49 - data, logic, and simulation are kept modular:
+
+scripts/
+  autoload/
+    theme_manager.gd      # Global dark Theme + app background (art direction)
+    event_bus.gd          # Global signals (budget, incident, discovery, tech, etc.)
+    game_state.gd         # Orchestrator: campaign lifecycle, experiment flow, state, save/load
+    save_manager.gd       # Atomic saves, SCHEMA_VERSION, migration
+  simulation/
+    observation_simulator.gd  # Data-driven observation generation (simulation engine)
+
+- GameState delegates observation generation to ObservationSimulator (receives the shared
+  seeded RNG to keep campaigns deterministic).
+- All game data lives in data/**/*.json: artifacts, scientists, experiments, discoveries,
+  technologies, budget, incidents, rivals.
+- Screens are thin: they read GameState state and write back through its methods, never
+  mutating simulation logic themselves.
+- Loop-depth additions: multi-discovery tracking (per-artifact discoveries), a 4-branch
+  tech tree with unlock conditions, 4 new experiments (acoustic/laser/vibration/radioactive),
+  and rule-based secondary-discovery confirmation.
+- Art direction: ThemeManager applies a coherent dark science-lab palette globally.
