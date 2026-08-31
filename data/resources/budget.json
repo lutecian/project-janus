@@ -17,10 +17,10 @@
   "daily_overhead": 150,
   "funding_intervals": [
     {"day": 1, "amount": 0, "label": "Initial allocation"},
-    {"day": 30, "amount": 5000, "label": "Monthly research grant"},
-    {"day": 60, "amount": 5000, "label": "Monthly research grant"},
-    {"day": 90, "amount": 7500, "label": "Quarterly review funding"},
-    {"day": 120, "amount": 5000, "label": "Monthly research grant"}
+    {"day": 5, "amount": 1500, "label": "Bi-weekly research grant"},
+    {"day": 10, "amount": 1500, "label": "Bi-weekly research grant"},
+    {"day": 15, "amount": 2500, "label": "Quarterly review funding"},
+    {"day": 20, "amount": 1500, "label": "Bi-weekly research grant"}
   ],
   "budget_events": [
     {"trigger": "discovery_suspected", "amount": 3000, "label": "Emergency research funding"},

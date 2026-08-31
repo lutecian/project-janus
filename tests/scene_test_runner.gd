@@ -57,9 +57,9 @@ func _test_logic():
 	GameState.incident_cooldown = 100
 	for i in range(4):
 		GameState.run_experiment(all_defs[heating_idx], sci)
-	var expected_after: int = funds_before - heating_cost * 4
+	var expected_after: int = funds_before - heating_cost * 4 - 150 * 4
 	if GameState.budget["funds"] != expected_after:
-		push_error("budget not deducted correctly (%d != %d)" % [GameState.budget["funds"], expected_after])
+		push_error("budget should be $%d after 4 heating runs + overhead, got $%d" % [expected_after, GameState.budget["funds"]])
 		failures += 1
 
 	# Energy absorption should reach confirmed

@@ -5,7 +5,6 @@
       "name": "Passive Observation",
       "description": "Observe the artifact under standard conditions without interference.",
       "category": "passive",
-      "duration_minutes": 5,
       "required_skills": ["observation"],
       "result_template": "passive_observation",
       "knowledge_gain": 3
@@ -15,7 +14,6 @@
       "name": "Heating",
       "description": "Apply heat to the artifact and observe thermal response.",
       "category": "active",
-      "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "heating",
       "knowledge_gain": 4
@@ -25,7 +23,6 @@
       "name": "Cooling",
       "description": "Cool the artifact and observe thermal equilibrium behavior.",
       "category": "active",
-      "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "cooling",
       "knowledge_gain": 4
@@ -35,7 +32,6 @@
       "name": "Electrical Exposure",
       "description": "Apply electrical current and observe instrumentation effects.",
       "category": "active",
-      "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "electrical_exposure",
       "knowledge_gain": 4
@@ -45,7 +41,6 @@
       "name": "X-Ray Imaging",
       "description": "Perform X-ray imaging to examine internal structure.",
       "category": "passive",
-      "duration_minutes": 8,
       "required_skills": ["observation"],
       "result_template": "xray",
       "knowledge_gain": 3
@@ -55,7 +50,6 @@
       "name": "Electromagnetic Exposure — Low Frequency",
       "description": "Expose artifact to low-frequency EM field.",
       "category": "active",
-      "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "em_low",
       "knowledge_gain": 3
@@ -65,7 +59,6 @@
       "name": "Electromagnetic Exposure — Mid Frequency",
       "description": "Expose artifact to mid-frequency EM field.",
       "category": "active",
-      "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "em_mid",
       "knowledge_gain": 4
@@ -75,7 +68,6 @@
       "name": "Electromagnetic Exposure — Resonance Range",
       "description": "Expose artifact to resonance range EM field (≈18.3 GHz).",
       "category": "active",
-      "duration_minutes": 10,
       "required_skills": ["physics"],
       "result_template": "em_resonance",
       "knowledge_gain": 6
@@ -85,7 +77,6 @@
       "name": "Acoustic Resonance",
       "description": "Apply acoustic vibrations and listen for internal resonance or structural response.",
       "category": "active",
-      "duration_minutes": 8,
       "required_skills": ["engineering"],
       "result_template": "acoustic",
       "knowledge_gain": 3,
@@ -96,7 +87,6 @@
       "name": "Laser Spectroscopy",
       "description": "Analyze surface reflectivity and emission spectrum using a focused laser.",
       "category": "passive",
-      "duration_minutes": 8,
       "required_skills": ["observation"],
       "result_template": "laser",
       "knowledge_gain": 3,
@@ -107,7 +97,6 @@
       "name": "Vibration Analysis",
       "description": "Measure the artifact's vibrational modes and damping behavior.",
       "category": "active",
-      "duration_minutes": 8,
       "required_skills": ["engineering"],
       "result_template": "vibration",
       "knowledge_gain": 3,
@@ -118,7 +107,6 @@
       "name": "Radioactive Exposure",
       "description": "Expose the artifact to low-level radiation and measure absorption or emission.",
       "category": "active",
-      "duration_minutes": 12,
       "required_skills": ["physics"],
       "result_template": "radioactive",
       "knowledge_gain": 4,
@@ -128,3 +116,4 @@
     }
   ]
 }
+

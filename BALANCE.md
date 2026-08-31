@@ -18,21 +18,34 @@
   | Radioactive (tech-gated, dangerous) | 4 |
 - Tech bonus: +20% quality (Field Sensor), +10% (Gravity Sensor)
 
-## Economy (verified via automated balance sim, seed-stable)
-Four strategies simulated from a fresh campaign to confirmation:
-| Strategy | Experiments | Budget ($) | Remaining ($) |
-|---------|------------|-----------|---------------|
-| Max-gain, Dr. Chen | 14 | 8,100 | 4,900 |
-| Max-gain, Dr. Vasquez | 14 | 7,600 | 5,400 |
-| Cost-efficient, Dr. Chen | 22 | 4,400 | 8,600 |
-| Cost-efficient, Dr. Vasquez | 22 | 4,400 | 8,600 |
+## Economy (verified via automated realistic-play balance sim, seed-stable)
+The sim plays through the real `run_experiment` API, so funding, daily overhead,
+incidents, dangerous-experiment risk, and HELIOS pressure all fire. Policy: run the
+best affordable unlocked experiment each workday; wait for funding if broke.
 
-- All paths confirm at 70%+ without bankruptcy. Target pacing 14-22 experiments.
-- Starting budget: $10,000. Monthly grant: +$5,000 at day 30/60/120, +$7,500 at day 90.
+Fixed this pass: `elapsed_days` was typed `int` so fractional additions silently
+truncated to zero and the campaign time/funding/overhead economy never advanced.
+Now `elapsed_days` is a float, each experiment consumes one workday, daily overhead
+is charged, and funding grants arrive on the active timeline.
+
+| Scenario | Outcome | Experiments | Days | Spend ($) | Funds remaining ($) |
+|----------|---------|------------|------|-----------|---------------------|
+| Chen, all artifacts | confirmed | 15 | 15 | 10,750 | 7,750 |
+| Chen, J001 only | confirmed | 13 | 13 | 9,150 | 6,850 |
+| Vasquez, J001 only | confirmed | 15 | 15 | 10,750 | 7,750 |
+
+- All paths confirm without bankruptcy; surplus reflects that the real clock on the
+  player is HELIOS, not pure starvation.
+- Starting budget: $10,000.
+- Daily overhead: $150/workday (charged per experiment), bleeds on inefficiency/stalls.
+- Funding grants: day 5 = +$1,500, day 10 = +$1,500, day 15 = +$2,500 (quarterly),
+  day 20 = +$1,500.
 - Budget events: +$3,000 on discovery suspected, +$2,000 on HELIOS 60%.
 - Experiment costs: Passive $200, Heating/Cooling/Electrical $400, X-Ray $600,
   EM Low $500, EM Mid $700, EM Resonance $900, Acoustic $500, Laser $650,
   Vibration $600, Radioactive $1,200.
+- Design note: HELIOS realistically reaches ~10% during a single-artifact confirm;
+  it is the pacing clock across the full multi-artifact campaign, not per-object.
 
 ## Scientist Skills (baseline)
 | Scientist | Physics | Observation | Curiosity | Specialty |

@@ -4,7 +4,7 @@ const ObservationSimulator = preload("res://scripts/simulation/observation_simul
 
 var campaign_id: String = ""
 var seed: int = 0
-var elapsed_days: int = 0
+var elapsed_days: float = 0.0
 
 var organization: Dictionary = {}
 var artifact: Dictionary = {}
@@ -340,7 +340,10 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 		knowledge["experiment_counts"][exp_id] = 0
 	knowledge["experiment_counts"][exp_id] += 1
 
-	elapsed_days += experiment_def.get("duration_minutes", 5) / (60 * 8)
+	# Each experiment occupies a full facility workday; this lets the funding/overhead
+	# economy and the day counter meaningfully advance over a campaign (previously the
+	# integer day counter silently truncated fractional additions to zero).
+	elapsed_days += 1.0
 
 	_update_knowledge_state()
 	_check_secondary_discoveries(exp_id)
@@ -361,6 +364,7 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 
 	budget["funds"] -= cost
 	budget["spent"] += cost
+	_apply_daily_overhead()
 	_check_funding()
 	_check_budget_events()
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
@@ -573,6 +577,15 @@ func _get_experiment_cost(experiment_id: String) -> int:
 	var data := _load_json("res://data/resources/budget.json")
 	var costs: Dictionary = data.get("experiment_costs", {})
 	return costs.get(experiment_id, 300)
+
+func _apply_daily_overhead():
+	# Facility running costs. The budget already charges experiment costs individually;
+	# overhead is a separate daily drain from budget.json. This makes the lean budget
+	# pressure the design intends actually bite over a campaign.
+	var data := _load_json("res://data/resources/budget.json")
+	var overhead: int = data.get("daily_overhead", 150)
+	budget["funds"] -= overhead
+	budget["spent"] += overhead
 
 func _check_funding():
 	var data := _load_json("res://data/resources/budget.json")
