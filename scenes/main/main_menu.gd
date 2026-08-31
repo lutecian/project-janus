@@ -1,11 +1,11 @@
 extends Control
 
-@onready var btn_new: Button = $VBox/btn_new_campaign
-@onready var btn_load: Button = $VBox/btn_load_campaign
-@onready var btn_settings: Button = $VBox/btn_settings
-@onready var btn_quit: Button = $VBox/btn_quit
-@onready var title_label: Label = $VBox/title_label
-@onready var status_label: Label = $VBox/status_label
+@onready var btn_new: Button = $Card/VBox/btn_new_campaign
+@onready var btn_load: Button = $Card/VBox/btn_load_campaign
+@onready var btn_settings: Button = $Card/VBox/btn_settings
+@onready var btn_quit: Button = $Card/VBox/btn_quit
+@onready var title_label: Label = $Card/VBox/title_label
+@onready var status_label: Label = $Card/VBox/status_label
 
 var _confirm_dialog: ConfirmationDialog
 
@@ -44,3 +44,4 @@ func _on_settings_pressed():
 
 func _on_quit_pressed():
 	get_tree().quit()
+
