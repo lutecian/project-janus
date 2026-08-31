@@ -143,6 +143,7 @@ func _test_next():
 		_print_summary()
 		_test_logic()
 		_test_simulation()
+		_test_coverage()
 		get_tree().quit()
 		return
 	var path: String = _scenes_to_test[_idx]
@@ -202,3 +203,99 @@ func _test_simulation():
 		print("SIM_OK")
 	else:
 		print("%d SIM FAILURES" % sim_failures)
+
+func _test_coverage():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Coverage Test"})
+	GameState.select_artifact(0)
+	var sci: Dictionary = GameState.scientists[0]
+
+	# --- G1: Dangerous experiment incident path (isolated, NO stabilizer) ---
+	# NOTE: _test_logic appends TECH_FIELD_STABILIZER to the shared GameState, and
+	# initialize_new_campaign does not clear unlocked_technologies, so force-remove it here.
+	GameState.unlocked_technologies.erase("TECH_FIELD_STABILIZER")
+	GameState.incident_cooldown = 100  # suppress normal incident roll so only the dangerous path fires
+	var incidents_before: int = GameState.incidents.size()
+	GameState._rng.seed = 13  # first randf() = 0.062 -> fires under base 0.12 (no stabilizer)
+	GameState._check_dangerous_experiment("EXP_RADIOACTIVE")
+	var fired := false
+	if GameState.incidents.size() != incidents_before + 1:
+		push_error("dangerous experiment should have fired INC_EQUIPMENT_FAILURE")
+		failures += 1
+	else:
+		var inc: Dictionary = GameState.incidents[GameState.incidents.size() - 1]
+		fired = inc.get("id", "") == "INC_EQUIPMENT_FAILURE" and not inc.get("mitigated", false)
+		if not fired:
+			push_error("dangerous incident wrong (id=%s mitigated=%s)" % [inc.get("id", ""), inc.get("mitigated", false)])
+			failures += 1
+
+	# --- G2: Dangerous experiment with Field Stabilizer yields mitigated record ---
+	GameState.unlocked_technologies.append("TECH_FIELD_STABILIZER")
+	var incidents_before2: int = GameState.incidents.size()
+	GameState._rng.seed = 28  # first randf() < 0.04 -> fires even under base 0.04 (with stabilizer)
+	GameState._check_dangerous_experiment("EXP_RADIOACTIVE")
+	if GameState.incidents.size() != incidents_before2 + 1:
+		push_error("dangerous experiment should have fired again with stabilizer")
+		failures += 1
+	else:
+		var inc2: Dictionary = GameState.incidents[GameState.incidents.size() - 1]
+		if not inc2.get("mitigated", false):
+			push_error("stabilizer-mitigated incident should be flagged mitigated")
+			failures += 1
+
+	# --- G3: Evidence-driven secondary discovery (suspected -> confirmed) ---
+	# Build a fresh campaign so discovery state is clean.
+	GameState.initialize_new_campaign({"name": "Coverage Ev"})
+	GameState.select_artifact(0)
+	var ea_disc := {}
+	for d in GameState.discoveries:
+		var dd: Dictionary = d as Dictionary
+		if dd.get("discovery_id", "") == "DISC_ENERGY_ABSORPTION":
+			ea_disc = dd
+	if ea_disc.is_empty():
+		push_error("J001 should include DISC_ENERGY_ABSORPTION")
+		failures += 1
+	else:
+		# 2 evidence observations -> suspected
+		GameState.knowledge["observations"] = [
+			{"content": "a", "type": "active", "confidence": "medium", "discovery_hint": "energy_absorption"},
+			{"content": "b", "type": "active", "confidence": "low", "discovery_hint": "energy_absorption"}
+		]
+		GameState._check_secondary_discoveries("EXP_HEATING")
+		if ea_disc.get("state", "") != "suspected":
+			push_error("2 evidence observations should promote to suspected, got '%s'" % ea_disc.get("state", ""))
+			failures += 1
+		# Add 2 more evidence (total 4) -> confirmed
+		GameState.knowledge["observations"].append({"content": "c", "type": "passive", "confidence": "high", "discovery_hint": "energy_absorption"})
+		GameState.knowledge["observations"].append({"content": "d", "type": "active", "confidence": "medium", "discovery_hint": "energy_absorption"})
+		GameState._check_secondary_discoveries("EXP_HEATING")
+		if ea_disc.get("state", "") != "confirmed":
+			push_error("4 evidence observations should confirm, got '%s'" % ea_disc.get("state", ""))
+			failures += 1
+		if not GameState.unlocked_technologies.has("TECH_THERMAL_CONTAINMENT"):
+			push_error("confirming energy absorption should unlock thermal containment")
+			failures += 1
+
+	# --- G4: Save/load preserves the mitigated flag ---
+	# Build an incident record through the real pathway and round-trip it.
+	GameState.initialize_new_campaign({"name": "Coverage SaveLoad"})
+	GameState.select_artifact(0)
+	GameState.unlocked_technologies.append("TECH_FIELD_STABILIZER")
+	var test_inc := {
+		"id": "INC_TEST", "name": "Test", "description": "d",
+		"severity": "moderate", "effects": {"budget_cost": 1000, "days_lost": 2}
+	}
+	GameState._apply_incident(test_inc)
+	if not GameState.incidents[0].get("mitigated", false):
+		push_error("pre-save incident should be mitigated")
+		failures += 1
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if not GameState.incidents[0].get("mitigated", false):
+		push_error("mitigated flag lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("COVERAGE_OK")
+	else:
+		print("%d COVERAGE FAILURES" % failures)

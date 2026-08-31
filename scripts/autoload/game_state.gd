@@ -115,6 +115,9 @@ func initialize_new_campaign(org: Dictionary):
 	experiment_history = []
 	intelligence_reports = []
 	last_intel_threshold = 0
+	unlocked_technologies = []
+	incidents = []
+	active_incidents = []
 	_load_budget_data()
 	_rng.seed = seed
 
