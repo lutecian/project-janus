@@ -14,15 +14,20 @@
 - ObservationSimulator refactor: data-driven observation generation with `discovery_hint` tags
 - Simulation-driven secondary discovery confirmation (evidence-tallied, not hardcoded counts)
 - Consolidated automated test suite (scene_test_runner: ALL_SCENES_OK + LOGIC_OK + SIM_OK), theme_check, balance_sim
+- Coverage tests: dangerous-experiment incident path (unmitigated + Field Stabilizer mitigated), evidence-driven suspected->confirmed discovery, save/load round-trip preserving `mitigated` flag (COVERAGE_OK)
+- Windowed screenshot harness (tests/screenshot_harness) for programmatic per-screen visual verification
+- Accent-carded main menu (PanelContainer with `accent_card` variation)
 
 ### Changed
 - Knowledge gain formula: guaranteed base gain (no longer floored by low quality) + modest quality bonus
 - Rebalanced experiment base gains + economy (verified 14-22 experiments to confirm, no bankruptcy)
 - Scientist reference fixed: `selected_scientist_index`
 - Narrative generation `%`-formatting crash fixed (String.format named placeholders)
+- Laboratory hub cards + main menu wrapped to fill/center vertically (size_flags_vertical)
 
 ### Fixed
 - `GameState.selected_scientist` -> `selected_scientist_index` bug in experiment_selection.gd
+- New-campaign state leak: `initialize_new_campaign` now clears `unlocked_technologies`, `incidents`, `active_incidents` (previously carried over from a prior run)
 
 ## [0.0.1] - YYYY-MM-DD
 ### Added
