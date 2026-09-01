@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## [Unreleased / 0.3.0] - planned
+- Full endgame + systems roadmap committed to `ENDGAME.md` (design locked): rival ecology, market model + win/lose, multi-path graded endings + Domination, acquisitions + shrewdness, espionage, contracts + world events, difficulty, badges/titles. Phased, data-driven, additive.
+
 ## [Unreleased / 0.2.0] - current
 ### Added
 - Screens: Laboratory hub, Budget, Technology, Incident Reports + navigation (all return to laboratory)
