@@ -19,6 +19,7 @@ var screens: Array = [
 	{"path": "res://scenes/experiment/helios_intel.tscn", "state": true},
 	{"path": "res://scenes/settings/settings.tscn", "state": true},
 	{"path": "res://scenes/endgame/game_over.tscn", "state": "victory"},
+	{"path": "res://scenes/acquisitions/acquisitions.tscn", "state": true},
 ]
 
 var _idx := 0

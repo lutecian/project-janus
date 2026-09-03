@@ -1,0 +1,48 @@
+{
+  "companies": [
+    {
+      "id": "CMP_QVANTIC",
+      "name": "Qvantic Residuals",
+      "flavor": "Steady university spin-out. Clean books, modest pipeline.",
+      "true_value": 3200,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["experimental_field_sensor"],
+      "daily_research": 0.25,
+      "deadline_days": 40
+    },
+    {
+      "id": "CMP_FERROUS",
+      "name": "Ferrous & Co.",
+      "flavor": "Volatile private lab. Strong thermal work, erratic management.",
+      "true_value": 4800,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["thermal_containment"],
+      "daily_research": 0.35,
+      "deadline_days": 35
+    },
+    {
+      "id": "CMP_HOLLOW",
+      "name": "Hollow State Labs",
+      "flavor": "Cash-strapped state lab. Good gravity data, desperate sellers.",
+      "true_value": 2400,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["gravity_sensor"],
+      "daily_research": 0.2,
+      "deadline_days": 45
+    },
+    {
+      "id": "CMP_MERIDIAN",
+      "name": "Meridian Instruments",
+      "flavor": "Premium instrumentation house. Stabilizer expertise, proud pricing.",
+      "true_value": 6200,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["field_stabilizer"],
+      "daily_research": 0.4,
+      "deadline_days": 30
+    }
+  ]
+}

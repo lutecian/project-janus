@@ -181,10 +181,11 @@ All **additive**: the game is winnable via pure research with any system untouch
 - Retune HELIOS/field advance so a lean-on-rivals player can actually lose.
 - Verified: `MARKET_OK` (spawn/tick/victory/defeat/save-load) + `PACING_OK` (Normal: active research wins ~day 32, idle loses ~day 33). Winnable via pure research.
 
-### Phase 2 — the strategy layer
+### Phase 2 — the strategy layer — SHIPPED
 - **Acquisitions** (catalog, tech portfolios, owned-company research tick).
 - **Acquisition shrewdness** (noisy pricing, due diligence, steal/fair/lemon outcomes).
 - **Domination ending** (acquire/bankrupt/exit every rival).
+- Verified: `ACQ_OK` (pricing band, DD bounds, steal/fair/lemon, owned tick + tech, expiry/grab, monopoly resolution, save/load). Crush bar = acquired/bankrupt/exited OR share at most half the player's (strictly harder than plain majority, so Market Leader stays distinct from The Monopoly).
 
 ### Phase 3 — the meaning layer
 - **Requested-research contracts** (`contracts.json`).

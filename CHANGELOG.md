@@ -3,6 +3,7 @@
 ## [Unreleased / 0.3.0] - planned
 - Full endgame + systems roadmap committed to `ENDGAME.md` (design locked): rival ecology, market model + win/lose, multi-path graded endings + Domination, acquisitions + shrewdness, espionage, contracts + world events, difficulty, badges/titles. Phased, data-driven, additive.
 - Phase 1 shipped (finite game): 4-rival field (HELIOS/Bermant/Northwind/Vantage) with daily market ticks, player market from experiments + confirmed discoveries, majority victory (46 Normal / 38 Easy / 52 Hard) vs rival-majority defeat, game-over screen, difficulty select on campaign creation, save/load of difficulty + markets + rivals + game_over. Suites: MARKET_OK + PACING_OK (active research wins ~day 32, idle loses ~day 33 on Normal).
+- Phase 2 shipped (strategy layer): acquisition catalog (`data/acquisitions/companies.json`, 4 labs with hidden true values + tech portfolios + deadlines), noisy listed pricing (0.6–1.6x), 2-level due diligence ($400/$900, ±25%/±10% estimates), steal/fair/lemon classification driving subsidiary output (1.5x/1.0x/0.25x), owned-company daily research + staggered tech unlocks, expiring offers grabbed by rivals, wildcard implosions/exits, rival buyouts (share-capped market transfer), Domination ending (every rival acquired/bankrupt/exited/outgrown 2x) ranked as The Monopoly, Acquisitions screen + lab nav. Suite: ACQ_OK (pricing/DD/classify/tick/expiry/domination/save-load).
 
 ## [Unreleased / 0.2.0] - current
 ### Added

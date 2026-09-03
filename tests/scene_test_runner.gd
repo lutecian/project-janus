@@ -20,7 +20,8 @@ func _ready():
 		"res://scenes/experiment/results/experiment_result.tscn",
 		"res://scenes/experiment/results/breakthrough.tscn",
 		"res://scenes/settings/settings.tscn",
-		"res://scenes/endgame/game_over.tscn"
+		"res://scenes/endgame/game_over.tscn",
+		"res://scenes/acquisitions/acquisitions.tscn"
 	]
 	_test_next()
 
@@ -146,6 +147,7 @@ func _test_next():
 		_test_simulation()
 		_test_coverage()
 		_test_market()
+		_test_acq()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -387,6 +389,134 @@ func _test_market():
 		print("MARKET_OK")
 	else:
 		print("%d MARKET FAILURES" % failures)
+
+func _test_acq():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Acq Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- A1: Offers spawn with noisy pricing inside the 0.6..1.6 band ---
+	if GameState.company_offers.size() != 4:
+		push_error("acq: expected 4 company offers, got %d" % GameState.company_offers.size())
+		failures += 1
+	for o in GameState.company_offers:
+		var od: Dictionary = o as Dictionary
+		var true_value: float = float(od.get("true_value", 0.0))
+		var ratio: float = float(od.get("listed_price", 0)) / maxf(true_value, 1.0)
+		if ratio < 0.59 or ratio > 1.61:
+			push_error("acq: %s listed/true ratio %.2f outside noise band" % [od.get("id", "?"), ratio])
+			failures += 1
+
+	# --- A2: Due diligence reveals an error-bounded estimate ---
+	GameState.budget["funds"] = 20000
+	var first_id: String = (GameState.company_offers[0] as Dictionary).get("id", "")
+	var dd1: Dictionary = GameState.perform_due_diligence(first_id)
+	if not dd1.get("ok", false):
+		push_error("acq: level-1 diligence should succeed")
+		failures += 1
+	else:
+		var t1: float = float((GameState.company_offers[0] as Dictionary).get("true_value", 0.0))
+		if absf(float(dd1.get("estimate", 0.0)) - t1) > 0.26 * t1:
+			push_error("acq: level-1 estimate outside ±25% bound")
+			failures += 1
+	var dd2: Dictionary = GameState.perform_due_diligence(first_id)
+	if not dd2.get("ok", false):
+		push_error("acq: level-2 diligence should succeed")
+		failures += 1
+	else:
+		var t2: float = float((GameState.company_offers[0] as Dictionary).get("true_value", 0.0))
+		if absf(float(dd2.get("estimate", 0.0)) - t2) > 0.11 * t2:
+			push_error("acq: level-2 estimate outside ±10% bound")
+			failures += 1
+
+	# --- A3: Steal / fair / lemon classification ---
+	GameState.initialize_new_campaign({"name": "Acq Classify"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	var steal_offer: Dictionary = GameState.company_offers[0]
+	steal_offer["listed_price"] = int(float(steal_offer.get("true_value", 0.0)) * 0.5)
+	var r_steal: Dictionary = GameState.acquire_company(steal_offer.get("id", ""))
+	if not r_steal.get("ok", false) or r_steal.get("outcome", "") != "steal":
+		push_error("acq: half-price deal should classify as steal, got %s" % r_steal)
+		failures += 1
+	var fair_offer: Dictionary = GameState.company_offers[0]
+	fair_offer["listed_price"] = int(fair_offer.get("true_value", 0.0))
+	var r_fair: Dictionary = GameState.acquire_company(fair_offer.get("id", ""))
+	if not r_fair.get("ok", false) or r_fair.get("outcome", "") != "fair":
+		push_error("acq: true-price deal should classify as fair, got %s" % r_fair)
+		failures += 1
+	var lemon_offer: Dictionary = GameState.company_offers[0]
+	lemon_offer["listed_price"] = int(float(lemon_offer.get("true_value", 0.0)) * 1.5)
+	var r_lemon: Dictionary = GameState.acquire_company(lemon_offer.get("id", ""))
+	if not r_lemon.get("ok", false) or r_lemon.get("outcome", "") != "lemon":
+		push_error("acq: 1.5x-price deal should classify as lemon, got %s" % r_lemon)
+		failures += 1
+
+	# --- A4: Owned research ticks market; portfolio tech unlocks on buy ---
+	var pm_before: float = GameState.get_player_market()
+	GameState._tick_owned_companies()
+	if GameState.get_player_market() <= pm_before:
+		push_error("acq: owned subsidiaries should add market each tick")
+		failures += 1
+	if not GameState.unlocked_technologies.has("TECH_EXPERIMENTAL_FIELD_SENSOR"):
+		push_error("acq: acquiring Qvantic should unlock the field sensor tech")
+		failures += 1
+
+	# --- A5: Past-deadline offers expire or get grabbed ---
+	var exp_offer: Dictionary = GameState.company_offers[0]
+	exp_offer["expires_day"] = GameState.elapsed_days - 1.0
+	GameState._rng.seed = 7
+	GameState._tick_company_offers()
+	var fate: String = exp_offer.get("status", "offered")
+	if fate != "expired" and fate != "grabbed":
+		push_error("acq: past-deadline offer should close, got '%s'" % fate)
+		failures += 1
+
+	# --- A6: Crushing every rival ends the game as a Monopoly ---
+	GameState.initialize_new_campaign({"name": "Acq Domination"}, "normal")
+	GameState.select_artifact(0)
+	GameState.player_market = 20.0
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		match rd.get("id", ""):
+			"RIV_HELIOS":
+				rd["acquired_by_player"] = true
+				rd["status"] = "acquired"
+				rd["share"] = 0.0
+			"RIV_BERMANT":
+				rd["status"] = "exited"
+				rd["share"] = 0.0
+			_:
+				rd["share"] = 0.1
+	GameState._check_market_end()
+	if not GameState.is_game_over():
+		push_error("acq: crushing all rivals should end the game")
+		failures += 1
+	elif not GameState.game_over.get("won", false):
+		push_error("acq: domination should be a win")
+		failures += 1
+	elif GameState.game_over.get("type", "") != "monopoly":
+		push_error("acq: domination should rank as monopoly, got '%s'" % GameState.game_over.get("type", "?"))
+		failures += 1
+
+	# --- A7: Save/load preserves offers, owned, and domination-relevant rival flags ---
+	GameState.initialize_new_campaign({"name": "Acq SaveLoad"}, "hard")
+	GameState.budget["funds"] = 50000
+	var buy_id: String = (GameState.company_offers[1] as Dictionary).get("id", "")
+	GameState.acquire_company(buy_id)
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.owned_companies.size() != 1:
+		push_error("acq: owned company lost after save/load")
+		failures += 1
+	if GameState.company_offers.size() != 3:
+		push_error("acq: offers not preserved after save/load (got %d)" % GameState.company_offers.size())
+		failures += 1
+
+	if failures == 0:
+		print("ACQ_OK")
+	else:
+		print("%d ACQ FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

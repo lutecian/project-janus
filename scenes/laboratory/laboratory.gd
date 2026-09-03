@@ -13,6 +13,7 @@ extends Control
 @onready var btn_budget: Button = $MarginContainer/VBox/nav_row/btn_budget
 @onready var btn_technology: Button = $MarginContainer/VBox/nav_row/btn_technology
 @onready var btn_incidents: Button = $MarginContainer/VBox/nav_row/btn_incidents
+@onready var btn_acquisitions: Button = $MarginContainer/VBox/nav_row/btn_acquisitions
 @onready var btn_main_menu: Button = $MarginContainer/VBox/footer_row/btn_main_menu
 @onready var btn_save: Button = $MarginContainer/VBox/footer_row/btn_save
 
@@ -24,6 +25,7 @@ func _ready():
 	btn_budget.pressed.connect(_go.bind("res://scenes/budget/budget.tscn"))
 	btn_technology.pressed.connect(_go.bind("res://scenes/technology/technology.tscn"))
 	btn_incidents.pressed.connect(_go.bind("res://scenes/incidents/incident_reports.tscn"))
+	btn_acquisitions.pressed.connect(_go.bind("res://scenes/acquisitions/acquisitions.tscn"))
 	btn_main_menu.pressed.connect(_on_main_menu)
 	btn_save.pressed.connect(_on_save)
 	EventBus.game_over.connect(_on_game_over)

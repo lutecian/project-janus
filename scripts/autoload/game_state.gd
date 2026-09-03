@@ -12,6 +12,15 @@ var player_market: float = 0.0
 var rivals: Array = []
 var game_over: Dictionary = {}
 
+# --- Phase 2 (0.3): acquisitions + domination ---
+const ACQ_DD_COSTS := [400, 900]
+const ACQ_DD_ERROR := [0.25, 0.10]
+const ACQ_EXIT_SHARE := 2.0
+const ACQ_GRAB_BUMP := 2.0
+const ACQ_BUYOUT_CAP := 4.0
+var company_offers: Array = []
+var owned_companies: Array = []
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -141,6 +150,9 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal"):
 	_set_discovery_for_artifact()
 	technology_unlocked = false
 	_spawn_rivals()
+	company_offers = []
+	owned_companies = []
+	_spawn_company_offers()
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
 	helios["discoveries_named"] = []
@@ -178,7 +190,10 @@ func _spawn_rivals():
 			"daily_advance": adv,
 			"disposition": rd.get("disposition", "steady"),
 			"share": start_share,
-			"discovery_bumps": 0
+			"discovery_bumps": 0,
+			"acquired_by_player": false,
+			"status": "active",
+			"implosions": 0
 		})
 		idx += 1
 	_sync_helios_rival()
@@ -796,10 +811,18 @@ func _tick_market():
 	var player_gain: float = float(difficulty.get("player_experiment_gain", 0.55))
 	player_market += player_gain
 
+	# Owned subsidiaries contribute their (outcome-scaled) research to our share.
+	_tick_owned_companies()
+	# Rolling offers expire or get grabbed; wildcards can implode or exit.
+	_tick_company_offers()
+	_tick_rival_instability()
+
 	# Rivals advance their market share on their own timeline.
 	var lead := 0.0
 	for r in rivals:
 		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
 		var adv: float = float(rd.get("daily_advance", 0.5))
 		var variation: float = _rng.randf_range(-0.3, 0.5)
 		var new_share: float = float(rd.get("share", 0)) + maxf(adv + variation, 0.1)
@@ -821,7 +844,15 @@ func _check_market_end() -> bool:
 	if not game_over.is_empty():
 		return true
 	var majority: float = get_majority_target()
-	if player_market >= majority:
+	if _check_domination():
+		game_over = {
+			"won": true,
+			"reason": "domination",
+			"player_market": player_market,
+			"dominant_rival": "",
+			"type": "monopoly"
+		}
+	elif player_market >= majority:
 		game_over = {
 			"won": true,
 			"reason": "market_majority",
@@ -845,6 +876,8 @@ func _check_market_end() -> bool:
 func _any_rival_majority(majority: float) -> bool:
 	for r in rivals:
 		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
 		if float(rd.get("share", 0)) >= majority:
 			return true
 	return false
@@ -859,6 +892,242 @@ func _leading_rival_name() -> String:
 			best_share = share
 			best_name = rd.get("name", "Rival")
 	return best_name
+
+# --- Phase 2 acquisitions + domination ---
+func _spawn_company_offers():
+	var data: Dictionary = _load_json("res://data/acquisitions/companies.json")
+	var defs: Array = data.get("companies", [])
+	company_offers = []
+	for cdef in defs:
+		var cd: Dictionary = cdef as Dictionary
+		var true_value: float = float(cd.get("true_value", 3000.0))
+		var noise: float = _rng.randf_range(
+			float(cd.get("price_noise_min", 0.6)),
+			float(cd.get("price_noise_max", 1.6))
+		)
+		company_offers.append({
+			"id": cd.get("id", ""),
+			"name": cd.get("name", "Company"),
+			"flavor": cd.get("flavor", ""),
+			"true_value": true_value,
+			"listed_price": int(round(true_value * noise)),
+			"techs": (cd.get("techs", []) as Array).duplicate(),
+			"daily_research": float(cd.get("daily_research", 0.25)),
+			"expires_day": elapsed_days + float(cd.get("deadline_days", 35)),
+			"status": "offered",
+			"dd_level": 0,
+			"dd_estimate": 0.0,
+			"dd_error": 0.0
+		})
+
+func get_company_offer(company_id: String) -> Dictionary:
+	for o in company_offers:
+		var od: Dictionary = o as Dictionary
+		if od.get("id", "") == company_id:
+			return od
+	return {}
+
+func perform_due_diligence(company_id: String) -> Dictionary:
+	var offer: Dictionary = get_company_offer(company_id)
+	if offer.is_empty():
+		return {"ok": false, "reason": "no_offer"}
+	if offer.get("status", "") != "offered":
+		return {"ok": false, "reason": "not_offered"}
+	var level: int = int(offer.get("dd_level", 0))
+	if level >= 2:
+		return {"ok": false, "reason": "max_level"}
+	var cost: int = int(ACQ_DD_COSTS[level])
+	if int(budget.get("funds", 0)) < cost:
+		return {"ok": false, "reason": "insufficient_funds"}
+	budget["funds"] = int(budget.get("funds", 0)) - cost
+	budget["spent"] = int(budget.get("spent", 0)) + cost
+	var err: float = float(ACQ_DD_ERROR[level])
+	var true_value: float = float(offer.get("true_value", 0.0))
+	var estimate: float = true_value * (1.0 + _rng.randf_range(-err, err))
+	offer["dd_level"] = level + 1
+	offer["dd_estimate"] = estimate
+	offer["dd_error"] = err
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	return {"ok": true, "level": level + 1, "estimate": estimate, "error": err, "cost": cost}
+
+func _classify_deal(price_paid: float, true_value: float) -> String:
+	if true_value <= 0.0:
+		return "fair"
+	var ratio: float = price_paid / true_value
+	if ratio <= 0.85:
+		return "steal"
+	if ratio >= 1.20:
+		return "lemon"
+	return "fair"
+
+func _deal_multiplier(outcome: String) -> float:
+	if outcome == "steal":
+		return 1.5
+	if outcome == "lemon":
+		return 0.25
+	return 1.0
+
+func acquire_company(company_id: String) -> Dictionary:
+	var offer: Dictionary = get_company_offer(company_id)
+	if offer.is_empty():
+		return {"ok": false, "reason": "no_offer"}
+	if offer.get("status", "") != "offered":
+		return {"ok": false, "reason": "not_offered"}
+	var price: int = int(offer.get("listed_price", 0))
+	if int(budget.get("funds", 0)) < price:
+		return {"ok": false, "reason": "insufficient_funds"}
+	budget["funds"] = int(budget.get("funds", 0)) - price
+	budget["spent"] = int(budget.get("spent", 0)) + price
+	var outcome: String = _classify_deal(float(price), float(offer.get("true_value", 0.0)))
+	offer["status"] = "acquired"
+	offer["outcome"] = outcome
+	var techs: Array = (offer.get("techs", []) as Array).duplicate()
+	var owned := {
+		"id": offer.get("id", ""),
+		"name": offer.get("name", ""),
+		"outcome": outcome,
+		"mult": _deal_multiplier(outcome),
+		"daily_research": float(offer.get("daily_research", 0.25)),
+		"techs_remaining": techs
+	}
+	owned_companies.append(owned)
+	_unlock_next_owned_tech(owned)
+	company_offers.erase(offer)
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	EventBus.company_acquired.emit(company_id, outcome)
+	return {"ok": true, "outcome": outcome, "price": price}
+
+func _unlock_next_owned_tech(owned: Dictionary):
+	var remaining: Array = owned.get("techs_remaining", [])
+	while not remaining.is_empty():
+		var key: String = str(remaining[0])
+		remaining.remove_at(0)
+		var before: int = unlocked_technologies.size()
+		_unlock_technology_for_discovery("ACQ_%s" % owned.get("id", ""), key)
+		if unlocked_technologies.size() > before:
+			return
+
+func _tick_owned_companies():
+	for o in owned_companies:
+		var od: Dictionary = o as Dictionary
+		player_market += float(od.get("daily_research", 0.25)) * float(od.get("mult", 1.0))
+		if not (od.get("techs_remaining", []) as Array).is_empty():
+			if _rng.randf() < 0.15:
+				_unlock_next_owned_tech(od)
+
+func _tick_company_offers():
+	for o in company_offers.duplicate():
+		var od: Dictionary = o as Dictionary
+		if od.get("status", "") != "offered":
+			continue
+		if elapsed_days < float(od.get("expires_day", 0.0)):
+			continue
+		if _rng.randf() < 0.5:
+			var grabber: Dictionary = _lowest_active_rival()
+			if not grabber.is_empty():
+				grabber["share"] = float(grabber.get("share", 0)) + ACQ_GRAB_BUMP
+				od["status"] = "grabbed"
+				od["grabbed_by"] = grabber.get("id", "")
+				EventBus.offer_closed.emit(od.get("id", ""), "grabbed")
+				continue
+		od["status"] = "expired"
+		EventBus.offer_closed.emit(od.get("id", ""), "expired")
+
+func _lowest_active_rival() -> Dictionary:
+	var best := {}
+	var best_share := 1e9
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		var share: float = float(rd.get("share", 0))
+		if share < best_share:
+			best_share = share
+			best = rd
+	return best
+
+func _tick_rival_instability():
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		if rd.get("disposition", "") != "wildcard":
+			continue
+		if _rng.randf() < 0.04:
+			rd["share"] = float(rd.get("share", 0)) * 0.5
+			rd["implosions"] = int(rd.get("implosions", 0)) + 1
+			if float(rd.get("share", 0)) < ACQ_EXIT_SHARE:
+				if int(rd.get("implosions", 0)) >= 2:
+					rd["status"] = "bankrupt"
+				else:
+					rd["status"] = "exited"
+				rd["share"] = 0.0
+
+func get_rival_buyout_price(rival_id: String) -> int:
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == rival_id:
+			var per: float = 350.0
+			return int(ceil(float(rd.get("share", 0)) * per))
+	return 0
+
+func buy_out_rival(rival_id: String) -> Dictionary:
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") != rival_id:
+			continue
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			return {"ok": false, "reason": "not_active"}
+		var price: int = get_rival_buyout_price(rival_id)
+		if int(budget.get("funds", 0)) < price:
+			return {"ok": false, "reason": "insufficient_funds"}
+		var old_share: float = float(rd.get("share", 0))
+		budget["funds"] = int(budget.get("funds", 0)) - price
+		budget["spent"] = int(budget.get("spent", 0)) + price
+		rd["acquired_by_player"] = true
+		rd["status"] = "acquired"
+		rd["share"] = 0.0
+		player_market += minf(ACQ_BUYOUT_CAP, old_share * 0.15)
+		_sync_helios_rival()
+		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+		EventBus.rival_acquired.emit(rival_id)
+		_check_market_end()
+		return {"ok": true, "price": price}
+	return {"ok": false, "reason": "no_rival"}
+
+func _rival_crushed(rd: Dictionary) -> bool:
+	if rd.get("acquired_by_player", false):
+		return true
+	if rd.get("status", "active") != "active":
+		return true
+	return float(rd.get("share", 0)) <= player_market * 0.5
+
+func _check_domination() -> bool:
+	if rivals.is_empty():
+		return false
+	for r in rivals:
+		if not _rival_crushed(r as Dictionary):
+			return false
+	return true
+
+func get_domination_progress() -> Dictionary:
+	var details: Array = []
+	var crushed := 0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		var how := "contesting"
+		if rd.get("acquired_by_player", false):
+			how = "acquired"
+		elif rd.get("status", "active") == "bankrupt":
+			how = "bankrupt"
+		elif rd.get("status", "active") == "exited":
+			how = "exited"
+		elif float(rd.get("share", 0)) <= player_market * 0.5:
+			how = "outgrown"
+		if how != "contesting":
+			crushed += 1
+		details.append({"id": rd.get("id", ""), "name": rd.get("name", ""), "how": how})
+	return {"crushed": crushed, "total": rivals.size(), "details": details}
 
 func is_game_over() -> bool:
 	return not game_over.is_empty()
@@ -916,7 +1185,9 @@ func get_save_data() -> Dictionary:
 		"difficulty": difficulty,
 		"player_market": player_market,
 		"rivals": rivals,
-		"game_over": game_over
+		"game_over": game_over,
+		"company_offers": company_offers,
+		"owned_companies": owned_companies
 	}
 
 func _save_current_artifact_data():
@@ -975,6 +1246,10 @@ func load_save_data(data: Dictionary):
 	if rivals.is_empty():
 		_spawn_rivals()
 	game_over = data.get("game_over", {})
+	company_offers = data.get("company_offers", [])
+	owned_companies = data.get("owned_companies", [])
+	if company_offers.is_empty() and owned_companies.is_empty():
+		_spawn_company_offers()
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

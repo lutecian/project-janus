@@ -23,7 +23,14 @@ func _display():
 		if (d as Dictionary).get("state", "") == "confirmed":
 			discoveries_confirmed += 1
 
-	if won:
+	if won and reason == "domination":
+		result_label.text = "DOMINATION"
+		result_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2))
+		subtitle_label.text = "The Monopoly — every rival acquired, bankrupt, exited, or outgrown."
+		summary_label.text = "You hold %.1f%% of the market on day %d with %d confirmed discoveries.\n\nNo rival remains standing: each was bought out, collapsed, or left so far behind it no longer matters.\n\nThe field is yours." % [
+			player_market, days_used, discoveries_confirmed
+		]
+	elif won:
 		result_label.text = "VICTORY"
 		result_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.5))
 		subtitle_label.text = "Your organization achieved market majority."
