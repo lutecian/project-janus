@@ -21,6 +21,19 @@ const ACQ_BUYOUT_CAP := 4.0
 var company_offers: Array = []
 var owned_companies: Array = []
 
+# --- Phase 3 (0.3): contracts + world events + espionage + legacy ---
+var contract_deck: Array = []
+var pending_offer: Dictionary = {}
+var active_contract: Dictionary = {}
+var completed_contracts: Array = []
+var next_offer_day: float = 0.0
+var event_schedule: Array = []
+var active_event: Dictionary = {}
+var events_seen: Array = []
+var esp_risk: float = 0.0
+var esp_cover: float = 0.0
+var run_badges: Array = []
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -134,7 +147,9 @@ const TRAIT_EFFECTS := {
 func _ready():
 	pass
 
-func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal"):
+func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", p_seed: int = -1):
+	if p_seed >= 0:
+		_rng.seed = p_seed
 	difficulty = _resolve_difficulty(difficulty_id)
 	campaign_id = _generate_id()
 	seed = _rng.randi()
@@ -153,6 +168,18 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal"):
 	company_offers = []
 	owned_companies = []
 	_spawn_company_offers()
+	contract_deck = []
+	pending_offer = {}
+	active_contract = {}
+	completed_contracts = []
+	_spawn_contracts()
+	event_schedule = []
+	active_event = {}
+	events_seen = []
+	_schedule_events()
+	esp_risk = 0.0
+	esp_cover = 0.0
+	run_badges = []
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
 	helios["discoveries_named"] = []
@@ -573,6 +600,7 @@ func _update_knowledge_state():
 	elif progress >= SUSPECTED_THRESHOLD and knowledge["state"] == "unknown":
 		knowledge["state"] = "suspected"
 		discovery["state"] = "suspected"
+		award_badge("first_doubt")
 		for d in discoveries:
 			var d_dict: Dictionary = d as Dictionary
 			if d_dict["state"] == "unknown":
@@ -816,6 +844,10 @@ func _tick_market():
 	# Rolling offers expire or get grabbed; wildcards can implode or exit.
 	_tick_company_offers()
 	_tick_rival_instability()
+	# Contracts progress on workdays; world events tick; heat cools if you lie low.
+	_tick_contracts()
+	_tick_events()
+	esp_risk = maxf(esp_risk - 2.0, 0.0)
 
 	# Rivals advance their market share on their own timeline.
 	var lead := 0.0
@@ -824,6 +856,9 @@ func _tick_market():
 		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
 			continue
 		var adv: float = float(rd.get("daily_advance", 0.5))
+		if float(rd.get("sabotaged_until", 0.0)) > elapsed_days:
+			adv *= 0.5
+		adv *= _event_rival_mult()
 		var variation: float = _rng.randf_range(-0.3, 0.5)
 		var new_share: float = float(rd.get("share", 0)) + maxf(adv + variation, 0.1)
 		rd["share"] = new_share
@@ -852,6 +887,14 @@ func _check_market_end() -> bool:
 			"dominant_rival": "",
 			"type": "monopoly"
 		}
+	elif _check_scientific_win():
+		game_over = {
+			"won": true,
+			"reason": "scientific",
+			"player_market": player_market,
+			"dominant_rival": _leading_rival_name(),
+			"type": "researcher"
+		}
 	elif player_market >= majority:
 		game_over = {
 			"won": true,
@@ -869,6 +912,7 @@ func _check_market_end() -> bool:
 			"type": "absorbed"
 		}
 	if not game_over.is_empty():
+		_record_legacy()
 		EventBus.game_over.emit(game_over)
 		return true
 	return false
@@ -979,6 +1023,10 @@ func acquire_company(company_id: String) -> Dictionary:
 	budget["funds"] = int(budget.get("funds", 0)) - price
 	budget["spent"] = int(budget.get("spent", 0)) + price
 	var outcome: String = _classify_deal(float(price), float(offer.get("true_value", 0.0)))
+	if outcome == "steal":
+		award_badge("bargain_hunter")
+	if int(offer.get("dd_level", 0)) >= 2 and outcome != "lemon":
+		award_badge("dd_pro")
 	offer["status"] = "acquired"
 	offer["outcome"] = outcome
 	var techs: Array = (offer.get("techs", []) as Array).duplicate()
@@ -1129,6 +1177,405 @@ func get_domination_progress() -> Dictionary:
 		details.append({"id": rd.get("id", ""), "name": rd.get("name", ""), "how": how})
 	return {"crushed": crushed, "total": rivals.size(), "details": details}
 
+# --- Phase 3 endings: tiered paths (monopoly > researcher > market_leader) ---
+func _confirmed_artifact_count() -> int:
+	var count := 0
+	if discovery.get("state", "") == "confirmed":
+		count += 1
+	for art_id in per_artifact_data:
+		var entry: Dictionary = per_artifact_data[art_id]
+		var saved_disc: Dictionary = entry.get("discovery", {})
+		if saved_disc.get("state", "") == "confirmed":
+			count += 1
+	return count
+
+func _has_tech_depth() -> bool:
+	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+		if not unlocked_technologies.has(tech_id):
+			return false
+	return true
+
+func _check_scientific_win() -> bool:
+	if discovery.get("state", "") != "confirmed":
+		return false
+	for d in discoveries:
+		if (d as Dictionary).get("state", "") != "confirmed":
+			return false
+	if _has_tech_depth():
+		return true
+	return _confirmed_artifact_count() >= 3
+
+# --- Phase 3 badges + legacy profile (persisted across runs) ---
+const LEGACY_PATH := "user://janus_legacy.json"
+
+func _badge_name(badge_id: String) -> String:
+	var data: Dictionary = _load_json("res://data/meta/badges.json")
+	for bdef in data.get("badges", []):
+		var bd: Dictionary = bdef as Dictionary
+		if bd.get("id", "") == badge_id:
+			return bd.get("name", badge_id)
+	return badge_id
+
+func award_badge(badge_id: String):
+	if badge_id.is_empty() or badge_id in run_badges:
+		return
+	run_badges.append(badge_id)
+	var legacy: Dictionary = _load_legacy()
+	var all_badges: Array = legacy.get("badges", [])
+	if badge_id not in all_badges:
+		all_badges.append(badge_id)
+	legacy["badges"] = all_badges
+	_persist_legacy(legacy)
+	EventBus.badge_earned.emit(badge_id, _badge_name(badge_id))
+
+func _load_legacy() -> Dictionary:
+	if not FileAccess.file_exists(LEGACY_PATH):
+		return {"badges": [], "best": {}}
+	var file := FileAccess.open(LEGACY_PATH, FileAccess.READ)
+	if not file:
+		return {"badges": [], "best": {}}
+	var text: String = file.get_as_text()
+	file.close()
+	var json := JSON.new()
+	if json.parse(text) != OK or not json.data is Dictionary:
+		return {"badges": [], "best": {}}
+	return json.data
+
+func _persist_legacy(data: Dictionary):
+	var file := FileAccess.open(LEGACY_PATH, FileAccess.WRITE)
+	if not file:
+		push_warning("Cannot write legacy file: " + LEGACY_PATH)
+		return
+	file.store_string(JSON.stringify(data, "\t"))
+	file.close()
+
+func _record_legacy():
+	var win_type: String = game_over.get("type", "")
+	if win_type == "market_leader":
+		award_badge("market_leader")
+	elif win_type == "researcher":
+		award_badge("distinguished")
+	elif win_type == "monopoly":
+		award_badge("monopoly")
+		if elapsed_days < 40.0:
+			award_badge("overnight_monopoly")
+	var diff_id: String = difficulty.get("id", "normal")
+	var legacy: Dictionary = _load_legacy()
+	var best: Dictionary = legacy.get("best", {})
+	var days: float = elapsed_days
+	var entry: Dictionary = best.get(diff_id, {})
+	if entry.is_empty() or float(entry.get("days", 1e9)) > days:
+		best[diff_id] = {"type": win_type, "days": days, "title": get_run_title()}
+		legacy["best"] = best
+		_persist_legacy(legacy)
+
+func get_run_title() -> String:
+	var type_names := {
+		"market_leader": "Market Leader",
+		"researcher": "Distinguished Researcher",
+		"monopoly": "The Monopoly",
+		"absorbed": "Absorbed"
+	}
+	var diff_name: String = difficulty.get("display_name", "Normal")
+	return "%s %s" % [diff_name, type_names.get(game_over.get("type", "absorbed"), "Contender")]
+
+func get_legacy_line() -> String:
+	var legacy: Dictionary = _load_legacy()
+	var best: Dictionary = legacy.get("best", {})
+	if best.is_empty():
+		return "No completed runs yet."
+	var parts: PackedStringArray = []
+	for diff_id in ["easy", "normal", "hard"]:
+		if best.has(diff_id):
+			var e: Dictionary = best[diff_id]
+			parts.append("%s: %s (day %d)" % [
+				diff_id.capitalize(), e.get("title", "?"), int(e.get("days", 0))
+			])
+	var badges: Array = legacy.get("badges", [])
+	return "Best — %s | Badges: %d/8" % ["; ".join(parts), badges.size()]
+
+# --- Phase 3 espionage: funds + risk allocation, not click-to-win ---
+func _espionage_op_def(op_id: String) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/espionage/espionage_ops.json")
+	for odef in data.get("ops", []):
+		var od: Dictionary = odef as Dictionary
+		if od.get("id", "") == op_id:
+			return od
+	return {}
+
+func _espionage_cost_mult() -> float:
+	match difficulty.get("id", "normal"):
+		"easy":
+			return 0.8
+		"hard":
+			return 1.3
+	return 1.0
+
+func perform_espionage_op(op_id: String, target_id: String = "") -> Dictionary:
+	var odef: Dictionary = _espionage_op_def(op_id)
+	if odef.is_empty():
+		return {"ok": false, "reason": "no_op"}
+	var cost: int = int(round(float(odef.get("cost", 0)) * _espionage_cost_mult()))
+	if int(budget.get("funds", 0)) < cost:
+		return {"ok": false, "reason": "insufficient_funds"}
+	if op_id == "OP_SURVEY" and target_id.is_empty():
+		return {"ok": false, "reason": "need_target"}
+	if (op_id == "OP_SABOTAGE" or op_id == "OP_EXPOSE") and target_id.is_empty():
+		return {"ok": false, "reason": "need_target"}
+	budget["funds"] = int(budget.get("funds", 0)) - cost
+	budget["spent"] = int(budget.get("spent", 0)) + cost
+	esp_risk = minf(esp_risk + float(odef.get("risk_add", 0.0)), 100.0)
+	var chance: float = clampf(
+		float(odef.get("base_success", 0.5)) + esp_cover / 250.0 - esp_risk / 200.0, 0.15, 0.95
+	)
+	var roll: float = _rng.randf()
+	var success: bool = roll < chance
+	var detail := ""
+	if success:
+		detail = _apply_espionage_success(op_id, target_id)
+	else:
+		esp_risk = minf(esp_risk + 10.0, 100.0)
+		detail = "Op failed. Heat rises."
+		if esp_risk >= 70.0 or roll > 0.97:
+			detail = _espionage_caught(op_id)
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	EventBus.espionage_updated.emit()
+	return {"ok": true, "success": success, "detail": detail, "risk": esp_risk, "cover": esp_cover}
+
+func _apply_espionage_success(op_id: String, target_id: String) -> String:
+	if op_id == "OP_SURVEY":
+		var offer: Dictionary = get_company_offer(target_id)
+		if not offer.is_empty():
+			offer["dd_level"] = 2
+			offer["dd_estimate"] = float(offer.get("true_value", 0.0))
+			offer["dd_error"] = 0.0
+			offer["surveyed"] = true
+			return "Surveillance complete: exact valuation revealed."
+		for r in rivals:
+			var rd: Dictionary = r as Dictionary
+			if rd.get("id", "") == target_id:
+				intelligence_reports.append({
+					"day": elapsed_days,
+					"threshold": -1,
+					"text": "Surveillance: %s holds %.1f%% share (pipeline: %s)." % [
+						rd.get("name", "?"), float(rd.get("share", 0)), rd.get("disposition", "?")
+					],
+					"helios_progress": helios["progress"]
+				})
+				return "Surveillance complete: rival pipeline mapped."
+		return "Surveillance found nothing."
+	if op_id == "OP_STEAL":
+		var locked: Array = []
+		for key in ["experimental_field_sensor", "thermal_containment", "gravity_sensor", "field_stabilizer"]:
+			var map := {
+				"experimental_field_sensor": "TECH_EXPERIMENTAL_FIELD_SENSOR",
+				"thermal_containment": "TECH_THERMAL_CONTAINMENT",
+				"gravity_sensor": "TECH_GRAVITY_SENSOR",
+				"field_stabilizer": "TECH_FIELD_STABILIZER"
+			}
+			if not unlocked_technologies.has(map[key]):
+				locked.append(key)
+		if locked.is_empty():
+			return "Nothing left worth stealing."
+		var pick: String = locked[_rng.randi() % locked.size()]
+		_unlock_technology_for_discovery("ESP_STEAL", pick)
+		return "Infiltration succeeded: rival tech pulled into your tree."
+	if op_id == "OP_SABOTAGE":
+		for r in rivals:
+			var rd: Dictionary = r as Dictionary
+			if rd.get("id", "") == target_id:
+				rd["sabotaged_until"] = elapsed_days + 6.0
+				return "Sabotage succeeded: %s slowed for 6 days." % rd.get("name", "?")
+		return "Sabotage found no target."
+	if op_id == "OP_COUNTER":
+		esp_cover = minf(esp_cover + 12.0, 50.0)
+		esp_risk = maxf(esp_risk - 20.0, 0.0)
+		return "Cover tightened. Heat burned off."
+	if op_id == "OP_EXPOSE":
+		for r in rivals:
+			var rd: Dictionary = r as Dictionary
+			if rd.get("id", "") == target_id:
+				rd["share"] = maxf(float(rd.get("share", 0)) - 6.0, 0.0)
+				_sync_helios_rival()
+				return "Leak published: %s reputation ruined (-6%% share)." % rd.get("name", "?")
+		return "Leak found no target."
+	return "Op completed."
+
+func _espionage_caught(op_id: String) -> String:
+	var incident := {
+		"id": "INC_EXPOSED_OP",
+		"name": "Exposed Operation",
+		"description": "An operation (%s) was traced back to your lab. Funding pulled, rivals emboldened." % op_id,
+		"severity": "major",
+		"effects": {"budget_cost": 1500, "days_lost": 1}
+	}
+	_apply_incident(incident)
+	var best := {}
+	var best_share := -1.0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		if float(rd.get("share", 0)) > best_share:
+			best_share = float(rd.get("share", 0))
+			best = rd
+	if not best.is_empty():
+		best["share"] = float(best.get("share", 0)) + 4.0
+		_sync_helios_rival()
+	esp_risk = 50.0
+	return "CAUGHT: operation exposed. Scandal incident, funding cut, leading rival gains."
+
+# --- Phase 3 world events: conditional shape-changers, never hard locks ---
+func _schedule_events():
+	var data: Dictionary = _load_json("res://data/events/world_events.json")
+	var ids: Array = []
+	for edef in data.get("events", []):
+		ids.append((edef as Dictionary).get("id", ""))
+	ids.shuffle()
+	event_schedule = []
+	var picks: int = mini(2, ids.size())
+	for i in range(picks):
+		var day := 0.0
+		if i == 0:
+			day = 12.0 + _rng.randf() * 10.0
+		else:
+			day = 30.0 + _rng.randf() * 15.0
+		event_schedule.append({"id": ids[i], "day": day})
+
+func _event_def(event_id: String) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/events/world_events.json")
+	for edef in data.get("events", []):
+		var ed: Dictionary = edef as Dictionary
+		if ed.get("id", "") == event_id:
+			return ed
+	return {}
+
+func _tick_events():
+	if not active_event.is_empty():
+		player_market += float(active_event.get("player_bonus", 0.0))
+		if elapsed_days >= float(active_event.get("until_day", 0.0)):
+			EventBus.event_updated.emit(active_event.get("id", ""), "ended")
+			active_event = {}
+		return
+	for entry in event_schedule.duplicate():
+		var ed0: Dictionary = entry as Dictionary
+		if elapsed_days >= float(ed0.get("day", 0.0)):
+			_trigger_event(ed0.get("id", ""))
+			event_schedule.erase(entry)
+
+func _trigger_event(event_id: String):
+	var edef: Dictionary = _event_def(event_id)
+	if edef.is_empty():
+		return
+	active_event = {
+		"id": event_id,
+		"name": edef.get("name", "Event"),
+		"rival_mult": float(edef.get("rival_mult", 1.0)),
+		"player_bonus": float(edef.get("player_bonus", 0.0)),
+		"until_day": elapsed_days + float(edef.get("duration_days", 8.0))
+	}
+	if event_id not in events_seen:
+		events_seen.append(event_id)
+	var grant: int = int(edef.get("funds_grant", 0))
+	if grant != 0:
+		budget["funds"] = maxi(int(budget.get("funds", 0)) + grant, 0)
+		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	EventBus.event_updated.emit(event_id, "triggered")
+
+func _event_rival_mult() -> float:
+	if active_event.is_empty():
+		return 1.0
+	return float(active_event.get("rival_mult", 1.0))
+
+# --- Phase 3 contracts: one slot at a time; workdays are the real cost ---
+func _spawn_contracts():
+	var data: Dictionary = _load_json("res://data/contracts/contracts.json")
+	contract_deck = []
+	for cdef in data.get("contracts", []):
+		contract_deck.append((cdef as Dictionary).get("id", ""))
+	next_offer_day = 6.0
+
+func _contract_def(contract_id: String) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/contracts/contracts.json")
+	for cdef in data.get("contracts", []):
+		var cd: Dictionary = cdef as Dictionary
+		if cd.get("id", "") == contract_id:
+			return cd
+	return {}
+
+func _tick_contracts():
+	if not active_contract.is_empty():
+		active_contract["days_done"] = float(active_contract.get("days_done", 0.0)) + 1.0
+		if float(active_contract.get("days_done", 0.0)) >= float(active_contract.get("days_required", 1.0)):
+			_complete_contract()
+		return
+	if not pending_offer.is_empty():
+		if elapsed_days >= float(pending_offer.get("expires_day", 0.0)):
+			pending_offer = {}
+			next_offer_day = elapsed_days + 8.0
+			EventBus.contract_updated.emit()
+		return
+	if elapsed_days < next_offer_day or contract_deck.is_empty():
+		return
+	for cid in contract_deck.duplicate():
+		var cdef: Dictionary = _contract_def(str(cid))
+		var tag: String = cdef.get("event_tag", "")
+		if tag.is_empty() or tag in events_seen:
+			pending_offer = {
+				"id": cdef.get("id", ""),
+				"offered_day": elapsed_days,
+				"expires_day": elapsed_days + 20.0
+			}
+			contract_deck.erase(cid)
+			EventBus.contract_updated.emit()
+			return
+	next_offer_day = elapsed_days + 6.0
+
+func accept_contract() -> Dictionary:
+	if pending_offer.is_empty():
+		return {"ok": false, "reason": "no_offer"}
+	if not active_contract.is_empty():
+		return {"ok": false, "reason": "slot_busy"}
+	var cdef: Dictionary = _contract_def(pending_offer.get("id", ""))
+	if cdef.is_empty():
+		pending_offer = {}
+		return {"ok": false, "reason": "no_def"}
+	active_contract = {
+		"id": cdef.get("id", ""),
+		"days_done": 0.0,
+		"days_required": float(cdef.get("days_required", 5.0))
+	}
+	pending_offer = {}
+	budget["funds"] = int(budget.get("funds", 0)) + int(cdef.get("upfront", 0))
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	EventBus.contract_updated.emit()
+	return {"ok": true}
+
+func decline_contract() -> Dictionary:
+	if pending_offer.is_empty():
+		return {"ok": false, "reason": "no_offer"}
+	pending_offer = {}
+	next_offer_day = elapsed_days + 8.0
+	EventBus.contract_updated.emit()
+	return {"ok": true}
+
+func _complete_contract():
+	var cdef: Dictionary = _contract_def(active_contract.get("id", ""))
+	if cdef.is_empty():
+		active_contract = {}
+		return
+	budget["funds"] = int(budget.get("funds", 0)) + int(cdef.get("completion_pay", 0))
+	player_market += float(cdef.get("market_bonus", 0.0))
+	_unlock_technology_for_discovery("CTR_%s" % cdef.get("id", ""), cdef.get("tech_key", ""))
+	if bool(cdef.get("military", false)):
+		award_badge("war_contractor")
+	completed_contracts.append(cdef.get("id", ""))
+	active_contract = {}
+	next_offer_day = elapsed_days + 10.0
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	EventBus.contract_updated.emit()
+	_check_market_end()
+
 func is_game_over() -> bool:
 	return not game_over.is_empty()
 
@@ -1187,7 +1634,18 @@ func get_save_data() -> Dictionary:
 		"rivals": rivals,
 		"game_over": game_over,
 		"company_offers": company_offers,
-		"owned_companies": owned_companies
+		"owned_companies": owned_companies,
+		"contract_deck": contract_deck,
+		"pending_offer": pending_offer,
+		"active_contract": active_contract,
+		"completed_contracts": completed_contracts,
+		"next_offer_day": next_offer_day,
+		"event_schedule": event_schedule,
+		"active_event": active_event,
+		"events_seen": events_seen,
+		"esp_risk": esp_risk,
+		"esp_cover": esp_cover,
+		"run_badges": run_badges
 	}
 
 func _save_current_artifact_data():
@@ -1250,6 +1708,21 @@ func load_save_data(data: Dictionary):
 	owned_companies = data.get("owned_companies", [])
 	if company_offers.is_empty() and owned_companies.is_empty():
 		_spawn_company_offers()
+	contract_deck = data.get("contract_deck", [])
+	pending_offer = data.get("pending_offer", {})
+	active_contract = data.get("active_contract", {})
+	completed_contracts = data.get("completed_contracts", [])
+	next_offer_day = data.get("next_offer_day", 0.0)
+	if contract_deck.is_empty() and pending_offer.is_empty() and active_contract.is_empty() and completed_contracts.is_empty():
+		_spawn_contracts()
+	event_schedule = data.get("event_schedule", [])
+	active_event = data.get("active_event", {})
+	events_seen = data.get("events_seen", [])
+	if event_schedule.is_empty() and active_event.is_empty() and events_seen.is_empty():
+		_schedule_events()
+	esp_risk = data.get("esp_risk", 0.0)
+	esp_cover = data.get("esp_cover", 0.0)
+	run_badges = data.get("run_badges", [])
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

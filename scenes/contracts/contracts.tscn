@@ -1,0 +1,117 @@
+[gd_scene load_steps=2 format=3 uid="uid://ctr00001"]
+
+[ext_resource type="Script" path="res://scenes/contracts/contracts.gd" id="1_script"]
+
+[node name="Contracts" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="title_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.5, 0.9, 0.6, 1)
+text = "CONTRACTS"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="funds_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+text = "Funds"
+
+[node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="active_header" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
+text = "ACTIVE CONTRACT"
+horizontal_alignment = 1
+
+[node name="active_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "None."
+autowrap_mode = 2
+
+[node name="Sep3" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="offer_header" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
+text = "PENDING OFFER"
+horizontal_alignment = 1
+
+[node name="offer_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "None."
+autowrap_mode = 2
+
+[node name="offer_row" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btn_accept" type="Button" parent="ScrollContainer/VBox/offer_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+text = "Accept"
+
+[node name="btn_decline" type="Button" parent="ScrollContainer/VBox/offer_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+text = "Decline"
+
+[node name="Sep4" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="done_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Completed: none."
+autowrap_mode = 2
+
+[node name="Sep5" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="status_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1
+
+[node name="Sep6" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_back" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+text = "Back to Lab"

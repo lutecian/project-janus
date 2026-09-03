@@ -84,6 +84,14 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
 size_flags_vertical = 3
 
+[node name="legacy_label" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
 [node name="status_label" type="Label" parent="Card/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14

@@ -1,0 +1,67 @@
+{
+  "events": [
+    {
+      "id": "EVT_WAR",
+      "name": "Border War Erupts",
+      "flavor": "Conflict diverts labs to war work. Everyone races harder; military contracts pay.",
+      "rival_mult": 1.2,
+      "player_bonus": 0.0,
+      "funds_grant": 1500,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_TRADE",
+      "name": "Alien Trade Routes Open",
+      "flavor": "New artifact sources and beacon contracts. Early adapters gain market daily.",
+      "rival_mult": 1.0,
+      "player_bonus": 0.3,
+      "funds_grant": 1000,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_CRASH",
+      "name": "Market Crash",
+      "flavor": "A liquidity crisis stalls every lab. Rival advances slow across the board.",
+      "rival_mult": 0.7,
+      "player_bonus": 0.0,
+      "funds_grant": 0,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_BOOM",
+      "name": "Research Boom",
+      "flavor": "A funding flood lifts the whole field — you most of all if you keep publishing.",
+      "rival_mult": 1.05,
+      "player_bonus": 0.4,
+      "funds_grant": 2000,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_SCANDAL",
+      "name": "Ethics Scandal",
+      "flavor": "A rival's leak scandal triggers regulation. Research slows; your funding takes a hit.",
+      "rival_mult": 0.8,
+      "player_bonus": 0.0,
+      "funds_grant": -1000,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_STRIKE",
+      "name": "Labour Strikes",
+      "flavor": "Technician strikes idle rival facilities. Your smaller team is less affected.",
+      "rival_mult": 0.75,
+      "player_bonus": 0.0,
+      "funds_grant": 0,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_BREAKTHROUGH",
+      "name": "Open Science Breakthrough",
+      "flavor": "A public breakthrough accelerates everyone. Publishers gain; hoarders scramble.",
+      "rival_mult": 1.15,
+      "player_bonus": 0.5,
+      "funds_grant": 500,
+      "duration_days": 8
+    }
+  ]
+}

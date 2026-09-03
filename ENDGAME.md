@@ -187,11 +187,12 @@ All **additive**: the game is winnable via pure research with any system untouch
 - **Domination ending** (acquire/bankrupt/exit every rival).
 - Verified: `ACQ_OK` (pricing band, DD bounds, steal/fair/lemon, owned tick + tech, expiry/grab, monopoly resolution, save/load). Crush bar = acquired/bankrupt/exited OR share at most half the player's (strictly harder than plain majority, so Market Leader stays distinct from The Monopoly).
 
-### Phase 3 — the meaning layer
+### Phase 3 — the meaning layer — SHIPPED
 - **Requested-research contracts** (`contracts.json`).
 - **World-event layer** (`world_events.json`) + event-driven contract pools.
 - **Espionage** (5-op catalog, Risk/Cover meters, caught → incident/world-event).
 - **Multi-path tiered endings** (Market/Scientific/Domination) + **badges/titles** + legacy profile.
+- Verified: `CTR_OK` (deck/offer/accept/workdays/complete/decline/gating/save-load) + `EVT_OK` (schedule/trigger/effects/expiry/save-load) + `ESP_OK` (costs/heat, steal/sabotage/expose/survey effects, caught setback, save-load) + `END_OK` (scientific win, monopoly > researcher > market order, badges, legacy file). Pacing re-verified deterministic (fixed seeds) after event tuning (war 1.2, boom 1.05, breakthrough 1.15).
 
 ---
 

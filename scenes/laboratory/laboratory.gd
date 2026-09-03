@@ -13,7 +13,9 @@ extends Control
 @onready var btn_budget: Button = $MarginContainer/VBox/nav_row/btn_budget
 @onready var btn_technology: Button = $MarginContainer/VBox/nav_row/btn_technology
 @onready var btn_incidents: Button = $MarginContainer/VBox/nav_row/btn_incidents
-@onready var btn_acquisitions: Button = $MarginContainer/VBox/nav_row/btn_acquisitions
+@onready var btn_acquisitions: Button = $MarginContainer/VBox/nav_row2/btn_acquisitions
+@onready var btn_contracts: Button = $MarginContainer/VBox/nav_row2/btn_contracts
+@onready var btn_espionage: Button = $MarginContainer/VBox/nav_row2/btn_espionage
 @onready var btn_main_menu: Button = $MarginContainer/VBox/footer_row/btn_main_menu
 @onready var btn_save: Button = $MarginContainer/VBox/footer_row/btn_save
 
@@ -26,6 +28,8 @@ func _ready():
 	btn_technology.pressed.connect(_go.bind("res://scenes/technology/technology.tscn"))
 	btn_incidents.pressed.connect(_go.bind("res://scenes/incidents/incident_reports.tscn"))
 	btn_acquisitions.pressed.connect(_go.bind("res://scenes/acquisitions/acquisitions.tscn"))
+	btn_contracts.pressed.connect(_go.bind("res://scenes/contracts/contracts.tscn"))
+	btn_espionage.pressed.connect(_go.bind("res://scenes/espionage/espionage.tscn"))
 	btn_main_menu.pressed.connect(_on_main_menu)
 	btn_save.pressed.connect(_on_save)
 	EventBus.game_over.connect(_on_game_over)
@@ -34,8 +38,11 @@ func _ready():
 
 func _refresh_ui():
 	org_label.text = GameState.organization.get("name", "Unknown Organization")
-	day_budget_label.text = "Day %d | $%d | My Market: %.1f%%" % [
-		GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market()
+	var event_text := ""
+	if not GameState.active_event.is_empty():
+		event_text = " | EVENT: %s" % GameState.active_event.get("name", "?")
+	day_budget_label.text = "Day %d | $%d | My Market: %.1f%%%s" % [
+		GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market(), event_text
 	]
 	_populate_artifacts()
 	_populate_scientists()

@@ -6,6 +6,7 @@ extends Control
 @onready var btn_quit: Button = $Card/VBox/btn_quit
 @onready var title_label: Label = $Card/VBox/title_label
 @onready var status_label: Label = $Card/VBox/status_label
+@onready var legacy_label: Label = $Card/VBox/legacy_label
 
 var _confirm_dialog: ConfirmationDialog
 
@@ -17,6 +18,7 @@ func _ready():
 	btn_load.disabled = not SaveManager.has_save()
 	title_label.text = "PROJECT JANUS"
 	status_label.text = ""
+	legacy_label.text = GameState.get_legacy_line()
 	_confirm_dialog = ConfirmationDialog.new()
 	_confirm_dialog.title = "Start New Campaign"
 	_confirm_dialog.dialog_text = "Starting a new campaign will overwrite your current save. Continue?"

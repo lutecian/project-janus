@@ -21,7 +21,9 @@ func _ready():
 		"res://scenes/experiment/results/breakthrough.tscn",
 		"res://scenes/settings/settings.tscn",
 		"res://scenes/endgame/game_over.tscn",
-		"res://scenes/acquisitions/acquisitions.tscn"
+		"res://scenes/acquisitions/acquisitions.tscn",
+		"res://scenes/contracts/contracts.tscn",
+		"res://scenes/espionage/espionage.tscn"
 	]
 	_test_next()
 
@@ -148,6 +150,10 @@ func _test_next():
 		_test_coverage()
 		_test_market()
 		_test_acq()
+		_test_contracts()
+		_test_events()
+		_test_espionage()
+		_test_endings()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -518,6 +524,341 @@ func _test_acq():
 	else:
 		print("%d ACQ FAILURES" % failures)
 
+func _test_contracts():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Ctr Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- C1: Deck spawns full, nothing pending yet ---
+	if GameState.contract_deck.size() != 6:
+		push_error("ctr: expected 6-contract deck, got %d" % GameState.contract_deck.size())
+		failures += 1
+	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
+		push_error("ctr: should start with no pending/active contract")
+		failures += 1
+
+	# --- C2: Offer arrives once the day comes ---
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	if GameState.pending_offer.get("id", "") != "CTR_FOOD":
+		push_error("ctr: first offer should be CTR_FOOD, got '%s'" % GameState.pending_offer.get("id", "?"))
+		failures += 1
+
+	# --- C3: Accept pays upfront and occupies the single slot ---
+	GameState.budget["funds"] = 5000
+	var funds_before: int = GameState.budget["funds"]
+	var acc: Dictionary = GameState.accept_contract()
+	if not acc.get("ok", false):
+		push_error("ctr: accept should succeed")
+		failures += 1
+	if GameState.budget["funds"] != funds_before + 800:
+		push_error("ctr: upfront 800 not paid (funds %d)" % GameState.budget["funds"])
+		failures += 1
+	if GameState.accept_contract().get("ok", true):
+		push_error("ctr: second accept should fail while slot busy")
+		failures += 1
+
+	# --- C4: Workdays complete it: pay + tech + market ---
+	for i in range(4):
+		GameState._tick_contracts()
+	if not GameState.active_contract.is_empty():
+		push_error("ctr: 4-day contract should complete after 4 ticks")
+		failures += 1
+	if GameState.budget["funds"] != funds_before + 800 + 1200:
+		push_error("ctr: completion pay 1200 missing (funds %d)" % GameState.budget["funds"])
+		failures += 1
+	if not GameState.unlocked_technologies.has("TECH_THERMAL_CONTAINMENT"):
+		push_error("ctr: completing CTR_FOOD should unlock thermal containment")
+		failures += 1
+	if not GameState.completed_contracts.has("CTR_FOOD"):
+		push_error("ctr: CTR_FOOD should be recorded complete")
+		failures += 1
+
+	# --- C5: Decline reschedules ---
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	GameState.decline_contract()
+	if not GameState.pending_offer.is_empty():
+		push_error("ctr: decline should clear the pending offer")
+		failures += 1
+	if GameState.next_offer_day <= GameState.elapsed_days:
+		push_error("ctr: decline should push the next offer into the future")
+		failures += 1
+
+	# --- C6: Event-gated contracts wait for their event ---
+	GameState.initialize_new_campaign({"name": "Ctr Gated"}, "normal")
+	GameState.select_artifact(0)
+	GameState.contract_deck = ["CTR_TRADE"]
+	GameState.events_seen = []
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	if not GameState.pending_offer.is_empty():
+		push_error("ctr: gated contract should not offer before its event")
+		failures += 1
+	GameState.events_seen = ["EVT_TRADE"]
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	if GameState.pending_offer.get("id", "") != "CTR_TRADE":
+		push_error("ctr: gated contract should offer once its event was seen")
+		failures += 1
+
+	# --- C7: Save/load preserves deck, pending, active, completed ---
+	GameState.initialize_new_campaign({"name": "Ctr SaveLoad"}, "hard")
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	GameState.accept_contract()
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.active_contract.get("id", "") == "":
+		push_error("ctr: active contract lost after save/load")
+		failures += 1
+	if GameState.contract_deck.size() != 5:
+		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
+		failures += 1
+
+	if failures == 0:
+		print("CTR_OK")
+	else:
+		print("%d CTR FAILURES" % failures)
+
+func _test_events():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Evt Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- E1: Two events scheduled ---
+	if GameState.event_schedule.size() != 2:
+		push_error("evt: expected 2 scheduled events, got %d" % GameState.event_schedule.size())
+		failures += 1
+
+	# --- E2: Trigger applies grant + bonus while active ---
+	var entry: Dictionary = GameState.event_schedule[0]
+	entry["day"] = GameState.elapsed_days - 1.0
+	var funds_before: int = GameState.budget["funds"]
+	GameState._tick_events()
+	if GameState.active_event.is_empty():
+		push_error("evt: due event should trigger")
+		failures += 1
+	else:
+		var edef: Dictionary = GameState._event_def(GameState.active_event.get("id", ""))
+		var grant: int = int(edef.get("funds_grant", 0))
+		if GameState.budget["funds"] != maxi(funds_before + grant, 0):
+			push_error("evt: funds grant %d not applied" % grant)
+			failures += 1
+		var pm_before: float = GameState.get_player_market()
+		GameState._tick_events()
+		var want: float = pm_before + float(edef.get("player_bonus", 0.0))
+		if absf(GameState.get_player_market() - want) > 0.001:
+			push_error("evt: daily player bonus not applied")
+			failures += 1
+		if absf(GameState._event_rival_mult() - float(edef.get("rival_mult", 1.0))) > 0.001:
+			push_error("evt: rival multiplier not applied")
+			failures += 1
+
+	# --- E3: Expiry clears the event ---
+	GameState.active_event["until_day"] = GameState.elapsed_days - 1.0
+	GameState._tick_events()
+	if not GameState.active_event.is_empty():
+		push_error("evt: past-duration event should end")
+		failures += 1
+	if absf(GameState._event_rival_mult() - 1.0) > 0.001:
+		push_error("evt: rival multiplier should revert after event ends")
+		failures += 1
+
+	# --- E4: Save/load preserves schedule, active, seen ---
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.events_seen.size() != 1:
+		push_error("evt: seen events not preserved after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("EVT_OK")
+	else:
+		print("%d EVT FAILURES" % failures)
+
+func _test_espionage():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Esp Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 100000
+
+	# --- S1: Ops charge funds and add heat, whatever the roll ---
+	var risk_before: float = GameState.esp_risk
+	var funds_before: int = GameState.budget["funds"]
+	var tries := 0
+	var seen_success := false
+	while tries < 20 and not seen_success:
+		var res: Dictionary = GameState.perform_espionage_op("OP_COUNTER")
+		if not res.get("ok", false):
+			push_error("esp: counter-intel should always be runnable")
+			failures += 1
+			break
+		seen_success = bool(res.get("success", false))
+		tries += 1
+	if not seen_success:
+		push_error("esp: counter-intel never succeeded in 20 tries (p~0.9)")
+		failures += 1
+	if GameState.esp_cover <= 0.0:
+		push_error("esp: successful counter-intel should raise cover")
+		failures += 1
+	if GameState.budget["funds"] >= funds_before:
+		push_error("esp: ops should cost funds")
+		failures += 1
+
+	# --- S2: Steal-tech effect unlocks a locked tech ---
+	var techs_before: int = GameState.unlocked_technologies.size()
+	var steal_text: String = GameState._apply_espionage_success("OP_STEAL", "")
+	if GameState.unlocked_technologies.size() != techs_before + 1:
+		push_error("esp: steal should unlock one tech, got '%s'" % steal_text)
+		failures += 1
+
+	# --- S3: Sabotage flags a rival; expose cuts share deterministically ---
+	var sab_text: String = GameState._apply_espionage_success("OP_SABOTAGE", "RIV_HELIOS")
+	var sabotaged_until := 0.0
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			sabotaged_until = float(rd.get("sabotaged_until", 0.0))
+	if sabotaged_until <= GameState.elapsed_days:
+		push_error("esp: sabotage should slow HELIOS for 6 days, got '%s'" % sab_text)
+		failures += 1
+	var berm_before := 0.0
+	for r in GameState.rivals:
+		var rd2: Dictionary = r as Dictionary
+		if rd2.get("id", "") == "RIV_BERMANT":
+			berm_before = float(rd2.get("share", 0))
+	GameState._apply_espionage_success("OP_EXPOSE", "RIV_BERMANT")
+	var berm_after := 0.0
+	for r in GameState.rivals:
+		var rd3: Dictionary = r as Dictionary
+		if rd3.get("id", "") == "RIV_BERMANT":
+			berm_after = float(rd3.get("share", 0))
+	if absf(berm_before - berm_after - 6.0) > 0.001 and not (berm_before < 6.0 and berm_after == 0.0):
+		push_error("esp: expose should cut 6 share (%.1f -> %.1f)" % [berm_before, berm_after])
+		failures += 1
+
+	# --- S4: Surveillance reveals an exact company valuation ---
+	var surv_text: String = GameState._apply_espionage_success("OP_SURVEY", (GameState.company_offers[0] as Dictionary).get("id", ""))
+	var surveyed: Dictionary = GameState.company_offers[0]
+	if int(surveyed.get("dd_level", 0)) != 2 or absf(float(surveyed.get("dd_error", 1.0))) > 0.001:
+		push_error("esp: surveillance should max diligence with zero error, got '%s'" % surv_text)
+		failures += 1
+
+	# --- S5: Getting caught is a real setback ---
+	GameState.esp_risk = 95.0
+	var caught := false
+	var tries2 := 0
+	while tries2 < 20 and not caught:
+		var res2: Dictionary = GameState.perform_espionage_op("OP_EXPOSE", "RIV_HELIOS")
+		if ("CAUGHT" in res2.get("detail", "")):
+			caught = true
+		tries2 += 1
+	if not caught:
+		push_error("esp: max-heat ops should eventually get caught")
+		failures += 1
+	var saw_incident := false
+	for inc in GameState.incidents:
+		if (inc as Dictionary).get("id", "") == "INC_EXPOSED_OP":
+			saw_incident = true
+	if not saw_incident:
+		push_error("esp: caught op should file an exposed-operation incident")
+		failures += 1
+
+	# --- S6: Save/load preserves risk and cover ---
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.esp_cover <= 0.0:
+		push_error("esp: cover lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("ESP_OK")
+	else:
+		print("%d ESP FAILURES" % failures)
+
+func _test_endings():
+	var failures: int = 0
+
+	# --- N1: Tech depth + full confirmation wins the scientific path ---
+	GameState.initialize_new_campaign({"name": "End Sci"}, "normal")
+	GameState.select_artifact(0)
+	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+		if not GameState.unlocked_technologies.has(tech_id):
+			GameState.unlocked_technologies.append(tech_id)
+	GameState.discovery["state"] = "confirmed"
+	for d in GameState.discoveries:
+		(d as Dictionary)["state"] = "confirmed"
+	GameState.player_market = 10.0
+	GameState._check_market_end()
+	if not GameState.is_game_over():
+		push_error("end: full science should end the game")
+		failures += 1
+	elif GameState.game_over.get("type", "") != "researcher":
+		push_error("end: full science should rank researcher, got '%s'" % GameState.game_over.get("type", "?"))
+		failures += 1
+	if "distinguished" not in GameState.run_badges:
+		push_error("end: researcher win should award the distinguished badge")
+		failures += 1
+
+	# --- N2: Tier order is monopoly > researcher > market_leader ---
+	GameState.initialize_new_campaign({"name": "End Tiers"}, "normal")
+	GameState.select_artifact(0)
+	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+		if not GameState.unlocked_technologies.has(tech_id):
+			GameState.unlocked_technologies.append(tech_id)
+	GameState.discovery["state"] = "confirmed"
+	for d in GameState.discoveries:
+		(d as Dictionary)["state"] = "confirmed"
+	GameState.player_market = GameState.get_majority_target() + 5.0
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		rd["acquired_by_player"] = true
+		rd["status"] = "acquired"
+		rd["share"] = 0.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "monopoly":
+		push_error("end: domination should outrank science, got '%s'" % GameState.game_over.get("type", "?"))
+		failures += 1
+	GameState.initialize_new_campaign({"name": "End Tiers 2"}, "normal")
+	GameState.select_artifact(0)
+	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+		if not GameState.unlocked_technologies.has(tech_id):
+			GameState.unlocked_technologies.append(tech_id)
+	GameState.discovery["state"] = "confirmed"
+	for d in GameState.discoveries:
+		(d as Dictionary)["state"] = "confirmed"
+	GameState.player_market = GameState.get_majority_target() + 5.0
+	for r in GameState.rivals:
+		var rd2: Dictionary = r as Dictionary
+		if rd2.get("id", "") == "RIV_HELIOS":
+			rd2["share"] = GameState.get_majority_target() - 6.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "researcher":
+		push_error("end: science should outrank market, got '%s'" % GameState.game_over.get("type", "?"))
+		failures += 1
+
+	# --- N3: Legacy file records the run ---
+	if not FileAccess.file_exists("user://janus_legacy.json"):
+		push_error("end: legacy file should exist after wins")
+		failures += 1
+	else:
+		var file := FileAccess.open("user://janus_legacy.json", FileAccess.READ)
+		var text: String = file.get_as_text()
+		file.close()
+		var json := JSON.new()
+		if json.parse(text) != OK:
+			push_error("end: legacy file should parse as JSON")
+			failures += 1
+		elif not (json.data as Dictionary).get("best", {}).has("normal"):
+			push_error("end: legacy best should record the normal-difficulty run")
+			failures += 1
+
+	if failures == 0:
+		print("END_OK")
+	else:
+		print("%d END FAILURES" % failures)
+
 func _test_pacing():
 	var failures: int = 0
 	var exps: Array = GameState.load_experiment_definitions()
@@ -528,7 +869,7 @@ func _test_pacing():
 
 	# Active player: runs experiments until the game ends (cap 300 days).
 	var active_days: float = 0.0
-	GameState.initialize_new_campaign({"name": "Pacing Active"}, "normal")
+	GameState.initialize_new_campaign({"name": "Pacing Active"}, "normal", 1234)
 	GameState.select_artifact(0)
 	var sci: Dictionary = GameState.scientists[0]
 	while active_days < 300 and not GameState.is_game_over():
@@ -545,7 +886,7 @@ func _test_pacing():
 
 	# Passive player: idle, just advance the clock so rivals/HELIOS race alone.
 	var passive_days: float = 0.0
-	GameState.initialize_new_campaign({"name": "Pacing Passive"}, "normal")
+	GameState.initialize_new_campaign({"name": "Pacing Passive"}, "normal", 4321)
 	GameState.select_artifact(0)
 	while passive_days < 400 and not GameState.is_game_over():
 		GameState._tick_market()

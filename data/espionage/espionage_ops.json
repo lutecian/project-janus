@@ -1,0 +1,49 @@
+{
+  "ops": [
+    {
+      "id": "OP_SURVEY",
+      "name": "Surveillance",
+      "flavor": "Watch a target closely. Sharpens acquisition diligence or maps a rival pipeline.",
+      "cost": 600,
+      "risk_add": 8.0,
+      "base_success": 0.85,
+      "target": "company_or_rival"
+    },
+    {
+      "id": "OP_STEAL",
+      "name": "Steal Tech / Infiltrate",
+      "flavor": "Pull a rival tech into your tree without doing the science yourself.",
+      "cost": 2500,
+      "risk_add": 20.0,
+      "base_success": 0.6,
+      "target": "none"
+    },
+    {
+      "id": "OP_SABOTAGE",
+      "name": "Sabotage",
+      "flavor": "Slow a rival's research and market gain for several days.",
+      "cost": 1800,
+      "risk_add": 25.0,
+      "base_success": 0.55,
+      "target": "rival"
+    },
+    {
+      "id": "OP_COUNTER",
+      "name": "Counter-Intel",
+      "flavor": "Tighten cover, burn risk. The quiet op that makes the loud ones possible.",
+      "cost": 1000,
+      "risk_add": 5.0,
+      "base_success": 0.9,
+      "target": "none"
+    },
+    {
+      "id": "OP_EXPOSE",
+      "name": "Expose / Leak",
+      "flavor": "Ruin a rival's reputation. High effect toward Domination; high heat on you.",
+      "cost": 2200,
+      "risk_add": 35.0,
+      "base_success": 0.5,
+      "target": "rival"
+    }
+  ]
+}

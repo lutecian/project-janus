@@ -20,6 +20,8 @@ var screens: Array = [
 	{"path": "res://scenes/settings/settings.tscn", "state": true},
 	{"path": "res://scenes/endgame/game_over.tscn", "state": "victory"},
 	{"path": "res://scenes/acquisitions/acquisitions.tscn", "state": true},
+	{"path": "res://scenes/contracts/contracts.tscn", "state": true},
+	{"path": "res://scenes/espionage/espionage.tscn", "state": true},
 ]
 
 var _idx := 0

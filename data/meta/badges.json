@@ -1,0 +1,12 @@
+{
+  "badges": [
+    {"id": "first_doubt", "name": "First Doubt", "description": "Reach suspected on a discovery."},
+    {"id": "bargain_hunter", "name": "Bargain Hunter", "description": "Close an acquisition as a steal."},
+    {"id": "dd_pro", "name": "Due-Diligence Pro", "description": "Do full diligence, then buy fair or better."},
+    {"id": "war_contractor", "name": "War Contractor", "description": "Complete a military research contract."},
+    {"id": "market_leader", "name": "Market Leader", "description": "Win by market majority."},
+    {"id": "distinguished", "name": "Distinguished Researcher", "description": "Win the scientific path."},
+    {"id": "monopoly", "name": "The Monopoly", "description": "Win by domination."},
+    {"id": "overnight_monopoly", "name": "Overnight Monopoly", "description": "Dominate in under 40 days."}
+  ]
+}
