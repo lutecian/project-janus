@@ -1,0 +1,28 @@
+{
+  "acts": [
+    {
+      "id": 1,
+      "name": "Containment",
+      "flavor": "Three objects, one lab, no oversight yet. Learn fast while no one is watching.",
+      "artifacts": ["J001", "J002", "J003"],
+      "advance_needs_confirmed": 1,
+      "rival_mult": 1.0
+    },
+    {
+      "id": 2,
+      "name": "Escalation",
+      "flavor": "The field knows. New objects arrive under armed guard; rivals stop pretending.",
+      "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006"],
+      "advance_needs_confirmed": 3,
+      "rival_mult": 1.15
+    },
+    {
+      "id": 3,
+      "name": "Endgame",
+      "flavor": "Everyone is all-in. Breakthroughs land weekly; the market moves daily.",
+      "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006"],
+      "advance_needs_confirmed": 99,
+      "rival_mult": 1.5
+    }
+  ]
+}

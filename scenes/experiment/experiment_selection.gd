@@ -26,11 +26,16 @@ extends Control
 @onready var btn_prev_artifact: Button = $ScrollContainer/VBox/artifact_selector/btn_prev_artifact
 @onready var btn_next_artifact: Button = $ScrollContainer/VBox/artifact_selector/btn_next_artifact
 @onready var budget_label: Label = $ScrollContainer/VBox/budget_label
+@onready var queue_label: Label = $ScrollContainer/VBox/queue_label
+@onready var btn_queue: Button = $ScrollContainer/VBox/QueueRow/btn_queue
+@onready var btn_run_day: Button = $ScrollContainer/VBox/QueueRow/btn_run_day
+@onready var btn_clear: Button = $ScrollContainer/VBox/QueueRow/btn_clear
 
 var selected_scientist_index: int = -1
 var selected_experiment_id: String = ""
 var experiments: Array = []
 var selected_scientist_button: Button = null
+var day_plan: Array = []
 
 func _ready():
 	btn_run.pressed.connect(_on_run_pressed)
@@ -45,6 +50,9 @@ func _ready():
 	btn_incidents.pressed.connect(_on_incidents)
 	btn_prev_artifact.pressed.connect(_on_prev_artifact)
 	btn_next_artifact.pressed.connect(_on_next_artifact)
+	btn_queue.pressed.connect(_on_queue_pressed)
+	btn_run_day.pressed.connect(_on_run_day_pressed)
+	btn_clear.pressed.connect(_on_clear_pressed)
 	experiments = _load_experiments()
 	_refresh_ui()
 	EventBus.knowledge_updated.connect(_on_knowledge_updated)
@@ -118,6 +126,7 @@ func _refresh_ui():
 
 	day_label.text = "Day: %d" % GameState.elapsed_days
 	budget_label.text = "Budget: $%d (Spent: $%d)" % [GameState.budget["funds"], GameState.budget["spent"]]
+	_update_queue_ui()
 
 	btn_helios_intel.text = "HELIOS Intel (%d reports)" % GameState.intelligence_reports.size()
 
@@ -245,6 +254,21 @@ func _update_experiment_buttons():
 			var exp: Dictionary = experiments[i] as Dictionary
 			btn.button_pressed = (exp.get("id", "") == selected_experiment_id)
 
+func _update_queue_ui():
+	if day_plan.is_empty():
+		queue_label.text = "Day plan: empty (queue one experiment per scientist, then run the day)"
+		btn_run_day.disabled = true
+		btn_run_day.text = "Run Day (0)"
+	else:
+		var parts: PackedStringArray = []
+		for entry in day_plan:
+			var ed: Dictionary = entry as Dictionary
+			var sci: Dictionary = GameState.scientists[int(ed.get("sci_index", -1))]
+			parts.append("%s: %s" % [sci.get("first_name", "?"), ed.get("exp_id", "?")])
+		queue_label.text = "Day plan (%d): %s" % [day_plan.size(), "; ".join(parts)]
+		btn_run_day.disabled = false
+		btn_run_day.text = "Run Day (%d)" % day_plan.size()
+
 func _update_run_button():
 	btn_run.disabled = (selected_scientist_index < 0 or selected_experiment_id.is_empty())
 	if btn_run.disabled:
@@ -291,18 +315,57 @@ func _on_helios_intel():
 	get_tree().change_scene_to_file("res://scenes/experiment/helios_intel.tscn")
 
 func _on_prev_artifact():
-	if GameState.selected_artifact_index > 0:
-		GameState.select_artifact(GameState.selected_artifact_index - 1)
-		selected_scientist_index = -1
-		selected_experiment_id = ""
-		_refresh_ui()
+	_step_artifact(-1)
 
 func _on_next_artifact():
-	if GameState.selected_artifact_index < GameState.available_artifacts.size() - 1:
-		GameState.select_artifact(GameState.selected_artifact_index + 1)
-		selected_scientist_index = -1
-		selected_experiment_id = ""
-		_refresh_ui()
+	_step_artifact(1)
+
+func _step_artifact(direction: int):
+	var total: int = GameState.available_artifacts.size()
+	var idx: int = GameState.selected_artifact_index
+	for i in range(total):
+		idx = (idx + direction + total) % total
+		var art: Dictionary = GameState.available_artifacts[idx]
+		if GameState.is_artifact_unlocked(art.get("id", "")):
+			GameState.select_artifact(idx)
+			selected_scientist_index = -1
+			selected_experiment_id = ""
+			day_plan = []
+			_refresh_ui()
+			return
+
+func _on_queue_pressed():
+	if selected_scientist_index < 0 or selected_experiment_id.is_empty():
+		return
+	for entry in day_plan:
+		if int((entry as Dictionary).get("sci_index", -1)) == selected_scientist_index:
+			status_label.text = "That scientist is already in the day plan."
+			return
+	day_plan.append({"sci_index": selected_scientist_index, "exp_id": selected_experiment_id})
+	selected_scientist_index = -1
+	selected_experiment_id = ""
+	_refresh_ui()
+
+func _on_clear_pressed():
+	day_plan = []
+	_refresh_ui()
+
+func _on_run_day_pressed():
+	if day_plan.is_empty():
+		return
+	var pairs: Array = []
+	for entry in day_plan:
+		var ed: Dictionary = entry as Dictionary
+		var sci: Dictionary = GameState.scientists[int(ed.get("sci_index", -1))]
+		pairs.append({"exp": _get_experiment_by_id(ed.get("exp_id", "")), "sci": sci})
+	var results: Array = GameState.run_day_batch(pairs)
+	day_plan = []
+	SaveManager.save_game()
+	if GameState.is_game_over():
+		get_tree().change_scene_to_file("res://scenes/endgame/game_over.tscn")
+		return
+	status_label.text = "Day complete: %d experiments run." % results.size()
+	_refresh_ui()
 
 func _on_lab():
 	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

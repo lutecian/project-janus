@@ -59,6 +59,10 @@ var pending_memorial: String = ""
 # --- Phase 7 (0.7): security + military alignment ---
 var military_ties: float = 0.0
 
+# --- Phase 8 (0.8): acts + roster ---
+var act: int = 1
+var hire_pool: Array = []
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -70,8 +74,8 @@ const DIFFICULTIES := {
 	"normal": {
 		"id": "normal", "display_name": "Normal",
 		"majority_target": 52.0, "rival_multiplier": 1.0,
-		"helios_start_share": 12.0, "helios_daily_base": 0.85,
-		"player_experiment_gain": 0.7, "player_discovery_gain": 12.0,
+		"helios_start_share": 12.0, "helios_daily_base": 0.9,
+		"player_experiment_gain": 0.8, "player_discovery_gain": 12.0,
 		"player_start_budget": 10000
 	},
 	"hard": {
@@ -222,6 +226,8 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	active_crises = []
 	pending_memorial = ""
 	military_ties = 0.0
+	act = 1
+	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
 	_log_scientist_intros()
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
@@ -330,8 +336,10 @@ func _load_artifact_data():
 func select_artifact(index: int):
 	if index < 0 or index >= available_artifacts.size():
 		return
+	if not is_artifact_unlocked((available_artifacts[index] as Dictionary).get("id", "")):
+		return
 	var prev_id: String = artifact.get("id", "")
-	if not prev_id.is_empty() and not per_artifact_data.has(prev_id):
+	if not prev_id.is_empty():
 		per_artifact_data[prev_id] = {
 			"knowledge": knowledge.duplicate(true),
 			"discovery": discovery.duplicate(true),
@@ -482,7 +490,7 @@ func get_unlocked_experiments(all_experiments: Array) -> Array:
 			unlocked.append(exp)
 	return unlocked
 
-func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictionary:
+func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: bool = true) -> Dictionary:
 	var exp_id: String = experiment_def.get("id", "")
 	if _living_scientists().is_empty():
 		_staff_wipe_defeat()
@@ -516,10 +524,11 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 		knowledge["experiment_counts"][exp_id] = 0
 	knowledge["experiment_counts"][exp_id] += 1
 
-	# Each experiment occupies a full facility workday; this lets the funding/overhead
-	# economy and the day counter meaningfully advance over a campaign (previously the
-	# integer day counter silently truncated fractional additions to zero).
-	elapsed_days += 1.0
+	# Solo experiments occupy a full facility workday; batched experiments share one
+	# day (the batch advances the clock once). Either way the funding/overhead
+	# economy and the day counter keep advancing over a campaign.
+	if new_day:
+		elapsed_days += 1.0
 
 	_update_knowledge_state()
 	_check_secondary_discoveries(exp_id)
@@ -541,17 +550,23 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 
 	budget["funds"] -= cost
 	budget["spent"] += cost
-	_apply_daily_overhead()
-	_check_funding()
-	_check_budget_events()
+	var sci_state: Dictionary = {}
+	for s in scientists:
+		if (s as Dictionary).get("id", "") == scientist.get("id", ""):
+			sci_state = s as Dictionary
+	if not sci_state.is_empty():
+		sci_state["stress"] = mini(int(sci_state.get("stress", 0)) + 4, 100)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 
 	_check_incidents()
 	_check_dangerous_experiment(exp_id)
 	_advance_helios()
-	_tick_market()
+	_tick_lab_work()
 	_generate_intelligence()
+	_check_act_advance()
 	_check_market_end()
+	if new_day:
+		_tick_new_day([scientist.get("id", "")])
 
 	return exp_record
 
@@ -617,6 +632,8 @@ func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dicti
 		quality *= 1.1
 	if scientist.get("status", "ACTIVE") == "INJURED":
 		quality *= 0.7
+	if int(scientist.get("stress", 0)) > 70:
+		quality *= 0.8
 
 	return clampf(quality, 0.1, 2.0)
 
@@ -908,12 +925,45 @@ func get_rival_market(rival_id: String) -> float:
 	return 0.0
 
 func _tick_market():
-	# Player earns a small daily share from sustained lab work (not from buying).
+	_tick_lab_work()
+	_tick_new_day([])
+
+# Work-scale tick: every experiment, whether solo or batched.
+func _tick_lab_work():
+	# Player earns a small share from sustained lab work (not from buying).
 	var player_gain: float = float(difficulty.get("player_experiment_gain", 0.55))
 	player_market += player_gain
 
 	# Owned subsidiaries contribute their (outcome-scaled) research to our share.
 	_tick_owned_companies()
+
+	# Rivals advance their market share on their own timeline.
+	var lead := 0.0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		var adv: float = float(rd.get("daily_advance", 0.5))
+		if float(rd.get("sabotaged_until", 0.0)) > elapsed_days:
+			adv *= 0.5
+		adv *= _event_rival_mult()
+		adv *= _act_rival_mult()
+		var variation: float = _rng.randf_range(-0.3, 0.5)
+		var new_share: float = float(rd.get("share", 0)) + maxf(adv + variation, 0.1)
+		rd["share"] = new_share
+		_check_rival_taunt(rd)
+		if rd.get("id", "") == "RIV_HELIOS":
+			lead = new_share
+	_sync_helios_rival()
+	_helios_market_from_lead(lead)
+	EventBus.market_updated.emit(player_market, rivals)
+
+# Day-scale tick: once per facility day, solo or batched.
+func _tick_new_day(worker_ids: Array):
+	_apply_daily_overhead()
+	_check_funding()
+	_check_budget_events()
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	# Rolling offers expire or get grabbed; wildcards can implode or exit.
 	_tick_company_offers()
 	_tick_rival_instability()
@@ -926,26 +976,41 @@ func _tick_market():
 	_tick_enemy_ops()
 	_tick_consolidation()
 	_tick_crises()
-
-	# Rivals advance their market share on their own timeline.
-	var lead := 0.0
-	for r in rivals:
-		var rd: Dictionary = r as Dictionary
-		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("status", "ACTIVE") == "DECEASED":
 			continue
-		var adv: float = float(rd.get("daily_advance", 0.5))
-		if float(rd.get("sabotaged_until", 0.0)) > elapsed_days:
-			adv *= 0.5
-		adv *= _event_rival_mult()
-		var variation: float = _rng.randf_range(-0.3, 0.5)
-		var new_share: float = float(rd.get("share", 0)) + maxf(adv + variation, 0.1)
-		rd["share"] = new_share
-		_check_rival_taunt(rd)
-		if rd.get("id", "") == "RIV_HELIOS":
-			lead = new_share
-	_sync_helios_rival()
-	_helios_market_from_lead(lead)
-	EventBus.market_updated.emit(player_market, rivals)
+		if sd.get("id", "") in worker_ids:
+			continue
+		sd["stress"] = maxi(int(sd.get("stress", 0)) - 8, 0)
+
+func run_day_batch(pairs: Array) -> Array:
+	var results: Array = []
+	var worker_ids: Array = []
+	var used_scientists := {}
+	for pair in pairs:
+		var pd: Dictionary = pair as Dictionary
+		var exp_def: Dictionary = pd.get("exp", {})
+		var sci: Dictionary = pd.get("sci", {})
+		if exp_def.is_empty() or sci.is_empty():
+			continue
+		if sci.get("status", "ACTIVE") == "DECEASED":
+			continue
+		if sci.get("id", "") in used_scientists:
+			continue
+		if int(budget.get("funds", 0)) < _get_experiment_cost(exp_def.get("id", "")):
+			continue
+		used_scientists[sci.get("id", "")] = true
+		worker_ids.append(sci.get("id", ""))
+		results.append(run_experiment(exp_def, sci, false))
+		if is_game_over():
+			break
+	if results.is_empty():
+		return results
+	elapsed_days += 1.0
+	_tick_new_day(worker_ids)
+	_check_market_end()
+	return results
 
 func _helios_market_from_lead(lead_share: float) -> void:
 	helios["market_share"] = lead_share
@@ -1662,12 +1727,89 @@ func _staff_wipe_defeat():
 	_record_legacy()
 	EventBus.game_over.emit(game_over)
 
+# --- Phase 8 acts: gated escalation ---
+func _act_def(act_id: int) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/meta/acts.json")
+	for adef in data.get("acts", []):
+		var ad: Dictionary = adef as Dictionary
+		if int(ad.get("id", 1)) == act_id:
+			return ad
+	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
+
+func get_act_name() -> String:
+	return _act_def(act).get("name", "Containment")
+
+func _act_rival_mult() -> float:
+	return float(_act_def(act).get("rival_mult", 1.0))
+
+func is_artifact_unlocked(art_id: String) -> bool:
+	var allowed: Array = _act_def(act).get("artifacts", [])
+	return art_id in allowed
+
+func _check_act_advance():
+	if act >= 3:
+		return
+	var need: int = int(_act_def(act).get("advance_needs_confirmed", 99))
+	if _confirmed_artifact_count() < need:
+		return
+	act += 1
+	var ad: Dictionary = _act_def(act)
+	story_log.append({
+		"day": elapsed_days, "artifact_id": "", "kind": "act",
+		"title": "ACT %d — %s" % [act, ad.get("name", "?")],
+		"text": ad.get("flavor", "")
+	})
+	intelligence_reports.append({
+		"day": elapsed_days, "threshold": -4,
+		"text": "The field has shifted. %s." % ad.get("flavor", ""),
+		"helios_progress": helios["progress"]
+	})
+	EventBus.act_advanced.emit(act)
+
+# --- Phase 8 roster: hireable replacements, living cap ---
+const ROSTER_CAP := 5
+
+func _hireable_def(sci_id: String) -> Dictionary:
+	for path in ["res://data/scientists/dr_lund.json", "res://data/scientists/dr_osei.json", "res://data/scientists/dr_petrova.json"]:
+		var data := _load_json(path)
+		if data.get("id", "") == sci_id:
+			return data
+	return {}
+
+func _living_count() -> int:
+	var n := 0
+	for s in scientists:
+		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+			n += 1
+	return n
+
+func hire_scientist(sci_id: String) -> Dictionary:
+	if sci_id not in hire_pool:
+		return {"ok": false, "reason": "not_available"}
+	if _living_count() >= ROSTER_CAP:
+		return {"ok": false, "reason": "roster_full"}
+	var def: Dictionary = _hireable_def(sci_id)
+	if def.is_empty():
+		return {"ok": false, "reason": "no_def"}
+	var bonus: int = int(def.get("signing_bonus", 3000))
+	if int(budget.get("funds", 0)) < bonus:
+		return {"ok": false, "reason": "insufficient_funds"}
+	budget["funds"] = int(budget.get("funds", 0)) - bonus
+	budget["spent"] = int(budget.get("spent", 0)) + bonus
+	scientists.append(def.duplicate(true))
+	hire_pool.erase(sci_id)
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	return {"ok": true, "cost": bonus}
+
 # --- Phase 3 endings: tiered paths (monopoly > researcher > market_leader) ---
 func _confirmed_artifact_count() -> int:
 	var count := 0
+	var cur_id: String = artifact.get("id", "")
 	if discovery.get("state", "") == "confirmed":
 		count += 1
 	for art_id in per_artifact_data:
+		if art_id == cur_id:
+			continue
 		var entry: Dictionary = per_artifact_data[art_id]
 		var saved_disc: Dictionary = entry.get("discovery", {})
 		if saved_disc.get("state", "") == "confirmed":
@@ -2139,7 +2281,9 @@ func get_save_data() -> Dictionary:
 		"fired_beats": fired_beats,
 		"active_crises": active_crises,
 		"pending_memorial": pending_memorial,
-		"military_ties": military_ties
+		"military_ties": military_ties,
+		"act": act,
+		"hire_pool": hire_pool
 	}
 
 func _save_current_artifact_data():
@@ -2226,6 +2370,8 @@ func load_save_data(data: Dictionary):
 	active_crises = data.get("active_crises", [])
 	pending_memorial = data.get("pending_memorial", "")
 	military_ties = data.get("military_ties", 0.0)
+	act = data.get("act", 1)
+	hire_pool = data.get("hire_pool", ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"])
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

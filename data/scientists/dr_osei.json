@@ -1,0 +1,22 @@
+{
+  "id": "SCIENTIST_OSEI",
+  "first_name": "Kwame",
+  "last_name": "Osei",
+  "portrait_id": "male_02",
+  "primary_specialty": "field_theory",
+  "skills": {
+    "physics": 88,
+    "engineering": 55,
+    "observation": 80,
+    "curiosity": 95,
+    "risk_tolerance": 82
+  },
+  "traits": ["brilliant", "ambitious"],
+  "status": "ACTIVE",
+  "stress": 0,
+  "health": 100,
+  "loyalty": 80,
+  "experience": 0,
+  "days_at_facility": 0,
+  "signing_bonus": 5000
+}

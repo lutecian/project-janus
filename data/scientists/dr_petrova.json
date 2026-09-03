@@ -1,0 +1,22 @@
+{
+  "id": "SCIENTIST_PETROVA",
+  "first_name": "Anya",
+  "last_name": "Petrova",
+  "portrait_id": "female_03",
+  "primary_specialty": "experimental_physics",
+  "skills": {
+    "physics": 76,
+    "engineering": 70,
+    "observation": 75,
+    "curiosity": 65,
+    "risk_tolerance": 60
+  },
+  "traits": ["resilient", "curious"],
+  "status": "ACTIVE",
+  "stress": 0,
+  "health": 100,
+  "loyalty": 90,
+  "experience": 0,
+  "days_at_facility": 0,
+  "signing_bonus": 3500
+}

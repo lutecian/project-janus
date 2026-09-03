@@ -4,6 +4,7 @@ extends Control
 @onready var day_budget_label: Label = $MarginContainer/VBox/header_row/day_budget_label
 @onready var artifact_container: VBoxContainer = $MarginContainer/VBox/artifacts_panel/artifacts_vbox/artifact_container
 @onready var scientist_container: VBoxContainer = $MarginContainer/VBox/scientists_panel/scientists_vbox/scientist_container
+@onready var candidates_container: VBoxContainer = $MarginContainer/VBox/scientists_panel/scientists_vbox/candidates_container
 @onready var status_label: Label = $MarginContainer/VBox/status_label
 
 @onready var btn_artifact: Button = $MarginContainer/VBox/nav_row/btn_artifact
@@ -83,11 +84,13 @@ func _refresh_ui():
 	var event_text := ""
 	if not GameState.active_event.is_empty():
 		event_text = " | EVENT: %s" % GameState.active_event.get("name", "?")
-	day_budget_label.text = "Day %d | $%d | My Market: %.1f%%%s" % [
-		GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market(), event_text
+	day_budget_label.text = "Day %d | $%d | My Market: %.1f%% | ACT %d: %s%s" % [
+		GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market(),
+		GameState.act, GameState.get_act_name(), event_text
 	]
 	_populate_artifacts()
 	_populate_scientists()
+	_populate_candidates()
 
 func _on_market_updated(_player_market: float, _rivals: Array):
 	_populate_artifacts()
@@ -104,7 +107,9 @@ func _populate_artifacts():
 		var label := Label.new()
 		var status := ""
 		var matched: bool = art.get("id", "") == GameState.artifact.get("id", "")
-		if matched:
+		if not GameState.is_artifact_unlocked(art.get("id", "")):
+			status = " (LOCKED — ACT %d)" % (GameState.act + 1)
+		elif matched:
 			status = " (SELECTED)"
 		label.text = "OBJECT %s — %s%s" % [art.get("id", "?"), art.get("display_name", "?"), status]
 		label.add_theme_font_size_override("font_size", 15)
@@ -135,6 +140,44 @@ func _populate_scientists():
 		]
 		label.add_theme_font_size_override("font_size", 14)
 		scientist_container.add_child(label)
+
+func _populate_candidates():
+	for child in candidates_container.get_children():
+		child.queue_free()
+	if GameState.hire_pool.is_empty():
+		var none := Label.new()
+		none.text = "No candidates on the market."
+		none.add_theme_font_size_override("font_size", 13)
+		candidates_container.add_child(none)
+		return
+	for cid in GameState.hire_pool:
+		var cdef: Dictionary = GameState._hireable_def(str(cid))
+		if cdef.is_empty():
+			continue
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var line := Label.new()
+		line.text = "%s %s (%s, bonus $%d)" % [
+			cdef.get("first_name", "?"), cdef.get("last_name", "?"),
+			cdef.get("primary_specialty", "?").replace("_", " ").capitalize(),
+			int(cdef.get("signing_bonus", 0))
+		]
+		line.add_theme_font_size_override("font_size", 13)
+		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(line)
+		var hire_btn := Button.new()
+		hire_btn.text = "Hire"
+		hire_btn.pressed.connect(_on_hire.bind(cdef.get("id", "")))
+		row.add_child(hire_btn)
+		candidates_container.add_child(row)
+
+func _on_hire(sci_id: String):
+	var res: Dictionary = GameState.hire_scientist(sci_id)
+	if res.get("ok", false):
+		status_label.text = "Hired for $%d." % int(res.get("cost", 0))
+	else:
+		status_label.text = "Cannot hire (%s)." % res.get("reason", "?")
+	_refresh_ui()
 
 func _on_main_menu():
 	get_tree().change_scene_to_file("res://scenes/main/main_menu.tscn")

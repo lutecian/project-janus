@@ -1,0 +1,22 @@
+{
+  "id": "SCIENTIST_LUND",
+  "first_name": "Ingrid",
+  "last_name": "Lund",
+  "portrait_id": "female_04",
+  "primary_specialty": "cryogenics",
+  "skills": {
+    "physics": 62,
+    "engineering": 74,
+    "observation": 68,
+    "curiosity": 70,
+    "risk_tolerance": 45
+  },
+  "traits": ["careful", "loyal"],
+  "status": "ACTIVE",
+  "stress": 0,
+  "health": 100,
+  "loyalty": 100,
+  "experience": 0,
+  "days_at_facility": 0,
+  "signing_bonus": 2500
+}

@@ -161,6 +161,9 @@ func _test_next():
 		_test_gore()
 		_test_audio()
 		_test_sec()
+		_test_acts()
+		_test_batch()
+		_test_roster()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -1406,6 +1409,183 @@ func _test_sec():
 		print("SEC_OK")
 	else:
 		print("%d SEC FAILURES" % failures)
+
+func _confirm_current_artifact(sci: Dictionary, heat: Dictionary):
+	GameState.knowledge["progress"] = 70
+	GameState.run_experiment(heat, sci)
+
+func _test_acts():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Acts Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	var sci: Dictionary = GameState.scientists[0]
+
+	# --- A1: Act 1 gates the back half ---
+	if GameState.act != 1:
+		push_error("acts: should start in act 1")
+		failures += 1
+	if not GameState.is_artifact_unlocked("J001") or GameState.is_artifact_unlocked("J004"):
+		push_error("acts: act 1 should unlock J001-J003 only")
+		failures += 1
+	GameState.select_artifact(3)
+	if GameState.selected_artifact_index != 0:
+		push_error("acts: selecting a locked artifact should be refused")
+		failures += 1
+	if absf(GameState._act_rival_mult() - 1.0) > 0.001:
+		push_error("acts: act 1 rival mult should be 1.0")
+		failures += 1
+
+	# --- A2: First confirmation advances to act 2 ---
+	_confirm_current_artifact(sci, heat)
+	if GameState.act != 2:
+		push_error("acts: one confirmation should advance to act 2, got act %d" % GameState.act)
+		failures += 1
+	if not GameState.is_artifact_unlocked("J006"):
+		push_error("acts: act 2 should unlock everything")
+		failures += 1
+	if absf(GameState._act_rival_mult() - 1.15) > 0.001:
+		push_error("acts: act 2 rival mult should be 1.15")
+		failures += 1
+
+	# --- A3: Three confirmations reach endgame ---
+	GameState.select_artifact(1)
+	_confirm_current_artifact(sci, heat)
+	GameState.select_artifact(2)
+	_confirm_current_artifact(sci, heat)
+	if GameState.act != 3:
+		push_error("acts: three confirmations should reach act 3, got act %d" % GameState.act)
+		failures += 1
+	if absf(GameState._act_rival_mult() - 1.5) > 0.001:
+		push_error("acts: act 3 rival mult should be 1.5")
+		failures += 1
+
+	# --- A4: Save/load preserves the act ---
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.act != 3:
+		push_error("acts: act lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("ACTS_OK")
+	else:
+		print("%d ACTS FAILURES" % failures)
+
+func _test_batch():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Batch Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	for s in GameState.scientists:
+		(s as Dictionary)["stress"] = 50
+	var cost: int = GameState._get_experiment_cost("EXP_HEATING")
+
+	# --- B1: A day with two experiments advances one day ---
+	var day_before: float = GameState.elapsed_days
+	var funds_before: int = GameState.budget["funds"]
+	var results: Array = GameState.run_day_batch([
+		{"exp": heat, "sci": GameState.scientists[0]},
+		{"exp": heat, "sci": GameState.scientists[1]}
+	])
+	if results.size() != 2:
+		push_error("batch: expected 2 results, got %d" % results.size())
+		failures += 1
+	if absf(GameState.elapsed_days - (day_before + 1.0)) > 0.001:
+		push_error("batch: a batched day should advance exactly 1 day")
+		failures += 1
+	if (results[0] as Dictionary).get("day", -1.0) != (results[1] as Dictionary).get("day", -1.0):
+		push_error("batch: batched experiments should share a day stamp")
+		failures += 1
+	if GameState.budget["funds"] > funds_before - cost * 2:
+		push_error("batch: both experiments should charge (funds %d)" % GameState.budget["funds"])
+		failures += 1
+	if int(GameState.scientists[0].get("stress", 0)) != 54 or int(GameState.scientists[1].get("stress", 0)) != 54:
+		push_error("batch: workers should gain +4 stress")
+		failures += 1
+	if int(GameState.scientists[2].get("stress", 0)) != 42:
+		push_error("batch: rested scientist should recover -8 stress, got %d" % GameState.scientists[2].get("stress", 0))
+		failures += 1
+
+	# --- B2: Duplicate scientists and the dead are skipped ---
+	var dup: Array = GameState.run_day_batch([
+		{"exp": heat, "sci": GameState.scientists[0]},
+		{"exp": heat, "sci": GameState.scientists[0]}
+	])
+	if dup.size() != 1:
+		push_error("batch: duplicate scientist should run once, got %d" % dup.size())
+		failures += 1
+	GameState._harm_scientist("SCIENTIST_CHEN", 200, "in testing")
+	var with_dead: Array = GameState.run_day_batch([
+		{"exp": heat, "sci": GameState.scientists[0]},
+		{"exp": heat, "sci": GameState.scientists[1]}
+	])
+	if with_dead.size() != 1:
+		push_error("batch: deceased scientist should be skipped, got %d" % with_dead.size())
+		failures += 1
+
+	if failures == 0:
+		print("BATCH_OK")
+	else:
+		print("%d BATCH FAILURES" % failures)
+
+func _test_roster():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Roster Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+
+	# --- R1: Hiring fills the roster to the cap ---
+	if GameState.hire_pool.size() != 3 or GameState.scientists.size() != 3:
+		push_error("roster: should start 3 rostered + 3 candidates")
+		failures += 1
+	var h1: Dictionary = GameState.hire_scientist("SCIENTIST_LUND")
+	if not h1.get("ok", false) or GameState.scientists.size() != 4:
+		push_error("roster: hiring Lund should work, got %s" % h1)
+		failures += 1
+	GameState.hire_scientist("SCIENTIST_OSEI")
+	var h3: Dictionary = GameState.hire_scientist("SCIENTIST_PETROVA")
+	if h3.get("ok", true):
+		push_error("roster: hiring past the cap of 5 should fail")
+		failures += 1
+
+	# --- R2: The dead free their slot ---
+	GameState._harm_scientist("SCIENTIST_REED", 200, "in testing")
+	var h4: Dictionary = GameState.hire_scientist("SCIENTIST_PETROVA")
+	if not h4.get("ok", false):
+		push_error("roster: death should free a slot, got %s" % h4)
+		failures += 1
+
+	# --- R3: Broke hiring fails, state saves ---
+	GameState.initialize_new_campaign({"name": "Roster Broke"}, "normal")
+	GameState.budget["funds"] = 100
+	if GameState.hire_scientist("SCIENTIST_LUND").get("ok", true):
+		push_error("roster: hiring without funds should fail")
+		failures += 1
+	GameState.budget["funds"] = 50000
+	GameState.hire_scientist("SCIENTIST_LUND")
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.scientists.size() != 4 or GameState.hire_pool.size() != 2:
+		push_error("roster: roster/pool not preserved after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("ROSTER_OK")
+	else:
+		print("%d ROSTER FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

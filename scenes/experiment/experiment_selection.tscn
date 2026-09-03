@@ -214,6 +214,34 @@ size_flags_horizontal = 10
 disabled = true
 text = "Select Scientist & Experiment"
 
+[node name="queue_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Day plan: empty (queue one experiment per scientist, then run the day)"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="QueueRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btn_queue" type="Button" parent="ScrollContainer/VBox/QueueRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+text = "Queue Selected"
+
+[node name="btn_run_day" type="Button" parent="ScrollContainer/VBox/QueueRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+size_flags_horizontal = 10
+disabled = true
+text = "Run Day (0)"
+
+[node name="btn_clear" type="Button" parent="ScrollContainer/VBox/QueueRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Clear"
+
 [node name="status_label" type="Label" parent="ScrollContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
