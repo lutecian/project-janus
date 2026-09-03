@@ -7,6 +7,8 @@ extends Control
 @onready var difficulty_option: OptionButton = $VBox/difficulty_option
 @onready var scenario_option: OptionButton = $VBox/scenario_option
 @onready var scenario_hint: Label = $VBox/scenario_hint
+@onready var ng_label: Label = $VBox/ng_label
+@onready var ng_check: CheckButton = $VBox/ng_check
 
 var _scenario_ids: Array = ["SCN_SANDBOX"]
 @onready var btn_begin: Button = $VBox/ButtonRow/btn_begin
@@ -40,6 +42,8 @@ func _ready():
 	scenario_option.selected = 0
 	scenario_option.item_selected.connect(_on_scenario_selected)
 	_update_scenario_hint()
+	ng_label.text = GameState.ng_label_text()
+	ng_check.button_pressed = false
 
 func _on_begin_pressed():
 	var org_name := org_name_edit.text.strip_edges()
@@ -67,7 +71,7 @@ func _on_begin_pressed():
 	if not scn.is_empty() and scn.get("difficulty", "") != "":
 		selected_id = scn.get("difficulty", selected_id)
 
-	GameState.initialize_new_campaign(org, selected_id, seed)
+	GameState.initialize_new_campaign(org, selected_id, seed, ng_check.button_pressed)
 	GameState.apply_scenario(scenario_id)
 	SaveManager.save_game()
 	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

@@ -95,8 +95,18 @@ custom_minimum_size = Vector2(0, 36)
 [node name="scenario_hint" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Sandbox: your rules. Named scenarios fix the seed, setup and stakes."
+text = "Sandbox: your rules. Decide, then live with it."
 autowrap_mode = 2
+
+[node name="ng_label" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "NG+"
+autowrap_mode = 2
+
+[node name="ng_check" type="CheckButton" parent="VBox"]
+layout_mode = 2
+text = "New Game+ (bonus funds, harder rivals)"
 
 [node name="Spacer" type="Control" parent="VBox"]
 layout_mode = 2

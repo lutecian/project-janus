@@ -25,6 +25,8 @@ func _run_all():
 	_probe("hard-systems-b", "hard", 777, true, true, true)
 	_probe("hard-systems-c", "hard", 555, true, true, true)
 	_probe("hard-systems-d", "hard", 3141, true, true, true)
+	_probe_batch("normal-batch", "normal", 1234, false)
+	_probe_batch("hard-batch", "hard", 200, true)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
 
@@ -156,6 +158,45 @@ func _dd_and_buy():
 		return
 	if int(GameState.budget.get("funds", 0)) >= best_price:
 		GameState.acquire_company(best.get("id", ""))
+
+func _probe_batch(tag: String, difficulty_id: String, seed: int, use_systems: bool):
+	GameState.initialize_new_campaign({"name": "Probe " + tag}, difficulty_id, seed)
+	GameState.select_artifact(0)
+	var cost: int = GameState._get_experiment_cost("EXP_HEATING")
+	var bailouts := 0
+	var days := 0.0
+	while days < 300 and not GameState.is_game_over():
+		var team: Array = []
+		for s in GameState.scientists:
+			var sd: Dictionary = s as Dictionary
+			if sd.get("status", "ACTIVE") != "DECEASED" and team.size() < 2:
+				team.append(sd)
+		if team.is_empty():
+			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
+			return
+		if use_systems:
+			if not GameState.pending_offer.is_empty() and GameState.active_contract.is_empty():
+				GameState.accept_contract()
+			_try_buy_cheapest()
+		if int(GameState.budget.get("funds", 0)) < cost * 2:
+			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 400
+			bailouts += 1
+		var pairs: Array = []
+		for member in team:
+			pairs.append({"exp": _exp_def, "sci": member})
+		GameState.run_day_batch(pairs)
+		days = GameState.elapsed_days
+	var go: Dictionary = GameState.game_over
+	print("PROBE %s: %s type=%s days=%.0f player=%.1f helios=%.1f funds=%d bailouts=%d" % [
+		tag,
+		"WIN" if go.get("won", false) else "LOSE",
+		go.get("type", go.get("reason", "?")),
+		days,
+		GameState.get_player_market(),
+		GameState.get_rival_market("RIV_HELIOS"),
+		int(GameState.budget.get("funds", 0)),
+		bailouts
+	])
 
 func _living_pick() -> Dictionary:
 	for s in GameState.scientists:

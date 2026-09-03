@@ -4,6 +4,7 @@ extends Control
 @onready var btn_load: Button = $Card/VBox/btn_load_campaign
 @onready var btn_settings: Button = $Card/VBox/btn_settings
 @onready var btn_quit: Button = $Card/VBox/btn_quit
+@onready var btn_daily: Button = $Card/VBox/btn_daily
 @onready var title_label: Label = $Card/VBox/title_label
 @onready var status_label: Label = $Card/VBox/status_label
 @onready var legacy_label: Label = $Card/VBox/legacy_label
@@ -15,6 +16,7 @@ func _ready():
 	btn_load.pressed.connect(_on_load_pressed)
 	btn_settings.pressed.connect(_on_settings_pressed)
 	btn_quit.pressed.connect(_on_quit_pressed)
+	btn_daily.pressed.connect(_on_daily_pressed)
 	btn_load.disabled = not SaveManager.has_save()
 	title_label.text = "PROJECT JANUS"
 	status_label.text = ""
@@ -47,4 +49,16 @@ func _on_settings_pressed():
 
 func _on_quit_pressed():
 	get_tree().quit()
+
+func _on_daily_pressed():
+	var org := {
+		"name": "Daily Task Force",
+		"abbreviation": "DTF",
+		"facility_name": "Hawthorne Research Complex",
+		"director_name": "Director B. Crozier"
+	}
+	GameState.initialize_new_campaign(org, "normal", GameState.daily_seed())
+	GameState.start_daily_challenge()
+	SaveManager.save_game()
+	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 

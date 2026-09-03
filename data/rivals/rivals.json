@@ -52,6 +52,32 @@
         "Marsh (Vantage): 'Bet it all! Bet it all! (It worked. It always works.)'",
         "Marsh (Vantage): 'Volatility is just victory, annualized.'"
       ]
+    },
+    {
+      "id": "RIV_SOLENNE",
+      "name": "Solenne Foundation",
+      "artifact_name": "Quiet Bell",
+      "daily_advance": 0.35,
+      "start_share": 5,
+      "disposition": "publisher",
+      "director": "Chair A. Solenne",
+      "taunts": [
+        "Solenne: 'We endowed three chairs this quarter. What did you endow?'",
+        "Solenne: 'Patience compounds. So does our share price.'"
+      ]
+    },
+    {
+      "id": "RIV_KITEZH",
+      "name": "Kitezh Group",
+      "artifact_name": "Sunken Array",
+      "daily_advance": 0.7,
+      "start_share": 6,
+      "disposition": "wildcard",
+      "director": "Director V. Moroz",
+      "taunts": [
+        "Moroz (Kitezh): 'The state provides. The state collects.'",
+        "Moroz (Kitezh): 'Your market is a rounding error in our five-year plan.'"
+      ]
     }
   ]
 }

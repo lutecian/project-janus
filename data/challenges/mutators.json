@@ -1,0 +1,41 @@
+{
+  "mutators": [
+    {
+      "id": "MUT_FAMINE",
+      "name": "Famine",
+      "flavor": "Funding intervals pay half. The lean weeks.",
+      "funding_mult": 0.5,
+      "casualty_mult": 1.0,
+      "target_mult": 1.0,
+      "score_mult": 1.25
+    },
+    {
+      "id": "MUT_GLASS",
+      "name": "Glass Jaw",
+      "flavor": "Casualties hit twice as hard. Nobody is expendable.",
+      "funding_mult": 1.0,
+      "casualty_mult": 2.0,
+      "target_mult": 1.0,
+      "score_mult": 1.25
+    },
+    {
+      "id": "MUT_SPRINT",
+      "name": "Sprint",
+      "flavor": "Majority target cut 20%, but the clock is the whole game.",
+      "funding_mult": 1.0,
+      "casualty_mult": 1.0,
+      "target_mult": 0.8,
+      "score_mult": 1.25
+    },
+    {
+      "id": "MUT_BOUNTY",
+      "name": "Bounty Season",
+      "flavor": "Buyouts cost double. Earn it through science instead.",
+      "funding_mult": 1.0,
+      "casualty_mult": 1.0,
+      "target_mult": 1.0,
+      "buyout_mult": 2.0,
+      "score_mult": 1.25
+    }
+  ]
+}

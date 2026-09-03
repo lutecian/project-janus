@@ -64,6 +64,11 @@ var act: int = 1
 var hire_pool: Array = []
 var company_roster: Array = []
 
+# --- Phase 10 (0.10): challenges + NG+ ---
+var active_mutators: Array = []
+var challenge_date: String = ""
+var use_ng: bool = false
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -185,10 +190,15 @@ const TRAIT_EFFECTS := {
 func _ready():
 	pass
 
-func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", p_seed: int = -1):
+func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", p_seed: int = -1, p_use_ng: bool = false):
 	if p_seed >= 0:
 		_rng.seed = p_seed
+	use_ng = p_use_ng
 	difficulty = _resolve_difficulty(difficulty_id)
+	if use_ng:
+		var ng_level: int = _ng_level()
+		if ng_level > 0:
+			difficulty["rival_multiplier"] = float(difficulty.get("rival_multiplier", 1.0)) * (1.0 + 0.05 * ng_level)
 	campaign_id = _generate_id()
 	seed = _rng.randi()
 	elapsed_days = 0
@@ -230,6 +240,8 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	military_ties = 0.0
 	act = 1
 	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
+	active_mutators = []
+	challenge_date = ""
 	company_roster = ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"]
 	var late := ["CMP_DREDGE", "CMP_KILN", "CMP_VESPER", "CMP_ABYSSAL"]
 	for i in range(late.size() - 1, 0, -1):
@@ -251,6 +263,8 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	active_incidents = []
 	_load_budget_data()
 	budget["funds"] = int(difficulty.get("player_start_budget", budget["funds"]))
+	if use_ng:
+		budget["funds"] = int(budget.get("funds", 0)) + 1500 * _ng_level()
 	_rng.seed = seed
 
 func _resolve_difficulty(difficulty_id: String) -> Dictionary:
@@ -260,6 +274,24 @@ func _resolve_difficulty(difficulty_id: String) -> Dictionary:
 func _spawn_rivals():
 	var rival_data: Dictionary = _load_json("res://data/rivals/rivals.json")
 	var rival_defs: Array = rival_data.get("rivals", [])
+	var helios_def := {}
+	var others: Array = []
+	for rdef in rival_defs:
+		if (rdef as Dictionary).get("id", "") == "RIV_HELIOS":
+			helios_def = rdef as Dictionary
+		else:
+			others.append(rdef)
+	for i in range(others.size() - 1, 0, -1):
+		var j: int = _rng.randi() % (i + 1)
+		var tmp = others[i]
+		others[i] = others[j]
+		others[j] = tmp
+	var field: Array = []
+	if not helios_def.is_empty():
+		field.append(helios_def)
+	for k in range(mini(3, others.size())):
+		field.append(others[k])
+	rival_defs = field
 	rivals = []
 	var helios_start: float = difficulty.get("helios_start_share", 12.0)
 	var idx: int = 0
@@ -800,7 +832,7 @@ func _check_funding():
 	while budget["next_funding_index"] < intervals.size():
 		var interval: Dictionary = intervals[budget["next_funding_index"]] as Dictionary
 		if elapsed_days >= interval.get("day", 999):
-			var amount: int = interval.get("amount", 0)
+			var amount: int = int(round(float(interval.get("amount", 0)) * _mut_mult("funding_mult", 1.0)))
 			budget["funds"] += amount
 			budget["funding_received"] += amount
 			budget["next_funding_index"] += 1
@@ -893,7 +925,7 @@ func _apply_incident(incident: Dictionary):
 			var sd0: Dictionary = s as Dictionary
 			if sd0.get("id", "") == involved:
 				sd0["stress"] = mini(int(sd0.get("stress", 0)) + 10, 100)
-	var casualty: int = int(incident.get("casualty", 0))
+	var casualty: int = int(round(float(incident.get("casualty", 0)) * _mut_mult("casualty_mult", 1.0)))
 	if casualty > 0 and not involved.is_empty():
 		_harm_scientist(involved, casualty, "in %s" % record.get("name", "the incident"))
 	_maybe_spawn_crisis(record, incident)
@@ -923,7 +955,7 @@ func _advance_helios():
 
 # --- Phase 1 market model ---
 func get_majority_target() -> float:
-	return float(difficulty.get("majority_target", 51.0)) + bonus_target
+	return (float(difficulty.get("majority_target", 51.0)) + bonus_target) * _mut_mult("target_mult", 1.0)
 
 func get_player_market() -> float:
 	return player_market
@@ -1299,7 +1331,7 @@ func get_rival_buyout_price(rival_id: String) -> int:
 		var rd: Dictionary = r as Dictionary
 		if rd.get("id", "") == rival_id:
 			var per: float = 350.0
-			return int(ceil(float(rd.get("share", 0)) * per * _mil_discount()))
+			return int(ceil(float(rd.get("share", 0)) * per * _mil_discount() * _mut_mult("buyout_mult", 1.0)))
 	return 0
 
 func buy_out_rival(rival_id: String) -> Dictionary:
@@ -1782,6 +1814,45 @@ func _check_act_advance():
 	})
 	EventBus.act_advanced.emit(act)
 
+# --- Phase 10 challenges + NG+ ---
+func _mutator_def(mut_id: String) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/challenges/mutators.json")
+	for mdef in data.get("muts", data.get("mutators", [])):
+		var md: Dictionary = mdef as Dictionary
+		if md.get("id", "") == mut_id:
+			return md
+	return {}
+
+func _mut_mult(key: String, default: float) -> float:
+	var mult := 1.0
+	for mid in active_mutators:
+		mult *= float(_mutator_def(str(mid)).get(key, default))
+	return mult
+
+static func daily_seed() -> int:
+	var dt: Dictionary = Time.get_date_dict_from_system()
+	return int(dt.get("year", 2026)) * 10000 + int(dt.get("month", 1)) * 100 + int(dt.get("day", 1))
+
+static func daily_mutator() -> String:
+	var ids := ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = daily_seed()
+	return ids[rng.randi() % ids.size()]
+
+func start_daily_challenge():
+	challenge_date = str(daily_seed())
+	active_mutators = [daily_mutator()]
+
+func _ng_level() -> int:
+	return mini(int(_load_legacy().get("ng_wins", 0)), 5)
+
+func ng_label_text() -> String:
+	var wins: int = int(_load_legacy().get("ng_wins", 0))
+	if wins <= 0:
+		return "NG+: win a campaign to unlock generational bonuses."
+	var level: int = mini(wins, 5)
+	return "NG+ ready (level %d): +$%d funds, rivals +%d%%." % [level, 1500 * level, 5 * level]
+
 # --- Phase 9 scenarios: fixed-seed story setups ---
 func _scenario_def(scenario_id: String) -> Dictionary:
 	var data: Dictionary = _load_json("res://data/scenarios/scenarios.json")
@@ -1940,6 +2011,16 @@ func _record_legacy():
 		award_badge("monopoly")
 		if elapsed_days < 40.0:
 			award_badge("overnight_monopoly")
+	if game_over.get("won", false):
+		var legacy0: Dictionary = _load_legacy()
+		legacy0["ng_wins"] = int(legacy0.get("ng_wins", 0)) + 1
+		_persist_legacy(legacy0)
+	if challenge_date != "":
+		var legacy_c: Dictionary = _load_legacy()
+		var prev: Dictionary = legacy_c.get("daily", {})
+		if prev.get("date", "") != challenge_date or int(prev.get("score", -1)) < int(game_over.get("score", 0)):
+			legacy_c["daily"] = {"date": challenge_date, "score": int(game_over.get("score", 0)), "mutator": active_mutators[0] if not active_mutators.is_empty() else ""}
+			_persist_legacy(legacy_c)
 	var diff_id: String = difficulty.get("id", "normal")
 	var legacy: Dictionary = _load_legacy()
 	var best: Dictionary = legacy.get("best", {})
@@ -1961,7 +2042,7 @@ func get_run_score() -> int:
 		"expert":
 			mult = 2.0
 	if not game_over.get("won", false):
-		return int((player_market * 10.0 + confirmed_discoveries.size() * 20.0) * mult)
+		return int((player_market * 10.0 + confirmed_discoveries.size() * 20.0) * mult * _mut_mult("score_mult", 1.0))
 	var base := 1000.0
 	if win_type == "researcher":
 		base = 1500.0
@@ -1971,6 +2052,9 @@ func get_run_score() -> int:
 	var score: float = (base + speed) * mult + float(run_badges.size()) * 25.0
 	if continued:
 		score += 500.0
+	score *= _mut_mult("score_mult", 1.0)
+	if use_ng:
+		score *= 1.0 + 0.1 * _ng_level()
 	return int(score)
 
 func get_run_title() -> String:
@@ -2000,7 +2084,11 @@ func get_legacy_line() -> String:
 	var top := 0
 	for diff_id in best:
 		top = maxi(top, int((best[diff_id] as Dictionary).get("score", 0)))
-	return "Best — %s | Top score: %d | Badges: %d/%d" % ["; ".join(parts), top, badges.size(), total]
+	var daily: Dictionary = legacy.get("daily", {})
+	var daily_text := ""
+	if not daily.is_empty():
+		daily_text = " | Daily %s: %d" % [daily.get("date", "?"), int(daily.get("score", 0))]
+	return "Best — %s | Top score: %d%s | Badges: %d/%d" % ["; ".join(parts), top, daily_text, badges.size(), total]
 
 # --- Phase 3 espionage: funds + risk allocation, not click-to-win ---
 func _espionage_op_def(op_id: String) -> Dictionary:
@@ -2195,6 +2283,11 @@ func _spawn_contracts():
 	contract_deck = []
 	for cdef in data.get("contracts", []):
 		contract_deck.append((cdef as Dictionary).get("id", ""))
+	for i in range(contract_deck.size() - 1, 0, -1):
+		var j: int = _rng.randi() % (i + 1)
+		var tmp = contract_deck[i]
+		contract_deck[i] = contract_deck[j]
+		contract_deck[j] = tmp
 	next_offer_day = 6.0
 
 func _contract_def(contract_id: String) -> Dictionary:
@@ -2362,7 +2455,10 @@ func get_save_data() -> Dictionary:
 		"military_ties": military_ties,
 		"act": act,
 		"hire_pool": hire_pool,
-		"company_roster": company_roster
+		"company_roster": company_roster,
+		"active_mutators": active_mutators,
+		"challenge_date": challenge_date,
+		"use_ng": use_ng
 	}
 
 func _save_current_artifact_data():
@@ -2452,6 +2548,9 @@ func load_save_data(data: Dictionary):
 	act = data.get("act", 1)
 	hire_pool = data.get("hire_pool", ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"])
 	company_roster = data.get("company_roster", ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"])
+	active_mutators = data.get("active_mutators", [])
+	challenge_date = data.get("challenge_date", "")
+	use_ng = data.get("use_ng", false)
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

@@ -165,6 +165,7 @@ func _test_next():
 		_test_batch()
 		_test_roster()
 		_test_replay()
+		_test_chal()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -557,12 +558,22 @@ func _test_contracts():
 		push_error("ctr: should start with no pending/active contract")
 		failures += 1
 
-	# --- C2: Offer arrives once the day comes ---
+	# --- C2: Offer arrives once the day comes (deck order is seeded) ---
 	GameState.next_offer_day = 0.0
+	var first_expected := ""
+	for cid in GameState.contract_deck:
+		if GameState._contract_def(str(cid)).get("event_tag", "") == "":
+			first_expected = str(cid)
+			break
 	GameState._tick_contracts()
-	if GameState.pending_offer.get("id", "") != "CTR_FOOD":
-		push_error("ctr: first offer should be CTR_FOOD, got '%s'" % GameState.pending_offer.get("id", "?"))
+	if GameState.pending_offer.get("id", "") != first_expected:
+		push_error("ctr: first offer should be %s, got '%s'" % [first_expected, GameState.pending_offer.get("id", "?")])
 		failures += 1
+	var cdef0: Dictionary = GameState._contract_def(first_expected)
+	var upfront0: int = int(cdef0.get("upfront", 0))
+	var completion0: int = int(cdef0.get("completion_pay", 0))
+	var days0: int = int(cdef0.get("days_required", 1))
+	var tech0: String = GameState.TECH_KEY_MAP.get(cdef0.get("tech_key", ""), "")
 
 	# --- C3: Accept pays upfront and occupies the single slot ---
 	GameState.budget["funds"] = 5000
@@ -571,27 +582,27 @@ func _test_contracts():
 	if not acc.get("ok", false):
 		push_error("ctr: accept should succeed")
 		failures += 1
-	if GameState.budget["funds"] != funds_before + 800:
-		push_error("ctr: upfront 800 not paid (funds %d)" % GameState.budget["funds"])
+	if GameState.budget["funds"] != funds_before + upfront0:
+		push_error("ctr: upfront %d not paid (funds %d)" % [upfront0, GameState.budget["funds"]])
 		failures += 1
 	if GameState.accept_contract().get("ok", true):
 		push_error("ctr: second accept should fail while slot busy")
 		failures += 1
 
 	# --- C4: Workdays complete it: pay + tech + market ---
-	for i in range(4):
+	for i in range(days0):
 		GameState._tick_contracts()
 	if not GameState.active_contract.is_empty():
-		push_error("ctr: 4-day contract should complete after 4 ticks")
+		push_error("ctr: %d-day contract should complete after %d ticks" % [days0, days0])
 		failures += 1
-	if GameState.budget["funds"] != funds_before + 800 + 1200:
-		push_error("ctr: completion pay 1200 missing (funds %d)" % GameState.budget["funds"])
+	if GameState.budget["funds"] != funds_before + upfront0 + completion0:
+		push_error("ctr: completion pay %d missing (funds %d)" % [completion0, GameState.budget["funds"]])
 		failures += 1
-	if not GameState.unlocked_technologies.has("TECH_THERMAL_CONTAINMENT"):
-		push_error("ctr: completing CTR_FOOD should unlock thermal containment")
+	if tech0 != "" and not GameState.unlocked_technologies.has(tech0):
+		push_error("ctr: completing %s should unlock %s" % [first_expected, tech0])
 		failures += 1
-	if not GameState.completed_contracts.has("CTR_FOOD"):
-		push_error("ctr: CTR_FOOD should be recorded complete")
+	if not GameState.completed_contracts.has(first_expected):
+		push_error("ctr: %s should be recorded complete" % first_expected)
 		failures += 1
 
 	# --- C5: Decline reschedules ---
@@ -743,16 +754,25 @@ func _test_espionage():
 	if sabotaged_until <= GameState.elapsed_days:
 		push_error("esp: sabotage should slow HELIOS for 6 days, got '%s'" % sab_text)
 		failures += 1
+	var expose_target := ""
+	for r in GameState.rivals:
+		var rd0: Dictionary = r as Dictionary
+		if rd0.get("id", "") != "RIV_HELIOS" and rd0.get("status", "active") == "active":
+			expose_target = rd0.get("id", "")
+			break
+	if expose_target.is_empty():
+		push_error("esp: expected a non-HELIOS rival to expose")
+		failures += 1
 	var berm_before := 0.0
 	for r in GameState.rivals:
 		var rd2: Dictionary = r as Dictionary
-		if rd2.get("id", "") == "RIV_BERMANT":
+		if rd2.get("id", "") == expose_target:
 			berm_before = float(rd2.get("share", 0))
-	GameState._apply_espionage_success("OP_EXPOSE", "RIV_BERMANT")
+	GameState._apply_espionage_success("OP_EXPOSE", expose_target)
 	var berm_after := 0.0
 	for r in GameState.rivals:
 		var rd3: Dictionary = r as Dictionary
-		if rd3.get("id", "") == "RIV_BERMANT":
+		if rd3.get("id", "") == expose_target:
 			berm_after = float(rd3.get("share", 0))
 	if absf(berm_before - berm_after - 6.0) > 0.001 and not (berm_before < 6.0 and berm_after == 0.0):
 		push_error("esp: expose should cut 6 share (%.1f -> %.1f)" % [berm_before, berm_after])
@@ -978,7 +998,7 @@ func _test_depth():
 		if rd.get("id", "") == "RIV_HELIOS":
 			rd["share"] = 30.0
 			leader = rd
-		if rd.get("id", "") == "RIV_BERMANT":
+		elif small.is_empty():
 			rd["share"] = 3.0
 			small = rd
 	var lead_before: float = float(leader.get("share", 0))
@@ -1664,6 +1684,103 @@ func _test_replay():
 		print("REPLAY_OK")
 	else:
 		print("%d REPLAY FAILURES" % failures)
+
+func _test_chal():
+	var failures: int = 0
+
+	# --- H1: Daily seed + mutator are deterministic ---
+	var seed_a: int = GameState.daily_seed()
+	var mut_a: String = GameState.daily_mutator()
+	if seed_a < 20260000:
+		push_error("chal: daily seed looks wrong: %d" % seed_a)
+		failures += 1
+	if mut_a != GameState.daily_mutator():
+		push_error("chal: daily mutator should be deterministic")
+		failures += 1
+	if not mut_a in ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY"]:
+		push_error("chal: unknown mutator '%s'" % mut_a)
+		failures += 1
+
+	# --- H2: Challenge start stamps date + mutator ---
+	GameState.initialize_new_campaign({"name": "Chal Test"}, "normal")
+	GameState.start_daily_challenge()
+	if GameState.challenge_date != str(GameState.daily_seed()):
+		push_error("chal: challenge date should be today")
+		failures += 1
+	if GameState.active_mutators != [GameState.daily_mutator()]:
+		push_error("chal: challenge should carry today's mutator")
+		failures += 1
+
+	# --- H3: Famine halves funding, sprint cuts the target ---
+	GameState.active_mutators = ["MUT_FAMINE"]
+	GameState.elapsed_days = 5.0
+	GameState.budget["funds"] = 10000
+	GameState.budget["next_funding_index"] = 1
+	GameState._check_funding()
+	if GameState.budget["funds"] != 10750:
+		push_error("chal: famine should halve the 1500 grant (funds %d)" % GameState.budget["funds"])
+		failures += 1
+	GameState.active_mutators = ["MUT_SPRINT"]
+	if absf(GameState.get_majority_target() - 41.6) > 0.01:
+		push_error("chal: sprint should cut target to 41.6, got %.1f" % GameState.get_majority_target())
+		failures += 1
+	GameState.active_mutators = []
+
+	# --- H4: NG+ bonuses apply only when opted in ---
+	var leg0: Dictionary = GameState._load_legacy()
+	var prev_wins: int = int(leg0.get("ng_wins", 0))
+	leg0["ng_wins"] = 2
+	GameState._persist_legacy(leg0)
+	GameState.initialize_new_campaign({"name": "Chal NG"}, "normal", -1, true)
+	if GameState.budget["funds"] != 13000:
+		push_error("chal: NG+2 should add $3000 (funds %d)" % GameState.budget["funds"])
+		failures += 1
+	if absf(float(GameState.difficulty.get("rival_multiplier", 0.0)) - 1.1) > 0.001:
+		push_error("chal: NG+2 should raise rival mult to 1.1")
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Chal NoNG"}, "normal")
+	if GameState.budget["funds"] != 10000:
+		push_error("chal: NG bonus must not leak into normal campaigns")
+		failures += 1
+	var leg1: Dictionary = GameState._load_legacy()
+	leg1["ng_wins"] = prev_wins
+	GameState._persist_legacy(leg1)
+
+	# --- H5: Daily results persist ---
+	GameState.initialize_new_campaign({"name": "Chal Daily"}, "normal")
+	GameState.start_daily_challenge()
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = 5.0
+	GameState._check_market_end()
+	var lf := FileAccess.open("user://janus_legacy.json", FileAccess.READ)
+	if lf == null:
+		push_error("chal: legacy file missing after daily win")
+		failures += 1
+	else:
+		var ltext: String = lf.get_as_text()
+		lf.close()
+		var lj4 := JSON.new()
+		if lj4.parse(ltext) != OK or (lj4.data as Dictionary).get("daily", {}).get("date", "") != str(GameState.daily_seed()):
+			push_error("chal: daily result not recorded")
+			failures += 1
+
+	# --- H6: Save/load preserves challenge + NG state ---
+	GameState.active_mutators = ["MUT_GLASS"]
+	GameState.challenge_date = "20260903"
+	GameState.use_ng = true
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.active_mutators != ["MUT_GLASS"] or GameState.challenge_date != "20260903" or not GameState.use_ng:
+		push_error("chal: challenge state lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("CHAL_OK")
+	else:
+		print("%d CHAL FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

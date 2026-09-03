@@ -79,6 +79,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Quit"
 
+[node name="btn_daily" type="Button" parent="Card/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 50)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Daily Challenge"
+
 [node name="Spacer2" type="Control" parent="Card/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
