@@ -78,14 +78,20 @@ func _populate_scientists():
 		var sci: Dictionary = s as Dictionary
 		var label := Label.new()
 		var skills: Dictionary = sci.get("skills", {})
-		label.text = "%s %s — %s | '%s' [P:%s O:%s C:%s]" % [
+		var condition := ""
+		if sci.get("status", "ACTIVE") == "DECEASED":
+			condition = " [DECEASED]"
+		elif sci.get("status", "ACTIVE") == "INJURED":
+			condition = " [INJURED, HP %d]" % int(sci.get("health", 0))
+		label.text = "%s %s — %s | '%s' [P:%s O:%s C:%s]%s" % [
 			sci.get("first_name", "?"),
 			sci.get("last_name", "?"),
 			sci.get("primary_specialty", "unknown").replace("_", " ").capitalize(),
 			", ".join(sci.get("traits", [])),
 			skills.get("physics", 0),
 			skills.get("observation", 0),
-			skills.get("curiosity", 0)
+			skills.get("curiosity", 0),
+			condition
 		]
 		label.add_theme_font_size_override("font_size", 14)
 		scientist_container.add_child(label)

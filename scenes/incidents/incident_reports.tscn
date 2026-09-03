@@ -52,6 +52,20 @@ theme_override_font_sizes/normal_font_size = 13
 scroll_active = true
 autowrap_mode = 2
 
+[node name="Sep3" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="crisis_header" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.3, 0.25, 1)
+text = "ACTIVE CRISES"
+horizontal_alignment = 1
+
+[node name="crises_container" type="VBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
 [node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
 layout_mode = 2
 

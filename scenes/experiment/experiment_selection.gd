@@ -144,10 +144,17 @@ func _populate_scientists():
 
 		var btn := Button.new()
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.text = "%s %s — %s" % [
+		var stag := ""
+		if s.get("status", "ACTIVE") == "DECEASED":
+			stag = " (DECEASED)"
+			btn.disabled = true
+		elif s.get("status", "ACTIVE") == "INJURED":
+			stag = " (INJURED)"
+		btn.text = "%s %s — %s%s" % [
 			s.get("first_name", "?"),
 			s.get("last_name", "?"),
-			s.get("primary_specialty", "unknown").replace("_", " ").capitalize()
+			s.get("primary_specialty", "unknown").replace("_", " ").capitalize(),
+			stag
 		]
 		btn.pressed.connect(_on_scientist_selected.bind(i))
 		hbox.add_child(btn)

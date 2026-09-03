@@ -7,7 +7,12 @@
       "artifact_name": "Crystalline Matrix",
       "daily_advance": 0.9,
       "start_share": 12,
-      "disposition": "aggressive"
+      "disposition": "aggressive",
+      "director": "Director Ilsa Rennick",
+      "taunts": [
+        "Rennick (HELIOS): 'Cute prototype. We bought three companies before breakfast.'",
+        "Rennick (HELIOS): 'Your lead amuses our board. Briefly.'"
+      ]
     },
     {
       "id": "RIV_BERMANT",
@@ -15,7 +20,12 @@
       "artifact_name": "Basalt Anomaly",
       "daily_advance": 0.45,
       "start_share": 6,
-      "disposition": "steady"
+      "disposition": "steady",
+      "director": "Dr. Amos Bermant",
+      "taunts": [
+        "Bermant: 'Slow and funded beats fast and broke, friend.'",
+        "Bermant: 'We publish. You posture. The field notices.'"
+      ]
     },
     {
       "id": "RIV_NORTHWIND",
@@ -23,7 +33,12 @@
       "artifact_name": "Iron Hollow Core",
       "daily_advance": 0.4,
       "start_share": 5,
-      "disposition": "publisher"
+      "disposition": "publisher",
+      "director": "Provost D. Okafor",
+      "taunts": [
+        "Okafor (Northwind): 'Our preprint is already cited. Where is yours?'",
+        "Okafor (Northwind): 'Open science always wins. Ask anyone. We did.'"
+      ]
     },
     {
       "id": "RIV_VANTAGE",
@@ -31,7 +46,12 @@
       "artifact_name": "Halo Ring",
       "daily_advance": 0.6,
       "start_share": 7,
-      "disposition": "wildcard"
+      "disposition": "wildcard",
+      "director": "CEO 'Lucky' Marsh",
+      "taunts": [
+        "Marsh (Vantage): 'Bet it all! Bet it all! (It worked. It always works.)'",
+        "Marsh (Vantage): 'Volatility is just victory, annualized.'"
+      ]
     }
   ]
 }

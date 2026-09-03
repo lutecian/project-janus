@@ -156,6 +156,9 @@ func _test_next():
 		_test_espionage()
 		_test_endings()
 		_test_depth()
+		_test_story()
+		_test_action()
+		_test_gore()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -1068,6 +1071,227 @@ func _test_depth():
 		print("DEPTH_OK")
 	else:
 		print("%d DEPTH FAILURES" % failures)
+
+func _test_story():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Story Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- T1: Scientist intros logged at campaign start ---
+	var intros := 0
+	for entry in GameState.story_log:
+		if (entry as Dictionary).get("kind", "") == "intro":
+			intros += 1
+	if intros != 3:
+		push_error("story: expected 3 scientist intros, got %d" % intros)
+		failures += 1
+
+	# --- T2: Dormant + suspected beats fire as knowledge grows ---
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	var sci: Dictionary = GameState.scientists[0]
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	for i in range(12):
+		GameState.run_experiment(heat, sci)
+		if GameState.knowledge.get("state", "") == "suspected":
+			break
+	if not GameState.fired_beats.has("J001:dormant"):
+		push_error("story: dormant beat should fire on first study")
+		failures += 1
+	if not GameState.fired_beats.has("J001:suspected"):
+		push_error("story: suspected beat should fire at state change (state=%s)" % GameState.knowledge.get("state", "?"))
+		failures += 1
+	var beat_count: int = GameState.fired_beats.size()
+	GameState.run_experiment(heat, sci)
+	if GameState.fired_beats.size() != beat_count:
+		push_error("story: beats should fire exactly once each")
+		failures += 1
+
+	# --- T3: Dangerous runs fire the danger beat ---
+	GameState._rng.seed = 31
+	GameState._check_dangerous_experiment("EXP_RADIOACTIVE")
+	if not GameState.fired_beats.has("J001:danger"):
+		push_error("story: danger beat should fire on a dangerous run")
+		failures += 1
+
+	# --- T4: Rival taunts fire at share milestones ---
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = 26.0
+	GameState._rng.seed = 4242
+	GameState._tick_market()
+	var taunted := false
+	for rep in GameState.intelligence_reports:
+		if "Rennick" in (rep as Dictionary).get("text", ""):
+			taunted = true
+	if not taunted:
+		push_error("story: HELIOS should taunt when crossing 25 share")
+		failures += 1
+
+	# --- T5: Save/load preserves the story log ---
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.story_log.size() < 5:
+		push_error("story: story log lost after save/load")
+		failures += 1
+	if not GameState.fired_beats.has("J001:danger"):
+		push_error("story: fired beats lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("STORY_OK")
+	else:
+		print("%d STORY FAILURES" % failures)
+
+func _test_action():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Action Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 30000
+
+	# --- C1: Major incidents spawn a crisis with a clock ---
+	var major := {
+		"id": "INC_TEST_MAJOR", "name": "Test Blowout", "description": "d",
+		"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+		"crisis": {"days": 5, "resolve_cost": 1500}
+	}
+	GameState._apply_incident(major)
+	if GameState.active_crises.size() != 1:
+		push_error("action: major incident should spawn a crisis")
+		failures += 1
+	var cid: String = (GameState.active_crises[0] as Dictionary).get("id", "")
+
+	# --- C2: Paying resolves cleanly ---
+	var f_before: int = GameState.budget["funds"]
+	var r_pay: Dictionary = GameState.resolve_crisis(cid, "pay")
+	if not r_pay.get("ok", false):
+		push_error("action: paid resolve should succeed, got %s" % r_pay)
+		failures += 1
+	if GameState.budget["funds"] != f_before - 1500:
+		push_error("action: paid resolve should cost exactly 1500")
+		failures += 1
+	if not GameState.active_crises.is_empty():
+		push_error("action: resolved crisis should clear")
+		failures += 1
+
+	# --- C3: Response team resolves with risk ---
+	GameState._apply_incident(major)
+	var cid2: String = (GameState.active_crises[0] as Dictionary).get("id", "")
+	GameState._rng.seed = 77
+	var r_team: Dictionary = GameState.resolve_crisis(cid2, "team")
+	if not r_team.get("ok", false):
+		push_error("action: team resolve should succeed, got %s" % r_team)
+		failures += 1
+	if not GameState.active_crises.is_empty():
+		push_error("action: team-resolved crisis should clear")
+		failures += 1
+
+	# --- C4: Ignored crises burn out badly ---
+	GameState._apply_incident(major)
+	var c3: Dictionary = GameState.active_crises[0]
+	c3["days_left"] = 1.0
+	var f_pre: int = GameState.budget["funds"]
+	GameState._tick_crises()
+	if not GameState.active_crises.is_empty():
+		push_error("action: expired crisis should clear")
+		failures += 1
+	if GameState.budget["funds"] != f_pre - 3000:
+		push_error("action: expired crisis should cost 3000, funds %d" % GameState.budget["funds"])
+		failures += 1
+
+	# --- C5: Save/load preserves active crises ---
+	GameState._apply_incident(major)
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.active_crises.size() != 1:
+		push_error("action: active crisis lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("ACTION_OK")
+	else:
+		print("%d ACTION FAILURES" % failures)
+
+func _test_gore():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Gore Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- G1: Toggle gates the graphic text ---
+	var rec := {"description": "mild", "graphic_description": "graphic"}
+	GameState.gore_setting = 1
+	if GameState.incident_display_text(rec) != "graphic":
+		push_error("gore: forced-on should show graphic text")
+		failures += 1
+	GameState.gore_setting = 0
+	if GameState.incident_display_text(rec) != "mild":
+		push_error("gore: forced-off should show mild text")
+		failures += 1
+	GameState.gore_setting = -1
+
+	# --- G2: Harm thresholds injure then kill ---
+	GameState._harm_scientist("SCIENTIST_CHEN", 70, "in testing")
+	var chen := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == "SCIENTIST_CHEN":
+			chen = s as Dictionary
+	if chen.get("status", "") != "INJURED":
+		push_error("gore: 70 damage should injure Chen (hp %s)" % chen.get("health", "?"))
+		failures += 1
+	GameState._harm_scientist("SCIENTIST_CHEN", 30, "in testing")
+	if chen.get("status", "") != "DECEASED":
+		push_error("gore: lethal damage should kill Chen")
+		failures += 1
+	if "first_blood" not in GameState.run_badges:
+		push_error("gore: first death should award first_blood")
+		failures += 1
+
+	# --- G3: The dead cannot be assigned ---
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	GameState.budget["funds"] = 30000
+	if not GameState.run_experiment(heat, chen).is_empty():
+		push_error("gore: deceased scientist must be refused experiments")
+		failures += 1
+
+	# --- G4: Injuries measurably hurt observation quality ---
+	var reed := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == "SCIENTIST_REED":
+			reed = s as Dictionary
+	GameState._rng.seed = 606
+	var q1: float = GameState._calculate_observation_quality(heat, reed)
+	reed["status"] = "INJURED"
+	GameState._rng.seed = 606
+	var q2: float = GameState._calculate_observation_quality(heat, reed)
+	if absf(q2 - q1 * 0.7) > 0.0001:
+		push_error("gore: injured quality should be exactly 0.7x (%.4f vs %.4f)" % [q2, q1])
+		failures += 1
+	reed["status"] = "ACTIVE"
+
+	# --- G5: Casualties persist through save/load ---
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	var chen2 := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == "SCIENTIST_CHEN":
+			chen2 = s as Dictionary
+	if chen2.get("status", "") != "DECEASED" or int(chen2.get("health", 100)) != 0:
+		push_error("gore: death not preserved after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("GORE_OK")
+	else:
+		print("%d GORE FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

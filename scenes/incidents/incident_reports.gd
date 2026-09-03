@@ -2,6 +2,7 @@ extends Control
 
 @onready var summary_label: Label = $ScrollContainer/VBox/summary_label
 @onready var incidents_label: RichTextLabel = $ScrollContainer/VBox/incidents_label
+@onready var crises_container: VBoxContainer = $ScrollContainer/VBox/crises_container
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
 
 const SEVERITY_COLORS := {
@@ -36,8 +37,51 @@ func _refresh():
 		]
 		if inc.get("mitigated", false):
 			text += "[color=#7f8fa6](severity reduced by Field Stabilizer)[/color]\n"
-		text += "%s\n\n" % inc.get("description", "")
+		text += "%s\n" % GameState.incident_display_text(inc)
+		if not inc.get("reaction", "") == "":
+			text += "[color=#7f8fa6]Crew note: %s[/color]\n" % inc.get("reaction", "")
+		text += "\n"
 	incidents_label.text = text
+	_populate_crises()
+
+func _populate_crises():
+	for child in crises_container.get_children():
+		child.queue_free()
+	if GameState.active_crises.is_empty():
+		var none := Label.new()
+		none.text = "No active crises. The building is (relatively) quiet."
+		none.add_theme_font_size_override("font_size", 14)
+		crises_container.add_child(none)
+		return
+	for c in GameState.active_crises:
+		var cd: Dictionary = c as Dictionary
+		var line := Label.new()
+		line.text = "%s — %d days left. Resolve: $%d, or send a response team (someone may not come back whole)." % [
+			cd.get("name", "?"), int(ceil(float(cd.get("days_left", 0.0)))),
+			int(cd.get("resolve_cost", 0))
+		]
+		line.add_theme_font_size_override("font_size", 14)
+		line.autowrap_mode = 2
+		crises_container.add_child(line)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var pay_btn := Button.new()
+		pay_btn.text = "Pay $%d" % int(cd.get("resolve_cost", 0))
+		pay_btn.pressed.connect(_on_resolve.bind(cd.get("id", ""), "pay"))
+		row.add_child(pay_btn)
+		var team_btn := Button.new()
+		team_btn.text = "Send response team"
+		team_btn.pressed.connect(_on_resolve.bind(cd.get("id", ""), "team"))
+		row.add_child(team_btn)
+		crises_container.add_child(row)
+
+func _on_resolve(crisis_id: String, method: String):
+	var res: Dictionary = GameState.resolve_crisis(crisis_id, method)
+	if not res.get("ok", false):
+		summary_label.text = "Cannot resolve (%s)." % res.get("reason", "?")
+	else:
+		summary_label.text = res.get("detail", "Resolved.")
+	_refresh()
 
 func _on_back():
 	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

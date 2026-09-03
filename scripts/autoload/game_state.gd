@@ -49,6 +49,12 @@ var player_sabotaged_until: float = 0.0
 var continued: bool = false
 var bonus_target: float = 0.0
 
+# --- Phase 6 (0.6): story arcs + crises + horror ---
+var story_log: Array = []
+var fired_beats: Array = []
+var active_crises: Array = []
+var gore_setting: int = -1
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -207,6 +213,10 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	player_sabotaged_until = 0.0
 	continued = false
 	bonus_target = 0.0
+	story_log = []
+	fired_beats = []
+	active_crises = []
+	_log_scientist_intros()
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
 	helios["discoveries_named"] = []
@@ -247,7 +257,10 @@ func _spawn_rivals():
 			"discovery_bumps": 0,
 			"acquired_by_player": false,
 			"status": "active",
-			"implosions": 0
+			"implosions": 0,
+			"director": rd.get("director", ""),
+			"taunts": (rd.get("taunts", []) as Array).duplicate(),
+			"milestones_hit": []
 		})
 		idx += 1
 	_sync_helios_rival()
@@ -466,6 +479,9 @@ func get_unlocked_experiments(all_experiments: Array) -> Array:
 func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictionary:
 	var exp_id: String = experiment_def.get("id", "")
 	var cost: int = _get_experiment_cost(exp_id)
+	if scientist.get("status", "ACTIVE") == "DECEASED":
+		push_warning("Cannot assign a deceased scientist: %s" % scientist.get("id", "?"))
+		return {}
 	if budget["funds"] < cost:
 		push_warning("Insufficient funds for experiment: %s (need %d, have %d)" % [exp_id, cost, budget["funds"]])
 		return {}
@@ -498,6 +514,7 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 
 	_update_knowledge_state()
 	_check_secondary_discoveries(exp_id)
+	_fire_story_beats_for_state()
 
 	var exp_record := {
 		"experiment_id": exp_id,
@@ -537,6 +554,7 @@ func _check_dangerous_experiment(exp_id: String):
 			continue
 		if not exp_dict.get("dangerous", false):
 			return
+		_fire_story_beat(artifact.get("id", ""), "danger")
 		# Field stabilizer mitigates the risk of high-energy experiments.
 		var base_chance: float = 0.12
 		if unlocked_technologies.has("TECH_FIELD_STABILIZER"):
@@ -588,6 +606,8 @@ func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dicti
 		quality *= 1.2
 	if unlocked_technologies.has("TECH_GRAVITY_SENSOR"):
 		quality *= 1.1
+	if scientist.get("status", "ACTIVE") == "INJURED":
+		quality *= 0.7
 
 	return clampf(quality, 0.1, 2.0)
 
@@ -821,11 +841,24 @@ func _apply_incident(incident: Dictionary):
 		"id": inc_id,
 		"name": incident.get("name", "Unknown Incident"),
 		"description": incident.get("description", ""),
+		"graphic_description": incident.get("graphic_description", ""),
 		"severity": base_severity,
 		"day": elapsed_days,
 		"mitigated": mitigated
 	}
 	incidents.append(record)
+	var involved: String = _pick_involved_scientist()
+	record["scientist_id"] = involved
+	record["reaction"] = _scientist_reaction(involved, base_severity)
+	if not involved.is_empty():
+		for s in scientists:
+			var sd0: Dictionary = s as Dictionary
+			if sd0.get("id", "") == involved:
+				sd0["stress"] = mini(int(sd0.get("stress", 0)) + 10, 100)
+	var casualty: int = int(incident.get("casualty", 0))
+	if casualty > 0 and not involved.is_empty():
+		_harm_scientist(involved, casualty, "in %s" % record.get("name", "the incident"))
+	_maybe_spawn_crisis(record, incident)
 	budget["funds"] -= effects.get("budget_cost", 0)
 	elapsed_days += effects.get("days_lost", 0)
 	var discovery_bonus: float = incident.get("discovery_chance_increase", 0.0)
@@ -882,6 +915,7 @@ func _tick_market():
 		player_market += 0.25
 	_tick_enemy_ops()
 	_tick_consolidation()
+	_tick_crises()
 
 	# Rivals advance their market share on their own timeline.
 	var lead := 0.0
@@ -896,6 +930,7 @@ func _tick_market():
 		var variation: float = _rng.randf_range(-0.3, 0.5)
 		var new_share: float = float(rd.get("share", 0)) + maxf(adv + variation, 0.1)
 		rd["share"] = new_share
+		_check_rival_taunt(rd)
 		if rd.get("id", "") == "RIV_HELIOS":
 			lead = new_share
 	_sync_helios_rival()
@@ -1367,6 +1402,215 @@ func continue_after_win() -> Dictionary:
 	bonus_target += 15.0
 	return {"ok": true, "new_target": get_majority_target()}
 
+# --- Phase 6 story: arcs, beats, reactions, horror ---
+func content_gore() -> bool:
+	if gore_setting == 0:
+		return false
+	if gore_setting == 1:
+		return true
+	var cfg := ConfigFile.new()
+	if cfg.load("user://settings.cfg") != OK:
+		return true
+	return bool(cfg.get_value("content", "graphic", true))
+
+func _log_scientist_intros():
+	var data: Dictionary = _load_json("res://data/narrative/scientist_beats.json")
+	for sdef in data.get("scientists", []):
+		var sd: Dictionary = sdef as Dictionary
+		story_log.append({
+			"day": elapsed_days, "artifact_id": "", "kind": "intro",
+			"title": "Personnel: %s" % _scientist_name(sd.get("id", "")),
+			"text": sd.get("intro", "")
+		})
+
+func _scientist_name(sci_id: String) -> String:
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("id", "") == sci_id:
+			return "%s %s" % [sd.get("first_name", "?"), sd.get("last_name", "?")]
+	return sci_id
+
+func _fire_story_beat(artifact_id: String, kind: String):
+	var key: String = "%s:%s" % [artifact_id, kind]
+	if key in fired_beats:
+		return
+	var data: Dictionary = _load_json("res://data/narrative/artifact_arcs.json")
+	for arc in data.get("arcs", []):
+		var ad: Dictionary = arc as Dictionary
+		if ad.get("artifact_id", "") != artifact_id:
+			continue
+		var beats: Dictionary = ad.get("beats", {})
+		if not beats.has(kind):
+			return
+		var beat: Dictionary = beats[kind]
+		fired_beats.append(key)
+		story_log.append({
+			"day": elapsed_days, "artifact_id": artifact_id, "kind": kind,
+			"title": beat.get("title", ""), "text": beat.get("text", "")
+		})
+		EventBus.story_beat.emit(beat.get("title", ""), beat.get("text", ""))
+		return
+
+func _fire_story_beats_for_state():
+	var art_id: String = artifact.get("id", "")
+	if art_id.is_empty():
+		return
+	var total_exps := 0
+	for exp_id in knowledge.get("experiment_counts", {}):
+		total_exps += int(knowledge["experiment_counts"][exp_id])
+	if total_exps <= 1:
+		_fire_story_beat(art_id, "dormant")
+	var st: String = knowledge.get("state", "unknown")
+	if st == "suspected" or st == "confirmed":
+		_fire_story_beat(art_id, "suspected")
+	if st == "confirmed":
+		_fire_story_beat(art_id, "confirmed")
+
+func _scientist_reaction(sci_id: String, severity: String) -> String:
+	var data: Dictionary = _load_json("res://data/narrative/scientist_beats.json")
+	var band := "minor"
+	if severity in ["major", "critical", "severe"]:
+		band = "major"
+	elif severity == "moderate":
+		band = "moderate"
+	for sdef in data.get("scientists", []):
+		var sd: Dictionary = sdef as Dictionary
+		if sd.get("id", "") == sci_id:
+			return (sd.get("reactions", {}) as Dictionary).get(band, "")
+	return ""
+
+func _pick_involved_scientist() -> String:
+	if not experiment_history.is_empty():
+		var last: Dictionary = experiment_history[experiment_history.size() - 1]
+		var lid: String = last.get("scientist_id", "")
+		for s in scientists:
+			var sd: Dictionary = s as Dictionary
+			if sd.get("id", "") == lid and sd.get("status", "ACTIVE") != "DECEASED":
+				return lid
+	var alive: Array = []
+	for s in scientists:
+		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+			alive.append((s as Dictionary).get("id", ""))
+	if alive.is_empty():
+		return ""
+	return alive[_rng.randi() % alive.size()]
+
+func incident_display_text(record: Dictionary) -> String:
+	if content_gore() and not record.get("graphic_description", "") == "":
+		return record.get("graphic_description", "")
+	return record.get("description", "")
+
+func _harm_scientist(sci_id: String, dmg: int, cause: String):
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("id", "") != sci_id:
+			continue
+		sd["health"] = maxi(int(sd.get("health", 100)) - dmg, 0)
+		sd["stress"] = mini(int(sd.get("stress", 0)) + 15, 100)
+		if int(sd["health"]) <= 0 and sd.get("status", "ACTIVE") != "DECEASED":
+			sd["status"] = "DECEASED"
+			story_log.append({
+				"day": elapsed_days, "artifact_id": artifact.get("id", ""), "kind": "death",
+				"title": "KIA: %s" % _scientist_name(sci_id),
+				"text": "%s died %s. The memorial service is brief; the work is not. Their notebook is sealed into the archive unread — no one has the stomach yet." % [_scientist_name(sci_id), cause]
+			})
+			award_badge("first_blood")
+		elif int(sd["health"]) <= 35 and sd.get("status", "ACTIVE") == "ACTIVE":
+			sd["status"] = "INJURED"
+			story_log.append({
+				"day": elapsed_days, "artifact_id": artifact.get("id", ""), "kind": "injury",
+				"title": "Injured: %s" % _scientist_name(sci_id),
+				"text": "%s is hurt badly enough to matter (%s). They insist on light duty. Observation quality will suffer until they heal." % [_scientist_name(sci_id), cause]
+			})
+		return
+
+# --- Phase 6 rival voices: directors taunt at milestones ---
+func _check_rival_taunt(rd: Dictionary):
+	var thresholds := [25.0, 40.0]
+	var hits: Array = rd.get("milestones_hit", [])
+	var share: float = float(rd.get("share", 0))
+	for i in range(thresholds.size()):
+		if share >= thresholds[i] and not hits.has(i):
+			hits.append(i)
+			rd["milestones_hit"] = hits
+			var taunts: Array = rd.get("taunts", [])
+			if not taunts.is_empty():
+				var text: String = taunts[mini(i, taunts.size() - 1)]
+				intelligence_reports.append({
+					"day": elapsed_days, "threshold": -3, "text": text,
+					"helios_progress": helios["progress"]
+				})
+
+# --- Phase 6 crises: major incidents demand answers on a clock ---
+func _maybe_spawn_crisis(record: Dictionary, incident: Dictionary):
+	var sev: String = record.get("severity", "minor")
+	if not (sev in ["major", "critical", "severe"]) and not incident.has("crisis"):
+		return
+	var block: Dictionary = incident.get("crisis", {"days": 5, "resolve_cost": 1500})
+	active_crises.append({
+		"id": "%s-d%d" % [record.get("id", "CRI"), int(elapsed_days)],
+		"name": "Containment Crisis: %s" % record.get("name", "Unknown"),
+		"days_left": float(block.get("days", 5)),
+		"resolve_cost": int(block.get("resolve_cost", 1500)),
+		"incident_id": record.get("id", "")
+	})
+
+func _tick_crises():
+	for c in active_crises.duplicate():
+		var cd: Dictionary = c as Dictionary
+		cd["days_left"] = float(cd.get("days_left", 0.0)) - 1.0
+		if float(cd.get("days_left", 0.0)) > 0.0:
+			continue
+		active_crises.erase(cd)
+		budget["funds"] = int(budget.get("funds", 0)) - 3000
+		var victim: String = _pick_involved_scientist()
+		if not victim.is_empty():
+			_harm_scientist(victim, 30, "in the uncontained aftermath")
+		intelligence_reports.append({
+			"day": elapsed_days, "threshold": -2,
+			"text": "UNCONTAINED: %s burned out of control. -$3000 emergency response, casualties." % cd.get("name", "?"),
+			"helios_progress": helios["progress"]
+		})
+		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+
+func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
+	for c in active_crises:
+		var cd: Dictionary = c as Dictionary
+		if cd.get("id", "") != crisis_id:
+			continue
+		if method == "pay":
+			var cost: int = int(cd.get("resolve_cost", 1500))
+			if int(budget.get("funds", 0)) < cost:
+				return {"ok": false, "reason": "insufficient_funds"}
+			budget["funds"] = int(budget.get("funds", 0)) - cost
+			budget["spent"] = int(budget.get("spent", 0)) + cost
+			active_crises.erase(cd)
+			intelligence_reports.append({
+				"day": elapsed_days, "threshold": -2,
+				"text": "Contained: %s resolved with emergency funding (-$%d)." % [cd.get("name", ""), cost],
+				"helios_progress": helios["progress"]
+			})
+			EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+			return {"ok": true, "detail": "Crisis contained with funding."}
+		elif method == "team":
+			var hurt: int = 10
+			var detail := "Response team contained it with minor injuries."
+			if _rng.randf() < 0.4:
+				hurt = 25
+				detail = "Response team mauled containing it. They held."
+			var victim2: String = _pick_involved_scientist()
+			if not victim2.is_empty():
+				_harm_scientist(victim2, hurt, "on the response team")
+			active_crises.erase(cd)
+			intelligence_reports.append({
+				"day": elapsed_days, "threshold": -2,
+				"text": "Contained: %s. %s" % [cd.get("name", ""), detail],
+				"helios_progress": helios["progress"]
+			})
+			return {"ok": true, "detail": detail}
+		return {"ok": false, "reason": "bad_method"}
+	return {"ok": false, "reason": "no_crisis"}
+
 # --- Phase 3 endings: tiered paths (monopoly > researcher > market_leader) ---
 func _confirmed_artifact_count() -> int:
 	var count := 0
@@ -1484,7 +1728,8 @@ func get_legacy_line() -> String:
 				diff_id.capitalize(), e.get("title", "?"), int(e.get("days", 0))
 			])
 	var badges: Array = legacy.get("badges", [])
-	return "Best — %s | Badges: %d/8" % ["; ".join(parts), badges.size()]
+	var total: int = (_load_json("res://data/meta/badges.json") as Dictionary).get("badges", []).size()
+	return "Best — %s | Badges: %d/%d" % ["; ".join(parts), badges.size(), total]
 
 # --- Phase 3 espionage: funds + risk allocation, not click-to-win ---
 func _espionage_op_def(op_id: String) -> Dictionary:
@@ -1835,7 +2080,10 @@ func get_save_data() -> Dictionary:
 		"facilities_owned": facilities_owned,
 		"player_sabotaged_until": player_sabotaged_until,
 		"continued": continued,
-		"bonus_target": bonus_target
+		"bonus_target": bonus_target,
+		"story_log": story_log,
+		"fired_beats": fired_beats,
+		"active_crises": active_crises
 	}
 
 func _save_current_artifact_data():
@@ -1917,6 +2165,9 @@ func load_save_data(data: Dictionary):
 	player_sabotaged_until = data.get("player_sabotaged_until", 0.0)
 	continued = data.get("continued", false)
 	bonus_target = data.get("bonus_target", 0.0)
+	story_log = data.get("story_log", [])
+	fired_beats = data.get("fired_beats", [])
+	active_crises = data.get("active_crises", [])
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

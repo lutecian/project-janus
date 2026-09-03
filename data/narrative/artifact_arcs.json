@@ -1,0 +1,130 @@
+{
+  "arcs": [
+    {
+      "artifact_id": "J001",
+      "beats": {
+        "dormant": {
+          "title": "The Quiet Sphere",
+          "text": "Day one with the Lattice Sphere. It sits in containment like a held breath. The team logs baseline readings and tries not to say what everyone is thinking: the mass is wrong. Not fluctuating — wrong, the way a word on the tip of your tongue is wrong."
+        },
+        "suspected": {
+          "title": "Weight of Suspicion",
+          "text": "The sphere responds to resonance, and that is the most frightening sentence ever written in a lab notebook. Something in there is listening at 18.3 GHz. Dr. Chen has stopped eating lunch in the observation room. Nobody asked her why."
+        },
+        "confirmed": {
+          "title": "Attenuation, Confirmed",
+          "text": "It is done. Local gravity attenuation, repeatable, publishable — and utterly unexplained. In the celebration photo, six people smile. The sphere reflects none of them. Check the photo. It reflects none of them."
+        },
+        "danger": {
+          "title": "Do Not Push It",
+          "text": "The dangerous run spiked the field past every interlock. For eleven seconds the sphere weighed nothing at all, and every unsecured object in the lab fell toward it. Toward it. Up was toward it. The crew still will not discuss those eleven seconds."
+        }
+      }
+    },
+    {
+      "artifact_id": "J002",
+      "beats": {
+        "dormant": {
+          "title": "Basalt Anomaly",
+          "text": "J002 looks like a rock, which is exactly what something would look like if it wanted to be left alone. The basalt is ordinary. The gravity coming off it is not."
+        },
+        "suspected": {
+          "title": "Heavier Than It Should Be",
+          "text": "Amplification confirmed in the margins: the anomaly makes gravity louder. Reed dropped a wrench near it yesterday and watched it fall too fast. He has dropped three more wrenches since, deliberately. This is what passes for courage here."
+        },
+        "confirmed": {
+          "title": "The Loud Rock",
+          "text": "Gravitational amplification, mapped and measured. J002 shouts in a spectrum nobody else can hear. The military liaison smiled for the first time anyone can remember. Nobody else smiled."
+        },
+        "danger": {
+          "title": "Feedback Howl",
+          "text": "The dangerous run coupled the amplifier to its own output. The lab heard it in their teeth before the instruments registered anything. Two techs bled from the nose. The rock, being a rock, said nothing."
+        }
+      }
+    },
+    {
+      "artifact_id": "J003",
+      "beats": {
+        "dormant": {
+          "title": "Iron Hollow Core",
+          "text": "J003 cancels gravity in a forty-centimeter shell, politely, the way a good guest declines dessert. The team keeps testing the boundary with pens, coins, a sandwich. The sandwich hovered. There is a photo. It looks fake. It is not fake."
+        },
+        "suspected": {
+          "title": "The Hole in the World",
+          "text": "Nullification is holding. There is a place in the lab where down does not apply, and the staff have started leaving small offerings at its edge — a paperclip, a button — watching them hang in nothing. Morale, the director notes, has never been higher. Or stranger."
+        },
+        "confirmed": {
+          "title": "Zero, Held Steady",
+          "text": "Confirmed: a stable null-g pocket, the first in history. The applications list is forty pages long and the ethics appendix is ninety. Someone wrote in the margin: 'what lives in the pocket when we are not looking?' The handwriting is nobody's. This is still under investigation."
+        },
+        "danger": {
+          "title": "The Pocket Bit Back",
+          "text": "During the dangerous run the null field inverted for four seconds and became the heaviest thing in the building. The floor held. Barely. The offerings are gone. All of them. The paperclip, the button, the sandwich. Gone."
+        }
+      }
+    },
+    {
+      "artifact_id": "J004",
+      "beats": {
+        "dormant": {
+          "title": "Choir Glass",
+          "text": "The pane arrived humming and has not stopped. Strike it and it sings for hours — a chord with too many notes in it, as if the glass remembers every impact it ever received, including the ones that have not happened yet."
+        },
+        "suspected": {
+          "title": "Lossless",
+          "text": "No decay. That is the finding, and it is impossible: every vibration should lose energy to heat, and this one loses nothing. The harmonics are getting more complex the longer we listen. Vasquez swears yesterday's chord spelled a word. She will not say which word."
+        },
+        "confirmed": {
+          "title": "Fourteen Overtones",
+          "text": "Fourteen sustained overtones, zero decay, fully mapped. The lattice finding came with it — heat flowing uphill through standing waves. The team played the harmonics back through the lab speakers at the confirmation party. Three people cried and could not explain why. The recording is now classified."
+        },
+        "danger": {
+          "title": "Sing Louder",
+          "text": "The dangerous run drove the pane past its safe amplitude and it sang back louder than the input — gain from nowhere. Windows across the complex shattered in sympathy, three blocks out. The pane itself is unmarked. It is still humming. It has never stopped humming."
+        }
+      }
+    },
+    {
+      "artifact_id": "J005",
+      "beats": {
+        "dormant": {
+          "title": "Winter Seed",
+          "text": "It is four Kelvin in a twenty-degree room and nobody will say the obvious thing, so the log will: something is paying the entropy bill, and it is not us. Frost draws the same geometry every eleven minutes. It is not decoration. It is handwriting."
+        },
+        "suspected": {
+          "title": "The Bloom Watches",
+          "text": "The frost cycle matches the staff shift-change log with a correlation the statisticians called 'rude'. When the night crew arrives, the bloom starts early, as if eager. Chen has requested transfer off J005 twice. Both requests were denied. The frost spelled her initials this morning. This is in the log because the log must contain everything."
+        },
+        "confirmed": {
+          "title": "Cold That Moves",
+          "text": "Confirmed: entropic inversion plus migration toward heat — toward body heat, specifically, at two millimeters per hour. Containment protocol now requires the Seed be stored at the center of a ten-meter room, alone. The night crew leaves it offerings of warm tea at the door. The tea is always frozen solid by morning. The cup is always empty."
+        },
+        "danger": {
+          "title": "It Was Thirsty",
+          "text": "The dangerous run warmed the chamber by nine degrees and the Seed drank it in four seconds, then kept drinking — the heating elements, the lighting rig, the standby generator. Frostbite took two fingers from a tech who got too close with a thermometer. He says he felt it notice him. He says it felt like being read."
+        }
+      }
+    },
+    {
+      "artifact_id": "J006",
+      "beats": {
+        "dormant": {
+          "title": "Obsidian Torus",
+          "text": "Radar goes in and comes back 0.4 seconds late, carrying yesterday's calibration headers. The working theory is signal retention. The unofficial theory, whispered, is that the aperture keeps copies. The unofficial theory has a growing file."
+        },
+        "suspected": {
+          "title": "The Delay",
+          "text": "Modulated echoes confirmed: the torus replays earlier inputs on a loop. Yesterday a probe returned telemetry stamped with tomorrow's date. The timestamp is almost certainly an artifact of the retention effect. Almost certainly. The director has ordered a second clock. Then a third."
+        },
+        "confirmed": {
+          "title": "Yesterday's Telemetry, Tomorrow",
+          "text": "Signal memory and event skimming, both confirmed. We looked 0.4 seconds into the past and the past looked back. Review of the skimmer footage shows, in frame 214, a figure standing where no figure stood. Enhancement is pending. Nobody is rushing the enhancement."
+        },
+        "danger": {
+          "title": "Reach In and It Reaches Back",
+          "text": "During the dangerous run a manipulator arm crossed the aperture plane and came back wrong — same alloy, same serials, mirrored chirality, still warm. The operator's glove, which had also crossed, came back empty with the fingers bent the wrong way. The operator will not describe what the hand felt. The hand is gone. The description would not bring it back."
+        }
+      }
+    }
+  ]
+}

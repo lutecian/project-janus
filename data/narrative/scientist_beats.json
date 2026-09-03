@@ -1,0 +1,31 @@
+{
+  "scientists": [
+    {
+      "id": "SCIENTIST_CHEN",
+      "intro": "Dr. Sarah Chen joined for the physics and stayed because leaving would mean admitting the Sphere scares her. Brilliant, curious, sleeping four hours a night. Her notebook margins are full of sketches of the artifact with a face. She denies this.",
+      "reactions": {
+        "minor": "Chen logs the incident flatly, then stays three hours late re-running the calibration. 'It wasn't the equipment,' she says, to no one.",
+        "moderate": "Chen goes quiet for a day. When she returns, her safety margins are doubled and her eyes are not.",
+        "major": "Chen requested reassignment after this one. The request is still sitting on the director's desk, unsigned. She knows. She keeps working."
+      }
+    },
+    {
+      "id": "SCIENTIST_REED",
+      "intro": "Dr. Marcus Reed has survived three lab fires, one flood, and a postdoc under a Nobel tyrant. He treats every anomaly as a personal insult and every injury as paperwork. The staff would follow him into the aperture. He pretends not to know that.",
+      "reactions": {
+        "minor": "Reed files the report before the bleeding stops. 'Add it to the list,' he says. There is a list. It is long.",
+        "moderate": "Reed takes the night shift himself after this one. Says the junior staff need rest. The truth is he needs to watch the artifact, to make sure it doesn't try anything.",
+        "major": "Reed laughed when it happened — one short bark — and then worked a double. The laugh worried everyone more than the incident."
+      }
+    },
+    {
+      "id": "SCIENTIST_VASQUEZ",
+      "intro": "Dr. Elena Vasquez hears things in the data nobody else hears, which is an asset until it isn't. She named the Choir Glass harmonics before analysis confirmed them. Nobody has asked how. Nobody wants to ask how.",
+      "reactions": {
+        "minor": "Vasquez says she expected it. Nobody asks what 'it' was. The log records the incident and, separately, that Vasquez is never wrong about these things.",
+        "moderate": "Vasquez stopped humming after this one, and the lab only noticed when the silence got loud. She started again yesterday. Deliberately. Defiantly.",
+        "major": "Vasquez looked at the artifact for a long time after this one, the way you look at someone who has hurt you and might do it again. Then she went back to work. There is nothing else to do."
+      }
+    }
+  ]
+}

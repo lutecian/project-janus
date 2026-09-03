@@ -83,6 +83,22 @@ theme_override_font_sizes/normal_font_size = 13
 scroll_active = true
 autowrap_mode = 2
 
+[node name="Sep4" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="StoryHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "FIELD LOG"
+horizontal_alignment = 1
+
+[node name="story_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 150)
+theme_override_font_sizes/normal_font_size = 13
+scroll_active = true
+autowrap_mode = 2
+
 [node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
 layout_mode = 2
 

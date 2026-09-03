@@ -4,6 +4,8 @@
       "id": "INC_MINOR_LEAK",
       "name": "Minor Containment Leak",
       "description": "A small leak was detected in the artifact containment unit. The artifact was briefly exposed to ambient conditions.",
+      "graphic_description": "The seal failed along a ten-centimeter seam and the unit exhaled supercooled vapor straight into technician Park's face. Flash-frost bit his eyelids shut; he tore at his own face screaming before the purge kicked in. Second-degree frostbite. Both corneas spared by luck and safety glasses.",
+      "casualty": 15,
       "severity": "minor",
       "trigger_chance": 0.03,
       "knowledge_state_required": "unknown",
@@ -22,6 +24,8 @@
       "id": "INC_EQUIPMENT_FAILURE",
       "name": "Equipment Malfunction",
       "description": "One of the measurement instruments malfunctioned during an experiment, producing unreliable data.",
+      "graphic_description": "The spectrometer housing split under resonance load and threw hot shrapnel across the bench. Dr. Reed took a shard through the forearm — clean through, missing the artery by a finger's width. He finished the shutdown one-handed before letting anyone look at it.",
+      "casualty": 25,
       "severity": "minor",
       "trigger_chance": 0.04,
       "knowledge_state_required": "unknown",
@@ -40,6 +44,8 @@
       "id": "INC_UNEXPECTED_READING",
       "name": "Unexpected Gravitational Reading",
       "description": "A sudden gravitational anomaly was recorded near the artifact. All personnel reported momentary disorientation.",
+      "graphic_description": "For 0.3 seconds gravity pointed sideways and three people fell into the wall hard enough to crack ribs. The vertigo lasted hours. One tech still cannot stand in that corner without vomiting.",
+      "casualty": 20,
       "severity": "moderate",
       "trigger_chance": 0.02,
       "knowledge_state_required": "suspected",
@@ -58,6 +64,8 @@
       "id": "INC_POWER_SURGE",
       "name": "Power Surge",
       "description": "A power surge affected the laboratory. Several instruments need recalibration.",
+      "graphic_description": "The surge welded a probe to the bench and blew its display into the operator's cheek — glass beads embedded in skin. They picked the pieces out with tweezers under a lamp. He kept the largest shard in a vial.",
+      "casualty": 15,
       "severity": "minor",
       "trigger_chance": 0.03,
       "knowledge_state_required": "unknown",
@@ -76,6 +84,8 @@
       "id": "INC_SCIENTIST_STRESS",
       "name": "Researcher Stress Incident",
       "description": "One of the researchers reported unusual symptoms after prolonged exposure to the artifact.",
+      "graphic_description": "Chen woke screaming with a nosebleed that would not stop, convinced the artifact was humming her name in her dead grandmother's voice. Ruptured vessels, exhaustion. She was back at the bench in two days. That is the part that worries everyone.",
+      "casualty": 10,
       "severity": "moderate",
       "trigger_chance": 0.02,
       "knowledge_state_required": "suspected",
@@ -94,6 +104,8 @@
       "id": "INC_MASS_FLUCTUATION",
       "name": "Artifact Mass Fluctuation",
       "description": "The artifact's measured mass fluctuated unexpectedly during a routine check.",
+      "graphic_description": "The artifact gained eleven kilos in six seconds and the hoist chain parted, whipping back across a technician's shin and flaying it to the bone. The mass normalized before the medics arrived, as if nothing had happened.",
+      "casualty": 30,
       "severity": "moderate",
       "trigger_chance": 0.015,
       "knowledge_state_required": "suspected",
@@ -112,6 +124,8 @@
       "id": "INC_CRYO_BURN",
       "name": "Cryogenic Burn",
       "description": "A technician touched an unmarked cold-surface coupling without insulated gloves.",
+      "graphic_description": "The coupling flash-froze his glove to the pipe and he panicked and pulled — the glove stayed, the skin of four fingers went with it, white and waxy down to tendon. They keep the glove. It is a training aid now.",
+      "casualty": 30,
       "severity": "minor",
       "trigger_chance": 0.03,
       "knowledge_state_required": "unknown",
@@ -130,6 +144,8 @@
       "id": "INC_RESONANCE_FEEDBACK",
       "name": "Resonance Feedback",
       "description": "A test tone coupled with the artifact's field and amplified until the mounts shook.",
+      "graphic_description": "At 140dB the feedback found the window's resonant frequency and it came apart as a glittering sheet across two techs. Forty-seven stitches between them. The broken glass kept ringing for an hour afterward.",
+      "casualty": 25,
       "severity": "moderate",
       "trigger_chance": 0.02,
       "knowledge_state_required": "suspected",
@@ -148,6 +164,8 @@
       "id": "INC_DATA_THEFT",
       "name": "Data Theft Attempt",
       "description": "An intruder was caught copying observation logs. Some files may have left the building.",
+      "graphic_description": "The intruder left a junior analyst zip-tied to a chair with a bag over his head and a note: 'Stay out of the deep files.' Physically unharmed. He has not slept since. Security calls it a message. It was received.",
+      "casualty": 0,
       "severity": "moderate",
       "trigger_chance": 0.015,
       "knowledge_state_required": "suspected",
@@ -166,6 +184,8 @@
       "id": "INC_SUPPLY_SHORTAGE",
       "name": "Supply Shortage",
       "description": "A backordered isotope shipment idled the calibration bench for a day.",
+      "graphic_description": "A tech jury-rigged an unrated capacitor to keep calibration alive and it vented boiling electrolyte across his hands. He worked the rest of the shift in bandages because the bench couldn't wait. The burns will scar in droplet patterns.",
+      "casualty": 10,
       "severity": "minor",
       "trigger_chance": 0.03,
       "knowledge_state_required": "unknown",
@@ -179,6 +199,88 @@
         "Procurement promises dual-sourcing going forward."
       ],
       "discovery_chance_increase": 0.0
+    },
+    {
+      "id": "INC_APERTURE_SHEAR",
+      "name": "Aperture Shear",
+      "description": "A manipulator arm crossed the torus aperture plane and returned with mirrored chirality.",
+      "graphic_description": "The arm came back wrong — same alloy, same serials, mirrored like a reflection, still warm. The operator's glove came back empty with the fingers bent the wrong way. The hand is gone. No one will describe what the stump looked like before the tourniquet.",
+      "casualty": 35,
+      "severity": "major",
+      "trigger_chance": 0.012,
+      "knowledge_state_required": "any",
+      "effects": {
+        "observation_quality_reduction": 0.2,
+        "budget_cost": 1500,
+        "days_lost": 2
+      },
+      "observations": [
+        "Manipulator returned mirrored. Operator glove empty.",
+        "Aperture plane now ringed in floor paint, three meters out."
+      ],
+      "discovery_chance_increase": 0.1,
+      "crisis": {"days": 5, "resolve_cost": 1500}
+    },
+    {
+      "id": "INC_FROSTBITE_CASUALTY",
+      "name": "Frostbite Casualty",
+      "description": "A thermometer run on the Winter Seed ended with severe frostbite.",
+      "graphic_description": "He got too close with the thermometer and the Seed noticed him — that is his word, noticed. Frost raced up his arm to the elbow in seconds, skin splitting like overripe fruit. They amputated below the elbow. He says he felt it reading him the whole time.",
+      "casualty": 30,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.15,
+        "budget_cost": 900,
+        "days_lost": 1
+      },
+      "observations": [
+        "Frostbite amputation below elbow. Thermometer recovered, fused.",
+        "Ten-meter rule now enforced with painted floor lines."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_CHOIR_DEAFENING",
+      "name": "Choir Deafening",
+      "description": "A resonance test on Choir Glass exceeded safe amplitude without warning.",
+      "graphic_description": "The pane sang back louder than the input and both techs' eardrums went at once — blood from both ears, sudden underwater silence. One of them can still hear the chord, she says. All the time. Even asleep. Especially asleep.",
+      "casualty": 20,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.15,
+        "budget_cost": 700,
+        "days_lost": 1
+      },
+      "observations": [
+        "Bilateral eardrum rupture, two techs. Amplitude caps rewritten.",
+        "One subject reports persistent phantom chord. Audiology baffled."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_CRITICAL_EXPOSURE",
+      "name": "Critical Exposure",
+      "description": "A dangerous run breached shielding and exposed the crew to the raw field.",
+      "graphic_description": "The interlock failed for nine seconds and the raw field washed the chamber. Skin first — blistering in geometric patterns, then the bleeding from gums and eyes. Two techs are in the burn unit. The third walked out unmarked and has not spoken since. Dosimetry cannot explain any of it.",
+      "casualty": 40,
+      "severity": "major",
+      "trigger_chance": 0.01,
+      "knowledge_state_required": "any",
+      "effects": {
+        "observation_quality_reduction": 0.25,
+        "budget_cost": 2000,
+        "days_lost": 2
+      },
+      "observations": [
+        "Nine-second shielding breach. Two in burn unit, one mute.",
+        "Interlock assembly replaced wholesale. Old unit quarantined, not scrapped — nobody wants to touch it."
+      ],
+      "discovery_chance_increase": 0.15,
+      "crisis": {"days": 5, "resolve_cost": 1500}
     }
   ],
   "incident_cooldown_days": 5,
