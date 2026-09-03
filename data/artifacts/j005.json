@@ -1,0 +1,27 @@
+{
+  "id": "J005",
+  "display_name": "Winter Seed",
+  "visible_description": "A seed-shaped object that holds 4 Kelvin on its surface in a 20C room. Frost forms geometric patterns that repeat exactly every 11 minutes.",
+  "known_initial_data": {
+    "mass_kg": 2.9,
+    "diameter_cm": 17.8,
+    "surface_temperature_c": -269.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "localized_entropic_inversion",
+    "trigger": "thermal_gradient",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": true,
+    "temperature_stable_equilibrium_c": -269.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

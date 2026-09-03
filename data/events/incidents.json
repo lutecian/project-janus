@@ -107,6 +107,78 @@
         "Scale calibration appears stable. Artifact mass variation is real."
       ],
       "discovery_chance_increase": 0.15
+    },
+    {
+      "id": "INC_CRYO_BURN",
+      "name": "Cryogenic Burn",
+      "description": "A technician touched an unmarked cold-surface coupling without insulated gloves.",
+      "severity": "minor",
+      "trigger_chance": 0.03,
+      "knowledge_state_required": "unknown",
+      "effects": {
+        "observation_quality_reduction": 0.1,
+        "budget_cost": 600,
+        "days_lost": 1
+      },
+      "observations": [
+        "Cold burn treated on site. Coupling now tagged and insulated.",
+        "Safety review flags three more unmarked cold surfaces."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_RESONANCE_FEEDBACK",
+      "name": "Resonance Feedback",
+      "description": "A test tone coupled with the artifact's field and amplified until the mounts shook.",
+      "severity": "moderate",
+      "trigger_chance": 0.02,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.15,
+        "budget_cost": 700,
+        "days_lost": 1
+      },
+      "observations": [
+        "Feedback loop peaked at 140dB before the cutout tripped.",
+        "Mounts re-torqued. Test tones now capped below coupling threshold."
+      ],
+      "discovery_chance_increase": 0.1
+    },
+    {
+      "id": "INC_DATA_THEFT",
+      "name": "Data Theft Attempt",
+      "description": "An intruder was caught copying observation logs. Some files may have left the building.",
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.0,
+        "budget_cost": 1200,
+        "days_lost": 1
+      },
+      "observations": [
+        "Intruder fled through the service tunnel. Copied logs unrecovered.",
+        "Counter-intel review recommends compartmentalizing discovery notes."
+      ],
+      "discovery_chance_increase": 0.0
+    },
+    {
+      "id": "INC_SUPPLY_SHORTAGE",
+      "name": "Supply Shortage",
+      "description": "A backordered isotope shipment idled the calibration bench for a day.",
+      "severity": "minor",
+      "trigger_chance": 0.03,
+      "knowledge_state_required": "unknown",
+      "effects": {
+        "observation_quality_reduction": 0.05,
+        "budget_cost": 400,
+        "days_lost": 1
+      },
+      "observations": [
+        "Calibration bench idle pending isotope delivery.",
+        "Procurement promises dual-sourcing going forward."
+      ],
+      "discovery_chance_increase": 0.0
     }
   ],
   "incident_cooldown_days": 5,

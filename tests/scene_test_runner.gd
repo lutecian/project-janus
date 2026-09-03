@@ -329,8 +329,8 @@ func _test_market():
 	if absf(GameState.get_rival_market("RIV_HELIOS") - 12.0) > 0.001:
 		push_error("market: HELIOS normal start share should be 12, got %f" % GameState.get_rival_market("RIV_HELIOS"))
 		failures += 1
-	if absf(GameState.get_majority_target() - 46.0) > 0.001:
-		push_error("market: normal majority target should be 46, got %f" % GameState.get_majority_target())
+	if absf(GameState.get_majority_target() - 52.0) > 0.001:
+		push_error("market: normal majority target should be 52, got %f" % GameState.get_majority_target())
 		failures += 1
 
 	# --- M2: Player experiment tick adds a small share and rivals advance ---
@@ -387,8 +387,8 @@ func _test_market():
 	if GameState.rivals.size() != 4:
 		push_error("market: rivals not preserved after save/load")
 		failures += 1
-	if absf(GameState.get_majority_target() - 52.0) > 0.001:
-		push_error("market: hard majority target not 52 after load, got %f" % GameState.get_majority_target())
+	if absf(GameState.get_majority_target() - 58.0) > 0.001:
+		push_error("market: hard majority target not 58 after load, got %f" % GameState.get_majority_target())
 		failures += 1
 
 	if failures == 0:
@@ -401,9 +401,9 @@ func _test_acq():
 	GameState.initialize_new_campaign({"name": "Acq Test"}, "normal")
 	GameState.select_artifact(0)
 
-	# --- A1: Offers spawn with noisy pricing inside the 0.6..1.6 band ---
+	# --- A1: Opening offers spawn with noisy pricing inside the 0.6..1.6 band ---
 	if GameState.company_offers.size() != 4:
-		push_error("acq: expected 4 company offers, got %d" % GameState.company_offers.size())
+		push_error("acq: expected 4 opening offers, got %d" % GameState.company_offers.size())
 		failures += 1
 	for o in GameState.company_offers:
 		var od: Dictionary = o as Dictionary
@@ -519,6 +519,15 @@ func _test_acq():
 		push_error("acq: offers not preserved after save/load (got %d)" % GameState.company_offers.size())
 		failures += 1
 
+	# --- A8: Later companies arrive on schedule ---
+	GameState.initialize_new_campaign({"name": "Acq Stagger"}, "normal")
+	GameState.select_artifact(0)
+	GameState.elapsed_days = 30.0
+	GameState._tick_company_offers()
+	if GameState.company_offers.size() != 8:
+		push_error("acq: all 8 offers should be listed by day 30, got %d" % GameState.company_offers.size())
+		failures += 1
+
 	if failures == 0:
 		print("ACQ_OK")
 	else:
@@ -530,8 +539,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 6:
-		push_error("ctr: expected 6-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 12:
+		push_error("ctr: expected 12-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -612,7 +621,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 5:
+	if GameState.contract_deck.size() != 11:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -783,7 +792,7 @@ func _test_endings():
 	# --- N1: Tech depth + full confirmation wins the scientific path ---
 	GameState.initialize_new_campaign({"name": "End Sci"}, "normal")
 	GameState.select_artifact(0)
-	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+	for tech_id in GameState.TECH_KEY_MAP.values():
 		if not GameState.unlocked_technologies.has(tech_id):
 			GameState.unlocked_technologies.append(tech_id)
 	GameState.discovery["state"] = "confirmed"
@@ -804,7 +813,7 @@ func _test_endings():
 	# --- N2: Tier order is monopoly > researcher > market_leader ---
 	GameState.initialize_new_campaign({"name": "End Tiers"}, "normal")
 	GameState.select_artifact(0)
-	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+	for tech_id in GameState.TECH_KEY_MAP.values():
 		if not GameState.unlocked_technologies.has(tech_id):
 			GameState.unlocked_technologies.append(tech_id)
 	GameState.discovery["state"] = "confirmed"
@@ -822,7 +831,7 @@ func _test_endings():
 		failures += 1
 	GameState.initialize_new_campaign({"name": "End Tiers 2"}, "normal")
 	GameState.select_artifact(0)
-	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+	for tech_id in GameState.TECH_KEY_MAP.values():
 		if not GameState.unlocked_technologies.has(tech_id):
 			GameState.unlocked_technologies.append(tech_id)
 	GameState.discovery["state"] = "confirmed"

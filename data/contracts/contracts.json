@@ -77,6 +77,84 @@
       "market_bonus": 2.0,
       "military": false,
       "event_tag": "EVT_TRADE"
+    },
+    {
+      "id": "CTR_FOUNDRY",
+      "issuer": "Kilnworks Foundry Group",
+      "title": "Harmonic Furnace Linings",
+      "flavor": "Industrial acoustics: line their furnaces with your resonance notes.",
+      "days_required": 5,
+      "upfront": 1100,
+      "completion_pay": 1600,
+      "tech_key": "resonance_amplifier",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_DEEPSEA",
+      "issuer": "Abyssal Survey Group",
+      "title": "Pressure-Hardened Sensors",
+      "flavor": "Deep-ocean work needs probes that survive the trench. Your deep-field notes apply.",
+      "days_required": 6,
+      "upfront": 1300,
+      "completion_pay": 1900,
+      "tech_key": "deep_field_probe",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_ARCHIVE",
+      "issuer": "National Archive Trust",
+      "title": "Cold-Storage Vaults",
+      "flavor": "Preserve paper for centuries. Unfashionable, steady, honest work.",
+      "days_required": 4,
+      "upfront": 900,
+      "completion_pay": 1300,
+      "tech_key": "cryo_lattice",
+      "market_bonus": 1.5,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_QUARANTINE",
+      "issuer": "Strategic Reserve Command",
+      "title": "Quarantine Cold Chain",
+      "flavor": "Military cold-chain logistics. Pays like the army, watches like the army.",
+      "days_required": 7,
+      "upfront": 1900,
+      "completion_pay": 2700,
+      "tech_key": "cryo_lattice",
+      "market_bonus": 2.5,
+      "military": true,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_RELAY",
+      "issuer": "Deep Relay Initiative",
+      "title": "Signal Relay Harmonics",
+      "flavor": "Only offered after the deep signal arrives. Tune relays to an alien carrier.",
+      "days_required": 6,
+      "upfront": 1600,
+      "completion_pay": 2300,
+      "tech_key": "resonance_amplifier",
+      "market_bonus": 2.5,
+      "military": false,
+      "event_tag": "EVT_SIGNAL"
+    },
+    {
+      "id": "CTR_SEEDVAULT",
+      "issuer": "Global Seed Trust",
+      "title": "Bloom-Season Vaults",
+      "flavor": "Offered during bloom season. Entropic-cycle storage for the world's seeds.",
+      "days_required": 5,
+      "upfront": 1300,
+      "completion_pay": 1900,
+      "tech_key": "deep_field_probe",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": "EVT_BLOOM"
     }
   ]
 }

@@ -8,7 +8,7 @@
       "price_noise_min": 0.6,
       "price_noise_max": 1.6,
       "techs": ["experimental_field_sensor"],
-      "daily_research": 0.25,
+      "daily_research": 0.15,
       "deadline_days": 40
     },
     {
@@ -19,7 +19,7 @@
       "price_noise_min": 0.6,
       "price_noise_max": 1.6,
       "techs": ["thermal_containment"],
-      "daily_research": 0.35,
+      "daily_research": 0.2,
       "deadline_days": 35
     },
     {
@@ -30,7 +30,7 @@
       "price_noise_min": 0.6,
       "price_noise_max": 1.6,
       "techs": ["gravity_sensor"],
-      "daily_research": 0.2,
+      "daily_research": 0.12,
       "deadline_days": 45
     },
     {
@@ -41,8 +41,56 @@
       "price_noise_min": 0.6,
       "price_noise_max": 1.6,
       "techs": ["field_stabilizer"],
-      "daily_research": 0.4,
+      "daily_research": 0.25,
       "deadline_days": 30
+    },
+    {
+      "id": "CMP_DREDGE",
+      "name": "Dredge & Salvage Co.",
+      "flavor": "Harbor salvagers who dredged up more than scrap. Rough books, real gravity data.",
+      "true_value": 2800,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["gravity_sensor"],
+      "daily_research": 0.13,
+      "deadline_days": 42,
+      "available_from_day": 12
+    },
+    {
+      "id": "CMP_KILN",
+      "name": "Kilnworks Collective",
+      "flavor": "Furnace-tenders turned acousticians. Their kilns sing in tune.",
+      "true_value": 3600,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["resonance_amplifier"],
+      "daily_research": 0.18,
+      "deadline_days": 38,
+      "available_from_day": 12
+    },
+    {
+      "id": "CMP_VESPER",
+      "name": "Vesper Cryonics",
+      "flavor": "Cold-storage startup with genuine cryo-lattice prototypes and burned cash.",
+      "true_value": 5400,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["cryo_lattice"],
+      "daily_research": 0.22,
+      "deadline_days": 34,
+      "available_from_day": 25
+    },
+    {
+      "id": "CMP_ABYSSAL",
+      "name": "Abyssal Survey Group",
+      "flavor": "Trench surveyors with pressure-hardened deep-field probes. Expensive, excellent.",
+      "true_value": 7100,
+      "price_noise_min": 0.6,
+      "price_noise_max": 1.6,
+      "techs": ["deep_field_probe"],
+      "daily_research": 0.28,
+      "deadline_days": 30,
+      "available_from_day": 25
     }
   ]
 }

@@ -20,7 +20,11 @@
     {"day": 5, "amount": 1500, "label": "Bi-weekly research grant"},
     {"day": 10, "amount": 1500, "label": "Bi-weekly research grant"},
     {"day": 15, "amount": 2500, "label": "Quarterly review funding"},
-    {"day": 20, "amount": 1500, "label": "Bi-weekly research grant"}
+    {"day": 20, "amount": 1500, "label": "Bi-weekly research grant"},
+    {"day": 25, "amount": 2000, "label": "Extended operations grant"},
+    {"day": 30, "amount": 2000, "label": "Bi-weekly research grant"},
+    {"day": 35, "amount": 2500, "label": "Pre-breakthrough funding"},
+    {"day": 40, "amount": 2000, "label": "Bi-weekly research grant"}
   ],
   "budget_events": [
     {"trigger": "discovery_suspected", "amount": 3000, "label": "Emergency research funding"},

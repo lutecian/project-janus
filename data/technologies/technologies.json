@@ -31,6 +31,30 @@
       "category": "containment",
       "effect": "-50% incident severity, enables high-energy experiments",
       "unlock_discovery": "DISC_GRAV_NULLIFICATION"
+    },
+    {
+      "id": "TECH_RESONANCE_AMPLIFIER",
+      "name": "Resonance Amplifier",
+      "description": "An acoustic driver array that reproduces lossless harmonics for precision measurement.",
+      "category": "measurement",
+      "effect": "+15% observation quality on acoustic and vibration experiments",
+      "unlock_discovery": "DISC_RESONANT_HARMONICS"
+    },
+    {
+      "id": "TECH_CRYO_LATTICE",
+      "name": "Cryo Lattice",
+      "description": "A structured cold-frame that holds cryogenic equilibrium with minimal energy input.",
+      "category": "containment",
+      "effect": "-25% experiment costs on cooling experiments",
+      "unlock_discovery": "DISC_ENTROPIC_BLOOM"
+    },
+    {
+      "id": "TECH_DEEP_FIELD_PROBE",
+      "name": "Deep Field Probe",
+      "description": "A hardened sensor package rated for aperture-adjacent and cryogenic deployment.",
+      "category": "measurement",
+      "effect": "+10% observation quality on all experiments",
+      "unlock_discovery": "DISC_ZERO_POINT_DRIFT"
     }
   ]
 }

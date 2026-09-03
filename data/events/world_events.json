@@ -62,6 +62,42 @@
       "player_bonus": 0.5,
       "funds_grant": 500,
       "duration_days": 8
+    },
+    {
+      "id": "EVT_SIGNAL",
+      "name": "Deep Signal Detected",
+      "flavor": "A structured carrier from deep space. Relay contracts appear; rivals retool to listen.",
+      "rival_mult": 1.15,
+      "player_bonus": 0.3,
+      "funds_grant": 800,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_BLOOM",
+      "name": "Cryogenic Bloom Season",
+      "flavor": "A season of anomalous cold snaps. Cryo work flourishes; vault contracts open.",
+      "rival_mult": 0.9,
+      "player_bonus": 0.2,
+      "funds_grant": 500,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_SUMMIT",
+      "name": "Global Research Summit",
+      "flavor": "The field meets to share notes. Publishers are rewarded; secrecy looks shabby.",
+      "rival_mult": 0.85,
+      "player_bonus": 0.4,
+      "funds_grant": 1200,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_EMBARGO",
+      "name": "Supply Embargo",
+      "flavor": "Export controls choke instrument supply. Everyone slows; your stockpile takes a hit.",
+      "rival_mult": 0.9,
+      "player_bonus": 0.0,
+      "funds_grant": -500,
+      "duration_days": 8
     }
   ]
 }

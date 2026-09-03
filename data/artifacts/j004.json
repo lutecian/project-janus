@@ -1,0 +1,27 @@
+{
+  "id": "J004",
+  "display_name": "Choir Glass",
+  "visible_description": "A translucent pane that sustains audible harmonics for hours after any vibration. Spectral analysis shows overtones with no measurable decay curve.",
+  "known_initial_data": {
+    "mass_kg": 6.2,
+    "diameter_cm": 58.4,
+    "surface_temperature_c": 19.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "lossless_acoustic_resonance",
+    "trigger": "mechanical_impulse",
+    "peak_resonance_ghz": 0.0044,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 19.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

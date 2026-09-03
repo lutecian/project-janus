@@ -1,0 +1,27 @@
+{
+  "id": "J006",
+  "display_name": "Obsidian Torus",
+  "visible_description": "A black ring that returns radar and lidar with a 0.4-second delay, as if the signal traveled somewhere else first. Compasses spin near its aperture.",
+  "known_initial_data": {
+    "mass_kg": 31.5,
+    "diameter_cm": 74.0,
+    "surface_temperature_c": 11.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "toroidal_signal_retention",
+    "trigger": "incident_radiation",
+    "peak_resonance_ghz": 9.6,
+    "absorbs_applied_energy": true,
+    "temperature_stable_equilibrium_c": 11.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

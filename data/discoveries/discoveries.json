@@ -39,6 +39,66 @@
       "player_namable": true,
       "technology_unlock": "gravity_sensor",
       "effect": {"type": "gravitational_nullification", "effective_radius_m": 0.4}
+    },
+    {
+      "discovery_id": "DISC_RESONANT_HARMONICS",
+      "artifact_id": "J004",
+      "internal_name": "Lossless Resonant Harmonics",
+      "display_name_before_naming": "Unclassified Sustained Tone",
+      "description": "Choir Glass sustains harmonic overtones with no measurable decay after mechanical impulse.",
+      "player_namable": true,
+      "technology_unlock": "resonance_amplifier",
+      "effect": {"type": "resonant_harmonics", "decay_rate": 0.0, "overtone_count": 14}
+    },
+    {
+      "discovery_id": "DISC_SONIC_LATTICE",
+      "artifact_id": "J004",
+      "internal_name": "Sonic Lattice Formation",
+      "display_name_before_naming": "Unclassified Acoustic Structure",
+      "description": "Standing waves inside Choir Glass self-organize into a stable lattice that conducts heat asymmetrically.",
+      "player_namable": true,
+      "technology_unlock": "cryo_lattice",
+      "effect": {"type": "sonic_lattice", "thermal_rectification": 0.82}
+    },
+    {
+      "discovery_id": "DISC_ENTROPIC_BLOOM",
+      "artifact_id": "J005",
+      "internal_name": "Entropic Bloom",
+      "display_name_before_naming": "Unclassified Frost Pattern",
+      "description": "Frost on Winter Seed blooms into identical geometric patterns on an exact 11-minute cycle, decreasing local entropy.",
+      "player_namable": true,
+      "technology_unlock": "cryo_lattice",
+      "effect": {"type": "entropic_bloom", "cycle_minutes": 11.0}
+    },
+    {
+      "discovery_id": "DISC_ZERO_POINT_DRIFT",
+      "artifact_id": "J005",
+      "internal_name": "Zero-Point Drift",
+      "display_name_before_naming": "Unclassified Cold Migration",
+      "description": "Winter Seed migrates toward heat sources at a constant 2mm per hour while remaining at 4 Kelvin.",
+      "player_namable": true,
+      "technology_unlock": "deep_field_probe",
+      "effect": {"type": "zero_point_drift", "migration_mm_per_h": 2.0}
+    },
+    {
+      "discovery_id": "DISC_TOROIDAL_MEMORY",
+      "artifact_id": "J006",
+      "internal_name": "Toroidal Signal Memory",
+      "display_name_before_naming": "Unclassified Echo Delay",
+      "description": "Signals entering the Obsidian Torus aperture return after 0.4 seconds carrying modulated copies of earlier inputs.",
+      "player_namable": true,
+      "technology_unlock": "resonance_amplifier",
+      "effect": {"type": "toroidal_memory", "retention_s": 0.4}
+    },
+    {
+      "discovery_id": "DISC_EVENT_SKIM",
+      "artifact_id": "J006",
+      "internal_name": "Event Skimming",
+      "display_name_before_naming": "Unclassified Aperture Effect",
+      "description": "Probes skimmed across the torus aperture report telemetry from 0.4 seconds in the past.",
+      "player_namable": true,
+      "technology_unlock": "deep_field_probe",
+      "effect": {"type": "event_skim", "lookback_s": 0.4}
     }
   ]
 }

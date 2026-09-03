@@ -18,6 +18,15 @@ const ACQ_DD_ERROR := [0.25, 0.10]
 const ACQ_EXIT_SHARE := 2.0
 const ACQ_GRAB_BUMP := 2.0
 const ACQ_BUYOUT_CAP := 4.0
+const TECH_KEY_MAP := {
+	"experimental_field_sensor": "TECH_EXPERIMENTAL_FIELD_SENSOR",
+	"thermal_containment": "TECH_THERMAL_CONTAINMENT",
+	"gravity_sensor": "TECH_GRAVITY_SENSOR",
+	"field_stabilizer": "TECH_FIELD_STABILIZER",
+	"resonance_amplifier": "TECH_RESONANCE_AMPLIFIER",
+	"cryo_lattice": "TECH_CRYO_LATTICE",
+	"deep_field_probe": "TECH_DEEP_FIELD_PROBE"
+}
 var company_offers: Array = []
 var owned_companies: Array = []
 
@@ -37,21 +46,21 @@ var run_badges: Array = []
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
-		"majority_target": 38.0, "rival_multiplier": 0.7,
+		"majority_target": 44.0, "rival_multiplier": 0.7,
 		"helios_start_share": 8.0, "helios_daily_base": 0.55,
-		"player_experiment_gain": 0.85, "player_discovery_gain": 14.0,
+		"player_experiment_gain": 0.75, "player_discovery_gain": 13.0,
 		"player_start_budget": 12500
 	},
 	"normal": {
 		"id": "normal", "display_name": "Normal",
-		"majority_target": 46.0, "rival_multiplier": 1.0,
+		"majority_target": 52.0, "rival_multiplier": 1.0,
 		"helios_start_share": 12.0, "helios_daily_base": 0.85,
 		"player_experiment_gain": 0.7, "player_discovery_gain": 12.0,
 		"player_start_budget": 10000
 	},
 	"hard": {
 		"id": "hard", "display_name": "Hard",
-		"majority_target": 52.0, "rival_multiplier": 1.1,
+		"majority_target": 58.0, "rival_multiplier": 1.1,
 		"helios_start_share": 16.0, "helios_daily_base": 1.1,
 		"player_experiment_gain": 0.6, "player_discovery_gain": 12.0,
 		"player_start_budget": 9000
@@ -265,7 +274,10 @@ func _load_artifact_data():
 	var paths := [
 		"res://data/artifacts/j001.json",
 		"res://data/artifacts/j002.json",
-		"res://data/artifacts/j003.json"
+		"res://data/artifacts/j003.json",
+		"res://data/artifacts/j004.json",
+		"res://data/artifacts/j005.json",
+		"res://data/artifacts/j006.json"
 	]
 	for path in paths:
 		var data := _load_json(path)
@@ -610,13 +622,7 @@ func _update_knowledge_state():
 	EventBus.knowledge_updated.emit(knowledge["progress"], knowledge["state"])
 
 func _unlock_technology_for_discovery(discovery_id: String, tech_key: String):
-	var tech_map := {
-		"experimental_field_sensor": "TECH_EXPERIMENTAL_FIELD_SENSOR",
-		"thermal_containment": "TECH_THERMAL_CONTAINMENT",
-		"gravity_sensor": "TECH_GRAVITY_SENSOR",
-		"field_stabilizer": "TECH_FIELD_STABILIZER"
-	}
-	var tech_id: String = tech_map.get(tech_key, "")
+	var tech_id: String = TECH_KEY_MAP.get(tech_key, "")
 	if tech_id.is_empty() or tech_id in unlocked_technologies:
 		return
 	unlocked_technologies.append(tech_id)
@@ -944,25 +950,45 @@ func _spawn_company_offers():
 	company_offers = []
 	for cdef in defs:
 		var cd: Dictionary = cdef as Dictionary
-		var true_value: float = float(cd.get("true_value", 3000.0))
-		var noise: float = _rng.randf_range(
-			float(cd.get("price_noise_min", 0.6)),
-			float(cd.get("price_noise_max", 1.6))
-		)
-		company_offers.append({
-			"id": cd.get("id", ""),
-			"name": cd.get("name", "Company"),
-			"flavor": cd.get("flavor", ""),
-			"true_value": true_value,
-			"listed_price": int(round(true_value * noise)),
-			"techs": (cd.get("techs", []) as Array).duplicate(),
-			"daily_research": float(cd.get("daily_research", 0.25)),
-			"expires_day": elapsed_days + float(cd.get("deadline_days", 35)),
-			"status": "offered",
-			"dd_level": 0,
-			"dd_estimate": 0.0,
-			"dd_error": 0.0
-		})
+		if float(cd.get("available_from_day", 0.0)) > elapsed_days:
+			continue
+		company_offers.append(_make_company_offer(cd))
+
+func _make_company_offer(cd: Dictionary) -> Dictionary:
+	var true_value: float = float(cd.get("true_value", 3000.0))
+	var noise: float = _rng.randf_range(
+		float(cd.get("price_noise_min", 0.6)),
+		float(cd.get("price_noise_max", 1.6))
+	)
+	return {
+		"id": cd.get("id", ""),
+		"name": cd.get("name", ""),
+		"flavor": cd.get("flavor", ""),
+		"true_value": true_value,
+		"listed_price": int(round(true_value * noise)),
+		"techs": (cd.get("techs", []) as Array).duplicate(),
+		"daily_research": float(cd.get("daily_research", 0.25)),
+		"expires_day": elapsed_days + float(cd.get("deadline_days", 35)),
+		"status": "offered",
+		"dd_level": 0,
+		"dd_estimate": 0.0,
+		"dd_error": 0.0
+	}
+
+func _spawn_due_company_offers():
+	var known := {}
+	for o in company_offers:
+		known[(o as Dictionary).get("id", "")] = true
+	for oc in owned_companies:
+		known[(oc as Dictionary).get("id", "")] = true
+	var data: Dictionary = _load_json("res://data/acquisitions/companies.json")
+	for cdef in data.get("companies", []):
+		var cd: Dictionary = cdef as Dictionary
+		if known.has(cd.get("id", "")):
+			continue
+		if float(cd.get("available_from_day", 0.0)) > elapsed_days:
+			continue
+		company_offers.append(_make_company_offer(cd))
 
 func get_company_offer(company_id: String) -> Dictionary:
 	for o in company_offers:
@@ -1064,6 +1090,7 @@ func _tick_owned_companies():
 				_unlock_next_owned_tech(od)
 
 func _tick_company_offers():
+	_spawn_due_company_offers()
 	for o in company_offers.duplicate():
 		var od: Dictionary = o as Dictionary
 		if od.get("status", "") != "offered":
@@ -1190,7 +1217,7 @@ func _confirmed_artifact_count() -> int:
 	return count
 
 func _has_tech_depth() -> bool:
-	for tech_id in ["TECH_EXPERIMENTAL_FIELD_SENSOR", "TECH_THERMAL_CONTAINMENT", "TECH_GRAVITY_SENSOR", "TECH_FIELD_STABILIZER"]:
+	for tech_id in TECH_KEY_MAP.values():
 		if not unlocked_technologies.has(tech_id):
 			return false
 	return true
@@ -1366,14 +1393,8 @@ func _apply_espionage_success(op_id: String, target_id: String) -> String:
 		return "Surveillance found nothing."
 	if op_id == "OP_STEAL":
 		var locked: Array = []
-		for key in ["experimental_field_sensor", "thermal_containment", "gravity_sensor", "field_stabilizer"]:
-			var map := {
-				"experimental_field_sensor": "TECH_EXPERIMENTAL_FIELD_SENSOR",
-				"thermal_containment": "TECH_THERMAL_CONTAINMENT",
-				"gravity_sensor": "TECH_GRAVITY_SENSOR",
-				"field_stabilizer": "TECH_FIELD_STABILIZER"
-			}
-			if not unlocked_technologies.has(map[key]):
+		for key in TECH_KEY_MAP:
+			if not unlocked_technologies.has(TECH_KEY_MAP[key]):
 				locked.append(key)
 		if locked.is_empty():
 			return "Nothing left worth stealing."
