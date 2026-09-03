@@ -19,6 +19,7 @@ func _ready():
 	title_label.text = "PROJECT JANUS"
 	status_label.text = ""
 	legacy_label.text = GameState.get_legacy_line()
+	AudioManager.start_music("menu")
 	_confirm_dialog = ConfirmationDialog.new()
 	_confirm_dialog.title = "Start New Campaign"
 	_confirm_dialog.dialog_text = "Starting a new campaign will overwrite your current save. Continue?"

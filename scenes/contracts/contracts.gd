@@ -17,9 +17,10 @@ func _ready():
 	_refresh()
 
 func _refresh():
-	funds_label.text = "Funds: $%d | Day %d | Active world event: %s" % [
+	funds_label.text = "Funds: $%d | Day %d | Military ties: %d | Active world event: %s" % [
 		GameState.budget.get("funds", 0),
 		int(GameState.elapsed_days),
+		int(GameState.military_ties),
 		GameState.active_event.get("name", "none")
 	]
 	if GameState.active_contract.is_empty():

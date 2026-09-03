@@ -19,6 +19,10 @@ extends Control
 @onready var btn_facilities: Button = $MarginContainer/VBox/nav_row2/btn_facilities
 @onready var btn_main_menu: Button = $MarginContainer/VBox/footer_row/btn_main_menu
 @onready var btn_save: Button = $MarginContainer/VBox/footer_row/btn_save
+@onready var memorial_overlay: PanelContainer = $MemorialOverlay
+@onready var memorial_title: Label = $MemorialOverlay/MemorialVBox/memorial_title
+@onready var memorial_text: Label = $MemorialOverlay/MemorialVBox/memorial_text
+@onready var btn_memorial_continue: Button = $MemorialOverlay/MemorialVBox/btn_memorial_continue
 
 func _ready():
 	btn_artifact.pressed.connect(_go.bind("res://scenes/experiment/artifact_detail.tscn"))
@@ -34,9 +38,45 @@ func _ready():
 	btn_facilities.pressed.connect(_go.bind("res://scenes/facilities/facilities.tscn"))
 	btn_main_menu.pressed.connect(_on_main_menu)
 	btn_save.pressed.connect(_on_save)
+	btn_memorial_continue.pressed.connect(_on_memorial_continue)
 	EventBus.game_over.connect(_on_game_over)
 	EventBus.market_updated.connect(_on_market_updated)
+	EventBus.scientist_died.connect(_on_scientist_died)
+	AudioManager.start_music("lab")
 	_refresh_ui()
+	_maybe_memorial()
+
+func _process(_delta):
+	var dread: bool = not GameState.active_crises.is_empty() or GameState.esp_risk >= 50.0
+	AudioManager.set_tension(dread)
+
+func _maybe_memorial():
+	if GameState.pending_memorial.is_empty():
+		return
+	_show_memorial(GameState.pending_memorial)
+
+func _on_scientist_died(dead_name: String):
+	_show_memorial_by_name(dead_name)
+
+func _show_memorial(sci_id: String):
+	memorial_title.text = "KIA: %s" % GameState._scientist_name(sci_id)
+	memorial_text.text = "The work continues because it must. Their notebook is sealed into the archive."
+	_show_memorial_overlay()
+
+func _show_memorial_by_name(dead_name: String):
+	memorial_title.text = "KIA: %s" % dead_name
+	memorial_text.text = "The work continues because it must. Their notebook is sealed into the archive."
+	_show_memorial_overlay()
+
+func _show_memorial_overlay():
+	memorial_overlay.visible = true
+	memorial_overlay.modulate = Color(1, 1, 1, 0)
+	var tween := create_tween()
+	tween.tween_property(memorial_overlay, "modulate:a", 1.0, 1.2)
+
+func _on_memorial_continue():
+	GameState.pending_memorial = ""
+	memorial_overlay.visible = false
 
 func _refresh_ui():
 	org_label.text = GameState.organization.get("name", "Unknown Organization")

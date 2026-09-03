@@ -35,6 +35,10 @@ func _probe(tag: String, difficulty_id: String, seed: int, use_contracts: bool, 
 	var sabotages := 0
 	var days := 0.0
 	while days < 300 and not GameState.is_game_over():
+		_sci = _living_pick()
+		if _sci.is_empty():
+			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
+			return
 		if use_contracts and not GameState.pending_offer.is_empty() and GameState.active_contract.is_empty():
 			GameState.accept_contract()
 		if use_acq:
@@ -75,6 +79,10 @@ func _probe_skilled(tag: String, difficulty_id: String, seed: int):
 	var buys := 0
 	var days := 0.0
 	while days < 300 and not GameState.is_game_over():
+		_sci = _living_pick()
+		if _sci.is_empty():
+			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
+			return
 		if not GameState.pending_offer.is_empty() and GameState.active_contract.is_empty():
 			GameState.accept_contract()
 		_rotate_artifact()
@@ -146,6 +154,13 @@ func _dd_and_buy():
 		return
 	if int(GameState.budget.get("funds", 0)) >= best_price:
 		GameState.acquire_company(best.get("id", ""))
+
+func _living_pick() -> Dictionary:
+	for s in GameState.scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("status", "ACTIVE") != "DECEASED":
+			return sd
+	return {}
 
 func _try_buy_cheapest():
 	var best: Dictionary = {}

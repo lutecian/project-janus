@@ -159,6 +159,8 @@ func _test_next():
 		_test_story()
 		_test_action()
 		_test_gore()
+		_test_audio()
+		_test_sec()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -544,8 +546,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 12:
-		push_error("ctr: expected 12-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 14:
+		push_error("ctr: expected 14-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -626,7 +628,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 11:
+	if GameState.contract_deck.size() != 13:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -918,8 +920,9 @@ func _test_depth():
 		failures += 1
 	GameState.esp_cover = 0.0
 	var open_chance: float = GameState._enemy_op_chance(helios)
-	if absf(open_chance - 0.025) > 0.0001:
-		push_error("depth: shield should halve HELIOS op chance to 0.025, got %f" % open_chance)
+	# 0.05 base x0.5 shield x(1 - 20/150 security) = 0.021667
+	if absf(open_chance - 0.021667) > 0.0002:
+		push_error("depth: shielded HELIOS op chance should be ~0.0217, got %f" % open_chance)
 		failures += 1
 	var funds_before: int = GameState.budget["funds"]
 	GameState._apply_enemy_op(helios, "raid")
@@ -1288,10 +1291,121 @@ func _test_gore():
 		push_error("gore: death not preserved after save/load")
 		failures += 1
 
+	# --- G6: An all-dead roster ends the run instead of hanging ---
+	GameState.initialize_new_campaign({"name": "Gore Wipe"}, "normal")
+	for s in GameState.scientists:
+		(s as Dictionary)["status"] = "DECEASED"
+	GameState.run_experiment(heat, GameState.scientists[0])
+	if not GameState.is_game_over() or GameState.game_over.get("reason", "") != "staff_wipe":
+		push_error("gore: an all-dead roster should end the run as staff_wipe")
+		failures += 1
+
 	if failures == 0:
 		print("GORE_OK")
 	else:
 		print("%d GORE FAILURES" % failures)
+
+func _test_audio():
+	var failures: int = 0
+	for key in ["drone", "tension", "incident", "death", "victory", "defeat", "click", "buyout", "alarm", "resolve"]:
+		if not AudioManager.streams.has(key):
+			push_error("audio: missing stream '%s'" % key)
+			failures += 1
+			continue
+		var stream: AudioStreamWAV = AudioManager.streams[key]
+		if stream.data.size() < 1000:
+			push_error("audio: stream '%s' suspiciously short" % key)
+			failures += 1
+	AudioManager.start_music("menu")
+	if AudioManager.current_mode != "menu":
+		push_error("audio: menu mode not set")
+		failures += 1
+	AudioManager.start_music("lab")
+	AudioManager.set_tension(true)
+	AudioManager.set_tension(false)
+	for key in ["click", "incident", "resolve", "buyout", "alarm", "victory", "defeat", "death"]:
+		AudioManager.play_sfx(key)
+	AudioManager.stop_music()
+	if AudioManager.current_mode != "none":
+		push_error("audio: stop should clear mode")
+		failures += 1
+
+	if failures == 0:
+		print("AUDIO_OK")
+	else:
+		print("%d AUDIO FAILURES" % failures)
+
+func _test_sec():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Sec Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+
+	# --- V1: Security rises with the garrison ---
+	if absf(GameState.get_security() - 20.0) > 0.001:
+		push_error("sec: base security should be 20, got %.1f" % GameState.get_security())
+		failures += 1
+	GameState.buy_facility("FAC_GARRISON")
+	if absf(GameState.get_security() - 50.0) > 0.001:
+		push_error("sec: garrison should raise security to 50, got %.1f" % GameState.get_security())
+		failures += 1
+
+	# --- V2: Military contracts build ties ---
+	GameState.active_contract = {"id": "CTR_ARTILLERY", "days_done": 0.0, "days_required": 1.0}
+	GameState._tick_contracts()
+	if absf(GameState.military_ties - 25.0) > 0.001:
+		push_error("sec: military completion should grant 25 ties, got %.1f" % GameState.military_ties)
+		failures += 1
+	if "war_contractor" not in GameState.run_badges:
+		push_error("sec: military completion should award war_contractor")
+		failures += 1
+
+	# --- V3: Ties discount facilities and buyouts ---
+	GameState.military_ties = 50.0
+	if GameState.facility_price("FAC_LAB") != 3600:
+		push_error("sec: 50 ties should discount FAC_LAB to 3600, got %d" % GameState.facility_price("FAC_LAB"))
+		failures += 1
+	GameState.military_ties = 75.0
+	if GameState.facility_price("FAC_LAB") != 3200:
+		push_error("sec: 75 ties should discount FAC_LAB to 3200, got %d" % GameState.facility_price("FAC_LAB"))
+		failures += 1
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = 20.0
+	if GameState.get_rival_buyout_price("RIV_HELIOS") != 5600:
+		push_error("sec: 75 ties should discount HELIOS buyout to 5600, got %d" % GameState.get_rival_buyout_price("RIV_HELIOS"))
+		failures += 1
+
+	# --- V4: Sentinel requires earned trust ---
+	GameState.initialize_new_campaign({"name": "Sec Gate"}, "normal")
+	GameState.select_artifact(0)
+	GameState.contract_deck = ["CTR_SENTINEL"]
+	GameState.military_ties = 0.0
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	if not GameState.pending_offer.is_empty():
+		push_error("sec: sentinel should wait for 25 ties")
+		failures += 1
+	GameState.military_ties = 25.0
+	GameState.next_offer_day = 0.0
+	GameState._tick_contracts()
+	if GameState.pending_offer.get("id", "") != "CTR_SENTINEL":
+		push_error("sec: sentinel should offer at 25 ties")
+		failures += 1
+
+	# --- V5: Save/load preserves ties ---
+	GameState.military_ties = 60.0
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if absf(GameState.military_ties - 60.0) > 0.001:
+		push_error("sec: ties lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("SEC_OK")
+	else:
+		print("%d SEC FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0
@@ -1306,7 +1420,13 @@ func _test_pacing():
 	GameState.initialize_new_campaign({"name": "Pacing Active"}, "normal", 1234)
 	GameState.select_artifact(0)
 	var sci: Dictionary = GameState.scientists[0]
-	while active_days < 300 and not GameState.is_game_over():
+	var guard := 0
+	while active_days < 300 and not GameState.is_game_over() and guard < 1000:
+		guard += 1
+		for s in GameState.scientists:
+			if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+				sci = s as Dictionary
+				break
 		if GameState.budget["funds"] < GameState._get_experiment_cost("EXP_HEATING"):
 			GameState.budget["funds"] += 200
 		GameState.run_experiment(exp_def, sci)

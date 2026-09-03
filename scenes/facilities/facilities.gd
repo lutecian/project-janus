@@ -10,7 +10,11 @@ func _ready():
 	_refresh()
 
 func _refresh():
-	funds_label.text = "Funds: $%d" % GameState.budget.get("funds", 0)
+	funds_label.text = "Funds: $%d | Security: %d | Military ties: %d" % [
+		GameState.budget.get("funds", 0),
+		int(GameState.get_security()),
+		int(GameState.military_ties)
+	]
 	for child in facilities_container.get_children():
 		child.queue_free()
 	var data: Dictionary = GameState._load_json("res://data/facilities/facilities.json")
@@ -18,7 +22,7 @@ func _refresh():
 		var fd: Dictionary = fdef as Dictionary
 		var fid: String = fd.get("id", "")
 		var line := Label.new()
-		var state := "OWNED" if GameState.has_facility(fid) else "$%d" % int(fd.get("cost", 0))
+		var state := "OWNED" if GameState.has_facility(fid) else "$%d" % GameState.facility_price(fid)
 		line.text = "%s [%s]\n%s\n%s" % [
 			fd.get("name", "?"), state, fd.get("flavor", ""), fd.get("effect", "")
 		]
@@ -27,7 +31,7 @@ func _refresh():
 		facilities_container.add_child(line)
 		if not GameState.has_facility(fid):
 			var buy_btn := Button.new()
-			buy_btn.text = "Build: %s ($%d)" % [fd.get("name", "?"), int(fd.get("cost", 0))]
+			buy_btn.text = "Build: %s ($%d)" % [fd.get("name", "?"), GameState.facility_price(fid)]
 			buy_btn.pressed.connect(_on_buy.bind(fid))
 			facilities_container.add_child(buy_btn)
 

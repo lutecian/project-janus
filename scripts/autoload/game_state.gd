@@ -54,6 +54,10 @@ var story_log: Array = []
 var fired_beats: Array = []
 var active_crises: Array = []
 var gore_setting: int = -1
+var pending_memorial: String = ""
+
+# --- Phase 7 (0.7): security + military alignment ---
+var military_ties: float = 0.0
 
 const DIFFICULTIES := {
 	"easy": {
@@ -216,6 +220,8 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	story_log = []
 	fired_beats = []
 	active_crises = []
+	pending_memorial = ""
+	military_ties = 0.0
 	_log_scientist_intros()
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
@@ -478,6 +484,9 @@ func get_unlocked_experiments(all_experiments: Array) -> Array:
 
 func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictionary:
 	var exp_id: String = experiment_def.get("id", "")
+	if _living_scientists().is_empty():
+		_staff_wipe_defeat()
+		return {}
 	var cost: int = _get_experiment_cost(exp_id)
 	if scientist.get("status", "ACTIVE") == "DECEASED":
 		push_warning("Cannot assign a deceased scientist: %s" % scientist.get("id", "?"))
@@ -817,6 +826,7 @@ func _check_incidents():
 			chance *= 0.5
 		if has_facility("FAC_SHIELD"):
 			chance *= 0.5
+		chance *= 1.0 - get_security() / 200.0
 		if _rng.randf() < chance:
 			_apply_incident(inc_dict)
 			break
@@ -1208,7 +1218,7 @@ func get_rival_buyout_price(rival_id: String) -> int:
 		var rd: Dictionary = r as Dictionary
 		if rd.get("id", "") == rival_id:
 			var per: float = 350.0
-			return int(ceil(float(rd.get("share", 0)) * per))
+			return int(ceil(float(rd.get("share", 0)) * per * _mil_discount()))
 	return 0
 
 func buy_out_rival(rival_id: String) -> Dictionary:
@@ -1271,6 +1281,24 @@ func get_domination_progress() -> Dictionary:
 		details.append({"id": rd.get("id", ""), "name": rd.get("name", ""), "how": how})
 	return {"crushed": crushed, "total": rivals.size(), "details": details}
 
+# --- Phase 7 security + military alignment ---
+func get_security() -> float:
+	var sec := 20.0
+	if has_facility("FAC_GARRISON"):
+		sec += 30.0
+	return sec
+
+func _mil_discount() -> float:
+	if military_ties >= 75.0:
+		return 0.8
+	if military_ties >= 50.0:
+		return 0.9
+	return 1.0
+
+func facility_price(facility_id: String) -> int:
+	var fdef: Dictionary = _facility_def(facility_id)
+	return int(round(float(fdef.get("cost", 0)) * _mil_discount()))
+
 # --- Phase 5 facilities: one-time builds, permanent edges ---
 func _facility_def(facility_id: String) -> Dictionary:
 	var data: Dictionary = _load_json("res://data/facilities/facilities.json")
@@ -1289,7 +1317,7 @@ func buy_facility(facility_id: String) -> Dictionary:
 	var fdef: Dictionary = _facility_def(facility_id)
 	if fdef.is_empty():
 		return {"ok": false, "reason": "no_def"}
-	var cost: int = int(fdef.get("cost", 0))
+	var cost: int = facility_price(facility_id)
 	if int(budget.get("funds", 0)) < cost:
 		return {"ok": false, "reason": "insufficient_funds"}
 	budget["funds"] = int(budget.get("funds", 0)) - cost
@@ -1314,6 +1342,7 @@ func _enemy_op_chance(rd: Dictionary) -> float:
 	var chance: float = base * (1.0 - esp_cover / 100.0)
 	if has_facility("FAC_SHIELD"):
 		chance *= 0.5
+	chance *= 1.0 - get_security() / 150.0
 	return chance
 
 func _tick_enemy_ops():
@@ -1509,6 +1538,8 @@ func _harm_scientist(sci_id: String, dmg: int, cause: String):
 		sd["stress"] = mini(int(sd.get("stress", 0)) + 15, 100)
 		if int(sd["health"]) <= 0 and sd.get("status", "ACTIVE") != "DECEASED":
 			sd["status"] = "DECEASED"
+			pending_memorial = sci_id
+			EventBus.scientist_died.emit(_scientist_name(sci_id))
 			story_log.append({
 				"day": elapsed_days, "artifact_id": artifact.get("id", ""), "kind": "death",
 				"title": "KIA: %s" % _scientist_name(sci_id),
@@ -1610,6 +1641,26 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 			return {"ok": true, "detail": detail}
 		return {"ok": false, "reason": "bad_method"}
 	return {"ok": false, "reason": "no_crisis"}
+
+func _living_scientists() -> Array:
+	var out := []
+	for s in scientists:
+		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+			out.append(s)
+	return out
+
+func _staff_wipe_defeat():
+	if not game_over.is_empty():
+		return
+	game_over = {
+		"won": false,
+		"reason": "staff_wipe",
+		"player_market": player_market,
+		"dominant_rival": _leading_rival_name(),
+		"type": "absorbed"
+	}
+	_record_legacy()
+	EventBus.game_over.emit(game_over)
 
 # --- Phase 3 endings: tiered paths (monopoly > researcher > market_leader) ---
 func _confirmed_artifact_count() -> int:
@@ -1951,6 +2002,8 @@ func _tick_contracts():
 	for cid in contract_deck.duplicate():
 		var cdef: Dictionary = _contract_def(str(cid))
 		var tag: String = cdef.get("event_tag", "")
+		if float(cdef.get("min_ties", 0.0)) > military_ties:
+			continue
 		if tag.is_empty() or tag in events_seen:
 			pending_offer = {
 				"id": cdef.get("id", ""),
@@ -2000,6 +2053,7 @@ func _complete_contract():
 	_unlock_technology_for_discovery("CTR_%s" % cdef.get("id", ""), cdef.get("tech_key", ""))
 	if bool(cdef.get("military", false)):
 		award_badge("war_contractor")
+		military_ties = minf(military_ties + 25.0, 100.0)
 	completed_contracts.append(cdef.get("id", ""))
 	active_contract = {}
 	next_offer_day = elapsed_days + 10.0
@@ -2083,7 +2137,9 @@ func get_save_data() -> Dictionary:
 		"bonus_target": bonus_target,
 		"story_log": story_log,
 		"fired_beats": fired_beats,
-		"active_crises": active_crises
+		"active_crises": active_crises,
+		"pending_memorial": pending_memorial,
+		"military_ties": military_ties
 	}
 
 func _save_current_artifact_data():
@@ -2168,6 +2224,8 @@ func load_save_data(data: Dictionary):
 	story_log = data.get("story_log", [])
 	fired_beats = data.get("fired_beats", [])
 	active_crises = data.get("active_crises", [])
+	pending_memorial = data.get("pending_memorial", "")
+	military_ties = data.get("military_ties", 0.0)
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

@@ -9,7 +9,13 @@ extends Control
 func _ready():
 	btn_menu.pressed.connect(_on_menu)
 	btn_continue.pressed.connect(_on_continue)
+	AudioManager.stop_music()
 	_display()
+	var res2: Dictionary = GameState.get_game_over()
+	if res2.get("won", false):
+		AudioManager.play_sfx("victory")
+	else:
+		AudioManager.play_sfx("defeat")
 	var result: Dictionary = GameState.get_game_over()
 	btn_continue.visible = bool(result.get("won", false)) and result.get("type", "") != "monopoly"
 
@@ -67,6 +73,8 @@ func _epilogue_text(won: bool, reason: String) -> String:
 		return "Epilogue: Philanthropist Legacy — your published breakthroughs teach a generation."
 	if won:
 		return "Epilogue: Market Leader — the brand outlives the breakthroughs."
+	if reason == "staff_wipe":
+		return "Epilogue: Empty Lab — no living researcher remains to carry the work. The artifacts wait in the dark for whoever comes next."
 	if GameState.discovery.get("state", "") == "confirmed":
 		return "Epilogue: Scientific Martyr — you lost the market but published openly; the science survives you."
 	if GameState.get_player_market() >= GameState.get_majority_target() * 0.7:

@@ -34,6 +34,13 @@
       "flavor": "See through noisy books. Due diligence costs half.",
       "cost": 2000,
       "effect": "Due diligence x0.5 cost"
+    },
+    {
+      "id": "FAC_GARRISON",
+      "name": "Security Garrison",
+      "flavor": "Armed professionals at every door. Fewer accidents, fewer intrusions.",
+      "cost": 4500,
+      "effect": "+30 security (incidents and enemy ops rarer)"
     }
   ]
 }

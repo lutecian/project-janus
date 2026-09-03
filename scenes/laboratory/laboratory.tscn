@@ -2,6 +2,9 @@
 
 [ext_resource type="Script" path="res://scenes/laboratory/laboratory.gd" id="1_script"]
 
+[sub_resource type="StyleBoxFlat" id="memorial_bg"]
+bg_color = Color(0.12, 0.02, 0.03, 0.96)
+
 [node name="Laboratory" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -182,3 +185,38 @@ text = "Main Menu"
 layout_mode = 2
 custom_minimum_size = Vector2(120, 40)
 text = "Save"
+
+[node name="MemorialOverlay" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("memorial_bg")
+
+[node name="MemorialVBox" type="VBoxContainer" parent="MemorialOverlay"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="memorial_title" type="Label" parent="MemorialOverlay/MemorialVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+text = "KIA"
+horizontal_alignment = 1
+
+[node name="memorial_text" type="Label" parent="MemorialOverlay/MemorialVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="btn_memorial_continue" type="Button" parent="MemorialOverlay/MemorialVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 46)
+size_flags_horizontal = 4
+text = "Carry On"

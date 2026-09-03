@@ -155,6 +155,33 @@
       "market_bonus": 2.0,
       "military": false,
       "event_tag": "EVT_BLOOM"
+    },
+    {
+      "id": "CTR_BLACKSITE",
+      "issuer": "Office of Contingency Planning",
+      "title": "Black-Site Hardening",
+      "flavor": "Offered only after war breaks out. Harden a site you will never be allowed to visit.",
+      "days_required": 7,
+      "upfront": 2000,
+      "completion_pay": 2800,
+      "tech_key": "field_stabilizer",
+      "market_bonus": 2.5,
+      "military": true,
+      "event_tag": "EVT_WAR"
+    },
+    {
+      "id": "CTR_SENTINEL",
+      "issuer": "Strategic Reserve Command",
+      "title": "Sentinel Early Warning",
+      "flavor": "Only for trusted contractors. Gravity-sensor pickets that watch the rivals watching you.",
+      "days_required": 6,
+      "upfront": 1600,
+      "completion_pay": 2300,
+      "tech_key": "gravity_sensor",
+      "market_bonus": 2.0,
+      "military": true,
+      "event_tag": "",
+      "min_ties": 25
     }
   ]
 }

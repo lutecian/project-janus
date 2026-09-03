@@ -43,6 +43,7 @@ func _on_volume_changed(value: float):
 
 func _update_volume_label(value: float):
 	volume_label.text = "Volume: %d%%" % int(value)
+	AudioManager.apply_volume(value)
 
 func _on_fullscreen_toggled(pressed: bool):
 	_apply_fullscreen(pressed)
