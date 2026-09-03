@@ -26,13 +26,23 @@ func _ready():
 	btn_incidents.pressed.connect(_go.bind("res://scenes/incidents/incident_reports.tscn"))
 	btn_main_menu.pressed.connect(_on_main_menu)
 	btn_save.pressed.connect(_on_save)
+	EventBus.game_over.connect(_on_game_over)
+	EventBus.market_updated.connect(_on_market_updated)
 	_refresh_ui()
 
 func _refresh_ui():
 	org_label.text = GameState.organization.get("name", "Unknown Organization")
-	day_budget_label.text = "Day %d | $%d" % [GameState.elapsed_days, GameState.budget.get("funds", 0)]
+	day_budget_label.text = "Day %d | $%d | My Market: %.1f%%" % [
+		GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market()
+	]
 	_populate_artifacts()
 	_populate_scientists()
+
+func _on_market_updated(_player_market: float, _rivals: Array):
+	_populate_artifacts()
+
+func _on_game_over(_result: Dictionary):
+	get_tree().change_scene_to_file("res://scenes/endgame/game_over.tscn")
 
 func _populate_artifacts():
 	for child in artifact_container.get_children():

@@ -4,6 +4,7 @@ extends Control
 @onready var org_abbr_edit: LineEdit = $VBox/org_abbr_edit
 @onready var facility_edit: LineEdit = $VBox/facility_edit
 @onready var director_edit: LineEdit = $VBox/director_edit
+@onready var difficulty_option: OptionButton = $VBox/difficulty_option
 @onready var btn_begin: Button = $VBox/ButtonRow/btn_begin
 @onready var btn_back: Button = $VBox/ButtonRow/btn_back
 @onready var status_label: Label = $VBox/status_label
@@ -16,6 +17,10 @@ func _ready():
 	facility_edit.text = "Hawthorne Research Complex"
 	director_edit.text = "Director B. Crozier"
 	status_label.text = ""
+	var order := ["easy", "normal", "hard"]
+	for did in order:
+		difficulty_option.add_item(GameState.DIFFICULTIES[did].get("display_name", did), order.find(did))
+	difficulty_option.selected = order.find("normal")
 
 func _on_begin_pressed():
 	var org_name := org_name_edit.text.strip_edges()
@@ -33,8 +38,10 @@ func _on_begin_pressed():
 		"facility_name": fac_name,
 		"director_name": dir_name
 	}
+	var difficulty_ids := ["easy", "normal", "hard"]
+	var selected_id: String = difficulty_ids[difficulty_option.selected]
 
-	GameState.initialize_new_campaign(org)
+	GameState.initialize_new_campaign(org, selected_id)
 	SaveManager.save_game()
 	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 

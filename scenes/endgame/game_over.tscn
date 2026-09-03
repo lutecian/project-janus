@@ -1,0 +1,59 @@
+[gd_scene load_steps=2 format=3 uid="uid://over000001"]
+
+[ext_resource type="Script" path="res://scenes/endgame/game_over.gd" id="1_script"]
+
+[node name="GameOver" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="result_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "VICTORY"
+horizontal_alignment = 1
+
+[node name="subtitle_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Your organization achieved market majority."
+horizontal_alignment = 1
+
+[node name="Sep" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="summary_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 260)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 15
+scroll_active = true
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="btn_menu" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 46)
+theme_override_font_sizes/font_size = 18
+text = "Return to Main Menu"

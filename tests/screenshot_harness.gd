@@ -18,6 +18,7 @@ var screens: Array = [
 	{"path": "res://scenes/experiment/artifact_detail.tscn", "state": true},
 	{"path": "res://scenes/experiment/helios_intel.tscn", "state": true},
 	{"path": "res://scenes/settings/settings.tscn", "state": true},
+	{"path": "res://scenes/endgame/game_over.tscn", "state": "victory"},
 ]
 
 var _idx := 0
@@ -68,6 +69,12 @@ func _seed_realistic():
 	]
 	GameState.unlocked_technologies = ["TECH_THERMAL_CONTAINMENT"]
 	GameState.confirmed_discoveries = []
+	GameState.player_market = 34.2
+	GameState._spawn_rivals()
+	for r in GameState.rivals:
+		if (r as Dictionary).get("id", "") == "RIV_HELIOS":
+			(r as Dictionary)["share"] = 28.0
+	GameState._sync_helios_rival()
 
 func _call_next():
 	if _idx >= screens.size():
@@ -75,6 +82,14 @@ func _call_next():
 		get_tree().quit()
 		return
 	var entry: Dictionary = screens[_idx]
+	if (entry.get("state") is String) and (entry.get("state") == "victory"):
+		GameState.game_over = {
+			"won": true, "reason": "market_majority",
+			"player_market": 54.0, "dominant_rival": "HELIOS Research Authority",
+			"type": "market_leader"
+		}
+	else:
+		GameState.game_over = {}
 	var pack: PackedScene = load(entry["path"])
 	_current = pack.instantiate()
 	get_tree().root.add_child(_current)

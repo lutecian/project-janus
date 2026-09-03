@@ -2,6 +2,7 @@
 
 ## [Unreleased / 0.3.0] - planned
 - Full endgame + systems roadmap committed to `ENDGAME.md` (design locked): rival ecology, market model + win/lose, multi-path graded endings + Domination, acquisitions + shrewdness, espionage, contracts + world events, difficulty, badges/titles. Phased, data-driven, additive.
+- Phase 1 shipped (finite game): 4-rival field (HELIOS/Bermant/Northwind/Vantage) with daily market ticks, player market from experiments + confirmed discoveries, majority victory (46 Normal / 38 Easy / 52 Hard) vs rival-majority defeat, game-over screen, difficulty select on campaign creation, save/load of difficulty + markets + rivals + game_over. Suites: MARKET_OK + PACING_OK (active research wins ~day 32, idle loses ~day 33 on Normal).
 
 ## [Unreleased / 0.2.0] - current
 ### Added

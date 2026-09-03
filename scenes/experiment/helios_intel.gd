@@ -10,12 +10,19 @@ func _ready():
 	_display_intel()
 
 func _display_intel():
-	title_label.text = "HELIOS INTELLIGENCE"
-	helios_info.text = "Rival Progress: %d%%\nRival Artifact: %s\nRival Discoveries: %d" % [
-		GameState.helios["progress"],
-		GameState.helios.get("artifact_name", "Unknown"),
-		GameState.helios.get("discoveries_named", []).size()
+	title_label.text = "RIVAL INTELLIGENCE"
+
+	var market_text := "MY MARKET: %.1f%% (target %.1f%%)\n\n" % [
+		GameState.get_player_market(), GameState.get_majority_target()
 	]
+	var ordered: Array = GameState.rivals.duplicate()
+	ordered.sort_custom(func(a, b): return float(a.get("share", 0)) > float(b.get("share", 0)))
+	for r in ordered:
+		var rd: Dictionary = r as Dictionary
+		market_text += "%-28s %5.1f%%\n" % [
+			rd.get("name", "?"), float(rd.get("share", 0))
+		]
+	helios_info.text = market_text
 
 	var reports_text := ""
 	var reports: Array = GameState.intelligence_reports

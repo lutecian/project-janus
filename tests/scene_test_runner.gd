@@ -19,7 +19,8 @@ func _ready():
 		"res://scenes/experiment/helios_intel.tscn",
 		"res://scenes/experiment/results/experiment_result.tscn",
 		"res://scenes/experiment/results/breakthrough.tscn",
-		"res://scenes/settings/settings.tscn"
+		"res://scenes/settings/settings.tscn",
+		"res://scenes/endgame/game_over.tscn"
 	]
 	_test_next()
 
@@ -144,6 +145,8 @@ func _test_next():
 		_test_logic()
 		_test_simulation()
 		_test_coverage()
+		_test_market()
+		_test_pacing()
 		get_tree().quit()
 		return
 	var path: String = _scenes_to_test[_idx]
@@ -299,3 +302,131 @@ func _test_coverage():
 		print("COVERAGE_OK")
 	else:
 		print("%d COVERAGE FAILURES" % failures)
+
+func _test_market():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Market Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- M1: Rival field spawns deterministically ---
+	var rival_ids: Array = []
+	for r in GameState.rivals:
+		rival_ids.append((r as Dictionary).get("id", ""))
+	if not rival_ids.has("RIV_HELIOS"):
+		push_error("market: HELIOS rival missing from field")
+		failures += 1
+	if rival_ids.size() != 4:
+		push_error("market: expected 4 rivals, got %d" % rival_ids.size())
+		failures += 1
+	if absf(GameState.get_rival_market("RIV_HELIOS") - 12.0) > 0.001:
+		push_error("market: HELIOS normal start share should be 12, got %f" % GameState.get_rival_market("RIV_HELIOS"))
+		failures += 1
+	if absf(GameState.get_majority_target() - 46.0) > 0.001:
+		push_error("market: normal majority target should be 46, got %f" % GameState.get_majority_target())
+		failures += 1
+
+	# --- M2: Player experiment tick adds a small share and rivals advance ---
+	var pm_before: float = GameState.get_player_market()
+	var helios_before: float = GameState.get_rival_market("RIV_HELIOS")
+	GameState._rng.seed = 99
+	GameState._tick_market()
+	var expected_tick: float = float(GameState.difficulty.get("player_experiment_gain", 0.55))
+	if absf(GameState.get_player_market() - (pm_before + expected_tick)) > 0.001:
+		push_error("market: player tick wrong (%f -> %f, expected +%f)" % [pm_before, GameState.get_player_market(), expected_tick])
+		failures += 1
+	if GameState.get_rival_market("RIV_HELIOS") <= helios_before:
+		push_error("market: rival should advance each tick")
+		failures += 1
+
+	# --- M3: Player reaches majority -> victory ---
+	GameState.player_market = GameState.get_majority_target() - 0.5
+	GameState._rng.seed = 5
+	GameState._tick_market()
+	GameState._check_market_end()
+	if not GameState.is_game_over():
+		push_error("market: player majority should end the game")
+		failures += 1
+	elif not GameState.game_over.get("won", false):
+		push_error("market: player majority should be a win, got %s" % GameState.game_over.get("reason", "?"))
+		failures += 1
+
+	# --- M4: A rival reaches majority -> defeat ---
+	GameState.initialize_new_campaign({"name": "Market Test 2"}, "normal")
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = GameState.get_majority_target() + 0.5
+	GameState.player_market = 5.0
+	GameState._check_market_end()
+	if not GameState.is_game_over():
+		push_error("market: rival majority should end the game")
+		failures += 1
+	elif GameState.game_over.get("won", true):
+		push_error("market: rival majority should be a loss")
+		failures += 1
+
+	# --- M5: Save/load preserves difficulty, market, rivals, game_over ---
+	GameState.initialize_new_campaign({"name": "Market Test 3"}, "hard")
+	GameState.player_market = 30.5
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.difficulty.get("id", "") != "hard":
+		push_error("market: difficulty not preserved after save/load")
+		failures += 1
+	if absf(GameState.get_player_market() - 30.5) > 0.001:
+		push_error("market: player_market not preserved after save/load (%f)" % GameState.get_player_market())
+		failures += 1
+	if GameState.rivals.size() != 4:
+		push_error("market: rivals not preserved after save/load")
+		failures += 1
+	if absf(GameState.get_majority_target() - 52.0) > 0.001:
+		push_error("market: hard majority target not 52 after load, got %f" % GameState.get_majority_target())
+		failures += 1
+
+	if failures == 0:
+		print("MARKET_OK")
+	else:
+		print("%d MARKET FAILURES" % failures)
+
+func _test_pacing():
+	var failures: int = 0
+	var exps: Array = GameState.load_experiment_definitions()
+	var exp_def := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			exp_def = e as Dictionary
+
+	# Active player: runs experiments until the game ends (cap 300 days).
+	var active_days: float = 0.0
+	GameState.initialize_new_campaign({"name": "Pacing Active"}, "normal")
+	GameState.select_artifact(0)
+	var sci: Dictionary = GameState.scientists[0]
+	while active_days < 300 and not GameState.is_game_over():
+		if GameState.budget["funds"] < GameState._get_experiment_cost("EXP_HEATING"):
+			GameState.budget["funds"] += 200
+		GameState.run_experiment(exp_def, sci)
+		active_days = GameState.elapsed_days
+	if not GameState.game_over.get("won", false):
+		push_error("pacing: active research player should win, got game_over=%s at day %.0f" % [GameState.game_over, active_days])
+		failures += 1
+	if GameState.get_player_market() < GameState.get_majority_target():
+		push_error("pacing: active player market %.1f below target %.1f at win" % [GameState.get_player_market(), GameState.get_majority_target()])
+		failures += 1
+
+	# Passive player: idle, just advance the clock so rivals/HELIOS race alone.
+	var passive_days: float = 0.0
+	GameState.initialize_new_campaign({"name": "Pacing Passive"}, "normal")
+	GameState.select_artifact(0)
+	while passive_days < 400 and not GameState.is_game_over():
+		GameState._tick_market()
+		GameState._advance_helios()
+		GameState._check_market_end()
+		passive_days += 1.0
+	if GameState.game_over.get("won", true):
+		push_error("pacing: idle player should eventually lose to the rival field, got game_over=%s at day %.0f" % [GameState.game_over, passive_days])
+		failures += 1
+
+	if failures == 0:
+		print("PACING_OK")
+	else:
+		print("%d PACING FAILURES" % failures)

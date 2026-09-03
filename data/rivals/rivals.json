@@ -1,0 +1,36 @@
+{
+  "rivals": [
+    {
+      "id": "RIV_HELIOS",
+      "name": "HELIOS Research Authority",
+      "artifact_name": "Crystalline Matrix",
+      "daily_advance": 0.9,
+      "start_share": 12,
+      "disposition": "aggressive"
+    },
+    {
+      "id": "RIV_BERMANT",
+      "name": "Bermant Laboratories",
+      "artifact_name": "Basalt Anomaly",
+      "daily_advance": 0.45,
+      "start_share": 6,
+      "disposition": "steady"
+    },
+    {
+      "id": "RIV_NORTHWIND",
+      "name": "Northwind Institute",
+      "artifact_name": "Iron Hollow Core",
+      "daily_advance": 0.4,
+      "start_share": 5,
+      "disposition": "publisher"
+    },
+    {
+      "id": "RIV_VANTAGE",
+      "name": "Vantage Dynamics",
+      "artifact_name": "Halo Ring",
+      "daily_advance": 0.6,
+      "start_share": 7,
+      "disposition": "wildcard"
+    }
+  ]
+}

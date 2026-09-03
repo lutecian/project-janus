@@ -83,9 +83,10 @@ func _refresh_ui():
 		GameState.experiment_history.size()
 	]
 
-	helios_label.text = "HELIOS: %d%% — Artifact: %s" % [
-		GameState.helios["progress"],
-		GameState.helios.get("artifact_name", "Unknown")
+	helios_label.text = "MY MARKET: %.1f%% | HELIOS: %.1f%% (target %.1f%%)" % [
+		GameState.get_player_market(),
+		GameState.get_rival_market("RIV_HELIOS"),
+		GameState.get_majority_target()
 	]
 
 	var confirmed_names: Array = []
@@ -259,6 +260,10 @@ func _on_run_pressed():
 	var scientist: Dictionary = GameState.scientists[selected_scientist_index]
 	GameState.run_experiment(exp_def, scientist)
 	SaveManager.save_game()
+
+	if GameState.is_game_over():
+		get_tree().change_scene_to_file("res://scenes/endgame/game_over.tscn")
+		return
 
 	get_tree().change_scene_to_file("res://scenes/experiment/results/experiment_result.tscn")
 

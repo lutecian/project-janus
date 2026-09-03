@@ -6,6 +6,36 @@ var campaign_id: String = ""
 var seed: int = 0
 var elapsed_days: float = 0.0
 
+# --- Phase 1 (0.3): market / rival-field / endgame state ---
+var difficulty: Dictionary = {}
+var player_market: float = 0.0
+var rivals: Array = []
+var game_over: Dictionary = {}
+
+const DIFFICULTIES := {
+	"easy": {
+		"id": "easy", "display_name": "Easy",
+		"majority_target": 38.0, "rival_multiplier": 0.7,
+		"helios_start_share": 8.0, "helios_daily_base": 0.55,
+		"player_experiment_gain": 0.85, "player_discovery_gain": 14.0,
+		"player_start_budget": 12500
+	},
+	"normal": {
+		"id": "normal", "display_name": "Normal",
+		"majority_target": 46.0, "rival_multiplier": 1.0,
+		"helios_start_share": 12.0, "helios_daily_base": 0.85,
+		"player_experiment_gain": 0.7, "player_discovery_gain": 12.0,
+		"player_start_budget": 10000
+	},
+	"hard": {
+		"id": "hard", "display_name": "Hard",
+		"majority_target": 52.0, "rival_multiplier": 1.4,
+		"helios_start_share": 16.0, "helios_daily_base": 1.1,
+		"player_experiment_gain": 0.6, "player_discovery_gain": 11.0,
+		"player_start_budget": 8000
+	}
+}
+
 var organization: Dictionary = {}
 var artifact: Dictionary = {}
 var available_artifacts: Array = []
@@ -95,20 +125,22 @@ const TRAIT_EFFECTS := {
 func _ready():
 	pass
 
-func initialize_new_campaign(org: Dictionary):
+func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal"):
+	difficulty = _resolve_difficulty(difficulty_id)
 	campaign_id = _generate_id()
 	seed = _rng.randi()
 	elapsed_days = 0
 	organization = org.duplicate(true)
 	per_artifact_data = {}
+	game_over = {}
+	player_market = 0.0
 	_load_artifact_data()
 	_load_scientist_data()
 	_reset_knowledge()
 	_reset_discovery()
 	_set_discovery_for_artifact()
 	technology_unlocked = false
-	_assign_helios_artifact()
-	helios["progress"] = 0
+	_spawn_rivals()
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
 	helios["discoveries_named"] = []
@@ -119,7 +151,47 @@ func initialize_new_campaign(org: Dictionary):
 	incidents = []
 	active_incidents = []
 	_load_budget_data()
+	budget["funds"] = int(difficulty.get("player_start_budget", budget["funds"]))
 	_rng.seed = seed
+
+func _resolve_difficulty(difficulty_id: String) -> Dictionary:
+	var d: Dictionary = DIFFICULTIES.get(difficulty_id, DIFFICULTIES["normal"])
+	return d.duplicate(true)
+
+func _spawn_rivals():
+	var rival_data: Dictionary = _load_json("res://data/rivals/rivals.json")
+	var rival_defs: Array = rival_data.get("rivals", [])
+	rivals = []
+	var helios_start: float = difficulty.get("helios_start_share", 12.0)
+	var idx: int = 0
+	for rdef in rival_defs:
+		var rd: Dictionary = rdef as Dictionary
+		var rid: String = rd.get("id", "RIV_%d" % idx)
+		var start_share: float = float(rd.get("start_share", 4.0))
+		if rid == "RIV_HELIOS":
+			start_share = helios_start
+		var adv: float = float(rd.get("daily_advance", 0.5)) * float(difficulty.get("rival_multiplier", 1.0))
+		rivals.append({
+			"id": rid,
+			"name": rd.get("name", "Rival %d" % (idx + 1)),
+			"artifact_name": rd.get("artifact_name", ""),
+			"daily_advance": adv,
+			"disposition": rd.get("disposition", "steady"),
+			"share": start_share,
+			"discovery_bumps": 0
+		})
+		idx += 1
+	_sync_helios_rival()
+
+func _sync_helios_rival():
+	helios["start_share"] = difficulty.get("helios_start_share", 12.0)
+	# helios["progress"] remains the abstract research-progress scale (drives intel
+	# thresholds + existing UI); market share is tracked separately on each rival.
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			helios["market_share"] = rd.get("share", 0)
+			return
 
 func _load_budget_data():
 	var data := _load_json("res://data/resources/budget.json")
@@ -375,7 +447,9 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 	_check_incidents()
 	_check_dangerous_experiment(exp_id)
 	_advance_helios()
+	_tick_market()
 	_generate_intelligence()
+	_check_market_end()
 
 	return exp_record
 
@@ -475,6 +549,7 @@ func _update_knowledge_state():
 			var unlock: String = d_dict.get("technology_unlock", "")
 			if not unlock.is_empty():
 				_unlock_technology_for_discovery(d_dict.get("discovery_id", ""), unlock)
+		_award_discovery_market()
 		if not helios["discovered_first"] and helios["progress"] < 100:
 			pass
 		else:
@@ -554,6 +629,7 @@ func _check_secondary_discoveries(exp_id: String):
 				var unlock: String = d_dict.get("technology_unlock", "")
 				if not unlock.is_empty():
 					_unlock_technology_for_discovery(did, unlock)
+				_award_discovery_market()
 				EventBus.discovery_confirmed.emit(did)
 
 func _discovery_hint_for(discovery_id: String) -> String:
@@ -701,6 +777,95 @@ func _advance_helios():
 	helios["progress"] = int(helios["progress"] + (base_rate + variation) * (0.5 + progress_factor * 0.5))
 	helios["progress"] = maxi(helios["progress"], 0)
 
+# --- Phase 1 market model ---
+func get_majority_target() -> float:
+	return float(difficulty.get("majority_target", 51.0))
+
+func get_player_market() -> float:
+	return player_market
+
+func get_rival_market(rival_id: String) -> float:
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == rival_id:
+			return float(rd.get("share", 0))
+	return 0.0
+
+func _tick_market():
+	# Player earns a small daily share from sustained lab work (not from buying).
+	var player_gain: float = float(difficulty.get("player_experiment_gain", 0.55))
+	player_market += player_gain
+
+	# Rivals advance their market share on their own timeline.
+	var lead := 0.0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		var adv: float = float(rd.get("daily_advance", 0.5))
+		var variation: float = _rng.randf_range(-0.3, 0.5)
+		var new_share: float = float(rd.get("share", 0)) + maxf(adv + variation, 0.1)
+		rd["share"] = new_share
+		if rd.get("id", "") == "RIV_HELIOS":
+			lead = new_share
+	_sync_helios_rival()
+	_helios_market_from_lead(lead)
+	EventBus.market_updated.emit(player_market, rivals)
+
+func _helios_market_from_lead(lead_share: float) -> void:
+	helios["market_share"] = lead_share
+
+func _award_discovery_market():
+	var gain: float = float(difficulty.get("player_discovery_gain", 11.0))
+	player_market += gain
+
+func _check_market_end() -> bool:
+	if not game_over.is_empty():
+		return true
+	var majority: float = get_majority_target()
+	if player_market >= majority:
+		game_over = {
+			"won": true,
+			"reason": "market_majority",
+			"player_market": player_market,
+			"dominant_rival": _leading_rival_name(),
+			"type": "market_leader"
+		}
+	elif _any_rival_majority(majority):
+		game_over = {
+			"won": false,
+			"reason": "rival_majority",
+			"player_market": player_market,
+			"dominant_rival": _leading_rival_name(),
+			"type": "absorbed"
+		}
+	if not game_over.is_empty():
+		EventBus.game_over.emit(game_over)
+		return true
+	return false
+
+func _any_rival_majority(majority: float) -> bool:
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if float(rd.get("share", 0)) >= majority:
+			return true
+	return false
+
+func _leading_rival_name() -> String:
+	var best_name := "HELIOS Research Authority"
+	var best_share := -1.0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		var share: float = float(rd.get("share", 0))
+		if share > best_share:
+			best_share = share
+			best_name = rd.get("name", "Rival")
+	return best_name
+
+func is_game_over() -> bool:
+	return not game_over.is_empty()
+
+func get_game_over() -> Dictionary:
+	return game_over.duplicate(true)
+
 func _generate_intelligence():
 	var intel_data := _load_json("res://data/rivals/helios_intelligences.json")
 	var reports: Array = intel_data.get("intelligences", [])
@@ -747,7 +912,11 @@ func get_save_data() -> Dictionary:
 		"last_intel_threshold": last_intel_threshold,
 		"incidents": incidents,
 		"incident_cooldown": incident_cooldown,
-		"budget": budget
+		"budget": budget,
+		"difficulty": difficulty,
+		"player_market": player_market,
+		"rivals": rivals,
+		"game_over": game_over
 	}
 
 func _save_current_artifact_data():
@@ -798,6 +967,14 @@ func load_save_data(data: Dictionary):
 	incidents = data.get("incidents", [])
 	incident_cooldown = data.get("incident_cooldown", 0)
 	budget = data.get("budget", {"funds": 10000, "spent": 0, "funding_received": 0, "next_funding_index": 0, "events_received": []})
+	difficulty = data.get("difficulty", DIFFICULTIES["normal"])
+	if difficulty.is_empty():
+		difficulty = _resolve_difficulty("normal")
+	player_market = data.get("player_market", 0.0)
+	rivals = data.get("rivals", [])
+	if rivals.is_empty():
+		_spawn_rivals()
+	game_over = data.get("game_over", {})
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

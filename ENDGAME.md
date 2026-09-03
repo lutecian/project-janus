@@ -173,12 +173,13 @@ All **additive**: the game is winnable via pure research with any system untouch
 
 ## 12. Implementation plan (phased, data-driven, each increment playable + tested)
 
-### Phase 1 — make the game finite (prerequisite for everything)
+### Phase 1 — make the game finite (prerequisite for everything) — SHIPPED
 - Generalized **rival field** (N competitors incl. HELIOS) replacing the single-Helios advance.
 - **Market-share model** (`player_market` + rival markets) with daily ticks.
-- **Definite victory (majority 51%) + defeat** condition; **end screens** wired to campaign resolution.
+- **Definite victory (majority 46 Normal / 38 Easy / 52 Hard) + defeat** condition; **end screens** wired to campaign resolution.
 - **Difficulty settings** (thresholds, rival aggression, starting leverage/budget).
 - Retune HELIOS/field advance so a lean-on-rivals player can actually lose.
+- Verified: `MARKET_OK` (spawn/tick/victory/defeat/save-load) + `PACING_OK` (Normal: active research wins ~day 32, idle loses ~day 33). Winnable via pure research.
 
 ### Phase 2 — the strategy layer
 - **Acquisitions** (catalog, tech portfolios, owned-company research tick).
