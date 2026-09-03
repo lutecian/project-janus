@@ -57,3 +57,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(200, 46)
 theme_override_font_sizes/font_size = 18
 text = "Return to Main Menu"
+
+[node name="btn_continue" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 46)
+theme_override_font_sizes/font_size = 18
+text = "Keep Playing (+15% target)"

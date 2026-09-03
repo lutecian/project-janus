@@ -43,6 +43,12 @@ var esp_risk: float = 0.0
 var esp_cover: float = 0.0
 var run_badges: Array = []
 
+# --- Phase 5 (0.5): facilities + enemy ops + continue + expert ---
+var facilities_owned: Array = []
+var player_sabotaged_until: float = 0.0
+var continued: bool = false
+var bonus_target: float = 0.0
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -64,6 +70,14 @@ const DIFFICULTIES := {
 		"helios_start_share": 16.0, "helios_daily_base": 1.1,
 		"player_experiment_gain": 0.6, "player_discovery_gain": 12.0,
 		"player_start_budget": 9000
+	},
+	"expert": {
+		"id": "expert", "display_name": "Expert",
+		"majority_target": 62.0, "rival_multiplier": 1.35,
+		"helios_start_share": 20.0, "helios_daily_base": 1.2,
+		"player_experiment_gain": 0.55, "player_discovery_gain": 11.0,
+		"player_start_budget": 7000,
+		"science_locked": true
 	}
 }
 
@@ -189,6 +203,10 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	esp_risk = 0.0
 	esp_cover = 0.0
 	run_badges = []
+	facilities_owned = []
+	player_sabotaged_until = 0.0
+	continued = false
+	bonus_target = 0.0
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
 	helios["discoveries_named"] = []
@@ -459,6 +477,10 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary) -> Dictio
 	var base_gain := int(experiment_def.get("knowledge_gain", 2))
 	var knowledge_gain := base_gain + int(round((quality - 1.0) * base_gain * 0.5))
 	knowledge_gain = maxi(knowledge_gain, base_gain)
+	if has_facility("FAC_LAB"):
+		knowledge_gain += 1
+	if elapsed_days < player_sabotaged_until:
+		knowledge_gain = maxi(int(knowledge_gain / 2), 1)
 
 	for obs in observations:
 		knowledge["observations"].append(obs)
@@ -773,6 +795,8 @@ func _check_incidents():
 		var chance: float = inc_dict.get("trigger_chance", 0.0)
 		if unlocked_technologies.has("TECH_THERMAL_CONTAINMENT"):
 			chance *= 0.5
+		if has_facility("FAC_SHIELD"):
+			chance *= 0.5
 		if _rng.randf() < chance:
 			_apply_incident(inc_dict)
 			break
@@ -828,7 +852,7 @@ func _advance_helios():
 
 # --- Phase 1 market model ---
 func get_majority_target() -> float:
-	return float(difficulty.get("majority_target", 51.0))
+	return float(difficulty.get("majority_target", 51.0)) + bonus_target
 
 func get_player_market() -> float:
 	return player_market
@@ -854,6 +878,10 @@ func _tick_market():
 	_tick_contracts()
 	_tick_events()
 	esp_risk = maxf(esp_risk - 2.0, 0.0)
+	if has_facility("FAC_DESK"):
+		player_market += 0.25
+	_tick_enemy_ops()
+	_tick_consolidation()
 
 	# Rivals advance their market share on their own timeline.
 	var lead := 0.0
@@ -1007,6 +1035,8 @@ func perform_due_diligence(company_id: String) -> Dictionary:
 	if level >= 2:
 		return {"ok": false, "reason": "max_level"}
 	var cost: int = int(ACQ_DD_COSTS[level])
+	if has_facility("FAC_SCANNER"):
+		cost = maxi(int(cost / 2), 1)
 	if int(budget.get("funds", 0)) < cost:
 		return {"ok": false, "reason": "insufficient_funds"}
 	budget["funds"] = int(budget.get("funds", 0)) - cost
@@ -1193,6 +1223,8 @@ func get_domination_progress() -> Dictionary:
 		var how := "contesting"
 		if rd.get("acquired_by_player", false):
 			how = "acquired"
+		elif rd.get("status", "active") == "acquired":
+			how = "absorbed"
 		elif rd.get("status", "active") == "bankrupt":
 			how = "bankrupt"
 		elif rd.get("status", "active") == "exited":
@@ -1203,6 +1235,137 @@ func get_domination_progress() -> Dictionary:
 			crushed += 1
 		details.append({"id": rd.get("id", ""), "name": rd.get("name", ""), "how": how})
 	return {"crushed": crushed, "total": rivals.size(), "details": details}
+
+# --- Phase 5 facilities: one-time builds, permanent edges ---
+func _facility_def(facility_id: String) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/facilities/facilities.json")
+	for fdef in data.get("facilities", []):
+		var fd: Dictionary = fdef as Dictionary
+		if fd.get("id", "") == facility_id:
+			return fd
+	return {}
+
+func has_facility(facility_id: String) -> bool:
+	return facility_id in facilities_owned
+
+func buy_facility(facility_id: String) -> Dictionary:
+	if has_facility(facility_id):
+		return {"ok": false, "reason": "owned"}
+	var fdef: Dictionary = _facility_def(facility_id)
+	if fdef.is_empty():
+		return {"ok": false, "reason": "no_def"}
+	var cost: int = int(fdef.get("cost", 0))
+	if int(budget.get("funds", 0)) < cost:
+		return {"ok": false, "reason": "insufficient_funds"}
+	budget["funds"] = int(budget.get("funds", 0)) - cost
+	budget["spent"] = int(budget.get("spent", 0)) + cost
+	facilities_owned.append(facility_id)
+	if facility_id == "FAC_INTEL":
+		esp_cover = minf(esp_cover + 15.0, 50.0)
+		EventBus.espionage_updated.emit()
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	return {"ok": true, "cost": cost}
+
+# --- Phase 5 enemy ops: aggressive rivals and wildcards hit back ---
+func _enemy_op_chance(rd: Dictionary) -> float:
+	var disp: String = rd.get("disposition", "")
+	var base := 0.0
+	if disp == "aggressive":
+		base = 0.05
+	elif disp == "wildcard":
+		base = 0.03
+	if base <= 0.0:
+		return 0.0
+	var chance: float = base * (1.0 - esp_cover / 100.0)
+	if has_facility("FAC_SHIELD"):
+		chance *= 0.5
+	return chance
+
+func _tick_enemy_ops():
+	if elapsed_days < 10.0:
+		return
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		var chance: float = _enemy_op_chance(rd)
+		if chance <= 0.0:
+			continue
+		if _rng.randf() < chance:
+			_apply_enemy_op(rd)
+
+func _apply_enemy_op(rd: Dictionary, kind: String = "") -> String:
+	if kind.is_empty():
+		var kinds := ["raid", "smear", "sabotage"]
+		kind = kinds[_rng.randi() % kinds.size()]
+	var detail := ""
+	if kind == "raid":
+		var loss: int = clampi(int(float(budget.get("funds", 0)) * 0.08), 200, 2000)
+		budget["funds"] = int(budget.get("funds", 0)) - loss
+		detail = "%s raided your accounts (-$%d)." % [rd.get("name", "?"), loss]
+		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	elif kind == "smear":
+		player_market = maxf(player_market - 2.0, 0.0)
+		detail = "%s smeared your reputation (-2%% market)." % rd.get("name", "?")
+	else:
+		player_sabotaged_until = elapsed_days + 3.0
+		detail = "%s sabotaged your labs (research slowed 3 days)." % rd.get("name", "?")
+	intelligence_reports.append({
+		"day": elapsed_days,
+		"threshold": -2,
+		"text": detail,
+		"helios_progress": helios["progress"]
+	})
+	EventBus.rival_op.emit(detail)
+	return detail
+
+# --- Phase 5 consolidation: big rivals eat small ones ---
+func _tick_consolidation():
+	var leader := {}
+	var best_share := -1.0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		if float(rd.get("share", 0)) > best_share:
+			best_share = float(rd.get("share", 0))
+			leader = rd
+	if leader.is_empty() or best_share <= 25.0:
+		return
+	for r in rivals:
+		var rd2: Dictionary = r as Dictionary
+		if (rd2 as Dictionary).get("id", "") == (leader as Dictionary).get("id", ""):
+			continue
+		if rd2.get("acquired_by_player", false) or rd2.get("status", "active") != "active":
+			continue
+		if float(rd2.get("share", 0)) >= 5.0:
+			continue
+		if _rng.randf() < 0.02:
+			_consolidate_rival(rd2, leader)
+
+func _consolidate_rival(small: Dictionary, leader: Dictionary):
+	small["status"] = "acquired"
+	small["acquired_by_player"] = false
+	small["absorbed_by"] = leader.get("id", "")
+	small["share"] = 0.0
+	leader["share"] = float(leader.get("share", 0)) + 2.0
+	_sync_helios_rival()
+	var text: String = "%s was absorbed by %s." % [small.get("name", "?"), leader.get("name", "?")]
+	intelligence_reports.append({
+		"day": elapsed_days, "threshold": -2, "text": text, "helios_progress": helios["progress"]
+	})
+	EventBus.rival_op.emit(text)
+
+# --- Phase 5 continue-after-win: raise the stakes instead of ending ---
+func continue_after_win() -> Dictionary:
+	if game_over.is_empty() or not game_over.get("won", false):
+		return {"ok": false, "reason": "no_win"}
+	if game_over.get("type", "") == "monopoly":
+		return {"ok": false, "reason": "already_top"}
+	game_over = {}
+	continued = true
+	bonus_target += 15.0
+	return {"ok": true, "new_target": get_majority_target()}
 
 # --- Phase 3 endings: tiered paths (monopoly > researcher > market_leader) ---
 func _confirmed_artifact_count() -> int:
@@ -1223,6 +1386,8 @@ func _has_tech_depth() -> bool:
 	return true
 
 func _check_scientific_win() -> bool:
+	if bool(difficulty.get("science_locked", false)):
+		return false
 	if discovery.get("state", "") != "confirmed":
 		return false
 	for d in discoveries:
@@ -1666,7 +1831,11 @@ func get_save_data() -> Dictionary:
 		"events_seen": events_seen,
 		"esp_risk": esp_risk,
 		"esp_cover": esp_cover,
-		"run_badges": run_badges
+		"run_badges": run_badges,
+		"facilities_owned": facilities_owned,
+		"player_sabotaged_until": player_sabotaged_until,
+		"continued": continued,
+		"bonus_target": bonus_target
 	}
 
 func _save_current_artifact_data():
@@ -1744,6 +1913,10 @@ func load_save_data(data: Dictionary):
 	esp_risk = data.get("esp_risk", 0.0)
 	esp_cover = data.get("esp_cover", 0.0)
 	run_badges = data.get("run_badges", [])
+	facilities_owned = data.get("facilities_owned", [])
+	player_sabotaged_until = data.get("player_sabotaged_until", 0.0)
+	continued = data.get("continued", false)
+	bonus_target = data.get("bonus_target", 0.0)
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

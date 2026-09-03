@@ -23,7 +23,8 @@ func _ready():
 		"res://scenes/endgame/game_over.tscn",
 		"res://scenes/acquisitions/acquisitions.tscn",
 		"res://scenes/contracts/contracts.tscn",
-		"res://scenes/espionage/espionage.tscn"
+		"res://scenes/espionage/espionage.tscn",
+		"res://scenes/facilities/facilities.tscn"
 	]
 	_test_next()
 
@@ -154,6 +155,7 @@ func _test_next():
 		_test_events()
 		_test_espionage()
 		_test_endings()
+		_test_depth()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -867,6 +869,205 @@ func _test_endings():
 		print("END_OK")
 	else:
 		print("%d END FAILURES" % failures)
+
+func _test_depth():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Depth Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 30000
+
+	# --- D1: Facilities buy cleanly and apply effects ---
+	for fid in ["FAC_LAB", "FAC_SHIELD", "FAC_DESK", "FAC_INTEL", "FAC_SCANNER"]:
+		var br: Dictionary = GameState.buy_facility(fid)
+		if not br.get("ok", false):
+			push_error("depth: buying %s should succeed, got %s" % [fid, br])
+			failures += 1
+	if GameState.facilities_owned.size() != 5:
+		push_error("depth: expected 5 facilities owned")
+		failures += 1
+	if GameState.buy_facility("FAC_LAB").get("ok", true):
+		push_error("depth: re-buying a facility should fail")
+		failures += 1
+	if absf(GameState.esp_cover - 15.0) > 0.001:
+		push_error("depth: Intel Cell should grant +15 cover, got %.1f" % GameState.esp_cover)
+		failures += 1
+	var first_offer: String = (GameState.company_offers[0] as Dictionary).get("id", "")
+	var f_before: int = GameState.budget["funds"]
+	GameState.perform_due_diligence(first_offer)
+	if f_before - GameState.budget["funds"] != 200:
+		push_error("depth: Deep Scanner should halve DD cost to 200")
+		failures += 1
+	var pm_before: float = GameState.get_player_market()
+	GameState._rng.seed = 4242
+	GameState._tick_market()
+	if GameState.get_player_market() - pm_before < 0.9:
+		push_error("depth: Trading Desk should add >=0.9 market per tick on normal")
+		failures += 1
+
+	# --- D2: Enemy-op chance math + deterministic effects ---
+	var helios: Dictionary = {}
+	for r in GameState.rivals:
+		if (r as Dictionary).get("id", "") == "RIV_HELIOS":
+			helios = r as Dictionary
+	GameState.esp_cover = 100.0
+	if GameState._enemy_op_chance(helios) != 0.0:
+		push_error("depth: full cover should block enemy ops")
+		failures += 1
+	GameState.esp_cover = 0.0
+	var open_chance: float = GameState._enemy_op_chance(helios)
+	if absf(open_chance - 0.025) > 0.0001:
+		push_error("depth: shield should halve HELIOS op chance to 0.025, got %f" % open_chance)
+		failures += 1
+	var funds_before: int = GameState.budget["funds"]
+	GameState._apply_enemy_op(helios, "raid")
+	var raid_loss: int = funds_before - GameState.budget["funds"]
+	if raid_loss < 200 or raid_loss > 2000:
+		push_error("depth: raid should steal 200-2000, got %d" % raid_loss)
+		failures += 1
+	GameState.player_market = 20.0
+	GameState._apply_enemy_op(helios, "smear")
+	if absf(GameState.get_player_market() - 18.0) > 0.001:
+		push_error("depth: smear should cut exactly 2 market")
+		failures += 1
+	GameState._apply_enemy_op(helios, "sabotage")
+	if GameState.player_sabotaged_until <= GameState.elapsed_days:
+		push_error("depth: sabotage should slow research for 3 days")
+		failures += 1
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	var sci: Dictionary = GameState.scientists[0]
+	GameState.initialize_new_campaign({"name": "Depth Sabotage"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 30000
+	GameState.incident_cooldown = 100
+	GameState._rng.seed = 555
+	GameState.run_experiment(heat, sci)
+	var d_plain: int = GameState.knowledge["progress"]
+	GameState.knowledge["progress"] = 0
+	GameState.knowledge["observations"] = []
+	GameState.knowledge["experiment_counts"] = {}
+	GameState.player_sabotaged_until = GameState.elapsed_days + 3.0
+	GameState._rng.seed = 555
+	GameState.run_experiment(heat, sci)
+	var d_sab: int = GameState.knowledge["progress"]
+	# Halving within rounding: sabotaged gain doubled should not exceed the plain gain + 1.
+	if d_sab * 2 > d_plain + 1:
+		push_error("depth: sabotage should roughly halve knowledge gain (%d vs %d)" % [d_sab, d_plain])
+		failures += 1
+
+	# --- D3: Consolidation absorbs small rivals into the leader ---
+	GameState.initialize_new_campaign({"name": "Depth Consolidate"}, "normal")
+	GameState.select_artifact(0)
+	var leader := {}
+	var small := {}
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = 30.0
+			leader = rd
+		if rd.get("id", "") == "RIV_BERMANT":
+			rd["share"] = 3.0
+			small = rd
+	var lead_before: float = float(leader.get("share", 0))
+	GameState._consolidate_rival(small, leader)
+	if small.get("status", "") != "acquired" or small.get("acquired_by_player", true):
+		push_error("depth: small rival should be absorbed (not by player)")
+		failures += 1
+	if absf(float(leader.get("share", 0)) - (lead_before + 2.0)) > 0.001:
+		push_error("depth: leader should gain +2 from absorption")
+		failures += 1
+	if not GameState._rival_crushed(small):
+		push_error("depth: absorbed rival should count as crushed (no soft-lock)")
+		failures += 1
+
+	# --- D4: Continue-after-win raises the stakes ---
+	GameState.initialize_new_campaign({"name": "Depth Continue"}, "normal")
+	GameState.select_artifact(0)
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	for r in GameState.rivals:
+		var rd0: Dictionary = r as Dictionary
+		if rd0.get("id", "") == "RIV_HELIOS":
+			rd0["share"] = GameState.get_majority_target() - 6.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "market_leader":
+		push_error("depth: setup should win market first")
+		failures += 1
+	var cont: Dictionary = GameState.continue_after_win()
+	if not cont.get("ok", false):
+		push_error("depth: continue should be allowed after a market win")
+		failures += 1
+	if GameState.is_game_over():
+		push_error("depth: game should resume after continue")
+		failures += 1
+	if absf(GameState.get_majority_target() - 67.0) > 0.001:
+		push_error("depth: target should rise +15 after continue, got %.1f" % GameState.get_majority_target())
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Depth Continue 2"}, "normal")
+	GameState.select_artifact(0)
+	for r in GameState.rivals:
+		var rd2: Dictionary = r as Dictionary
+		rd2["share"] = GameState.get_majority_target() + 1.0
+		break
+	GameState._check_market_end()
+	if GameState.continue_after_win().get("ok", true):
+		push_error("depth: continue should be refused after a defeat")
+		failures += 1
+
+	# --- D5: Expert locks the scientific path ---
+	GameState.initialize_new_campaign({"name": "Depth Expert"}, "expert")
+	if absf(GameState.get_majority_target() - 62.0) > 0.001:
+		push_error("depth: expert target should be 62, got %.1f" % GameState.get_majority_target())
+		failures += 1
+	GameState.select_artifact(0)
+	for tech_id in GameState.TECH_KEY_MAP.values():
+		if not GameState.unlocked_technologies.has(tech_id):
+			GameState.unlocked_technologies.append(tech_id)
+	GameState.discovery["state"] = "confirmed"
+	for d in GameState.discoveries:
+		(d as Dictionary)["state"] = "confirmed"
+	GameState.player_market = 10.0
+	GameState._check_market_end()
+	if GameState.is_game_over():
+		push_error("depth: expert should lock the scientific win (got %s)" % GameState.game_over.get("type", "?"))
+		failures += 1
+	GameState.player_market = 63.0
+	for r in GameState.rivals:
+		var rd3: Dictionary = r as Dictionary
+		if rd3.get("id", "") == "RIV_HELIOS":
+			rd3["share"] = 56.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "market_leader":
+		push_error("depth: expert market win should still work")
+		failures += 1
+
+	# --- D6: Save/load preserves facilities, sabotage, continue state ---
+	GameState.initialize_new_campaign({"name": "Depth SaveLoad"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 30000
+	GameState.buy_facility("FAC_DESK")
+	GameState.buy_facility("FAC_SHIELD")
+	GameState.player_sabotaged_until = 12.0
+	GameState.continued = true
+	GameState.bonus_target = 15.0
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if not GameState.has_facility("FAC_DESK") or not GameState.has_facility("FAC_SHIELD"):
+		push_error("depth: facilities lost after save/load")
+		failures += 1
+	if absf(GameState.player_sabotaged_until - 12.0) > 0.001:
+		push_error("depth: sabotage timer lost after save/load")
+		failures += 1
+	if not GameState.continued or absf(GameState.bonus_target - 15.0) > 0.001:
+		push_error("depth: continue state lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("DEPTH_OK")
+	else:
+		print("%d DEPTH FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

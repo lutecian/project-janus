@@ -107,6 +107,11 @@ layout_mode = 2
 custom_minimum_size = Vector2(110, 30)
 text = "Espionage"
 
+[node name="btn_facilities" type="Button" parent="MarginContainer/VBox/nav_row2"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Facilities"
+
 [node name="Sep2" type="HSeparator" parent="MarginContainer/VBox"]
 layout_mode = 2
 

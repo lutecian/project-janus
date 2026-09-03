@@ -1,0 +1,39 @@
+{
+  "facilities": [
+    {
+      "id": "FAC_LAB",
+      "name": "Advanced Laboratory",
+      "flavor": "Better benches, better data. Every experiment yields a little more knowledge.",
+      "cost": 4000,
+      "effect": "+1 knowledge gain per experiment"
+    },
+    {
+      "id": "FAC_SHIELD",
+      "name": "Shielded Containment",
+      "flavor": "Layered shielding that halves incident odds — and halves enemy operations against you.",
+      "cost": 3500,
+      "effect": "Incident chance x0.5, enemy ops x0.5"
+    },
+    {
+      "id": "FAC_DESK",
+      "name": "Trading Desk",
+      "flavor": "A small desk that turns reputation into market share, day after day.",
+      "cost": 3000,
+      "effect": "+0.25 market share per day"
+    },
+    {
+      "id": "FAC_INTEL",
+      "name": "Intel Cell",
+      "flavor": "A locked room with no windows. +15 cover the day it opens.",
+      "cost": 2500,
+      "effect": "+15 cover on purchase"
+    },
+    {
+      "id": "FAC_SCANNER",
+      "name": "Deep Scanner",
+      "flavor": "See through noisy books. Due diligence costs half.",
+      "cost": 2000,
+      "effect": "Due diligence x0.5 cost"
+    }
+  ]
+}

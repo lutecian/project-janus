@@ -17,7 +17,7 @@ func _ready():
 	facility_edit.text = "Hawthorne Research Complex"
 	director_edit.text = "Director B. Crozier"
 	status_label.text = ""
-	var order := ["easy", "normal", "hard"]
+	var order := ["easy", "normal", "hard", "expert"]
 	for did in order:
 		difficulty_option.add_item(GameState.DIFFICULTIES[did].get("display_name", did), order.find(did))
 	difficulty_option.selected = order.find("normal")
@@ -38,7 +38,7 @@ func _on_begin_pressed():
 		"facility_name": fac_name,
 		"director_name": dir_name
 	}
-	var difficulty_ids := ["easy", "normal", "hard"]
+	var difficulty_ids := ["easy", "normal", "hard", "expert"]
 	var selected_id: String = difficulty_ids[difficulty_option.selected]
 
 	GameState.initialize_new_campaign(org, selected_id)

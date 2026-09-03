@@ -4,10 +4,14 @@ extends Control
 @onready var subtitle_label: Label = $ScrollContainer/VBox/subtitle_label
 @onready var summary_label: RichTextLabel = $ScrollContainer/VBox/summary_label
 @onready var btn_menu: Button = $ScrollContainer/VBox/ButtonRow/btn_menu
+@onready var btn_continue: Button = $ScrollContainer/VBox/ButtonRow/btn_continue
 
 func _ready():
 	btn_menu.pressed.connect(_on_menu)
+	btn_continue.pressed.connect(_on_continue)
 	_display()
+	var result: Dictionary = GameState.get_game_over()
+	btn_continue.visible = bool(result.get("won", false)) and result.get("type", "") != "monopoly"
 
 func _display():
 	var result: Dictionary = GameState.get_game_over()
@@ -72,3 +76,9 @@ func _epilogue_text(won: bool, reason: String) -> String:
 func _on_menu():
 	SaveManager.delete_save()
 	get_tree().change_scene_to_file("res://scenes/main/main_menu.tscn")
+
+func _on_continue():
+	var res: Dictionary = GameState.continue_after_win()
+	if res.get("ok", false):
+		SaveManager.save_game()
+		get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
