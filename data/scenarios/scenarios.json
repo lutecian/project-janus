@@ -1,0 +1,52 @@
+{
+  "scenarios": [
+    {
+      "id": "SCN_SANDBOX",
+      "name": "Sandbox (standard campaign)",
+      "flavor": "Your organization, your rules.",
+      "start_act": 1,
+      "seed": -1,
+      "difficulty": "",
+      "start_artifact": "",
+      "funds_bonus": 0,
+      "rival_bonus": 0.0,
+      "remove_scientists": []
+    },
+    {
+      "id": "SCN_WINTER",
+      "name": "The Winter Seed",
+      "flavor": "Start on J005 with hazard pay. The frost is waiting.",
+      "start_act": 2,
+      "seed": 4242,
+      "difficulty": "normal",
+      "start_artifact": "J005",
+      "funds_bonus": 2000,
+      "rival_bonus": 0.0,
+      "remove_scientists": []
+    },
+    {
+      "id": "SCN_SPRINT",
+      "name": "Corporate Sprint",
+      "flavor": "Hard pace, warm rivals, one artifact that matters. Win fast or be eaten.",
+      "start_act": 1,
+      "seed": 777,
+      "difficulty": "hard",
+      "start_artifact": "J001",
+      "funds_bonus": 0,
+      "rival_bonus": 4.0,
+      "remove_scientists": []
+    },
+    {
+      "id": "SCN_SKELETON",
+      "name": "Skeleton Crew",
+      "flavor": "Expert rules. Reed never made it to the facility. Good luck.",
+      "start_act": 1,
+      "seed": 9001,
+      "difficulty": "expert",
+      "start_artifact": "J001",
+      "funds_bonus": 1000,
+      "rival_bonus": 0.0,
+      "remove_scientists": ["SCIENTIST_REED"]
+    }
+  ]
+}

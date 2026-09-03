@@ -164,6 +164,7 @@ func _test_next():
 		_test_acts()
 		_test_batch()
 		_test_roster()
+		_test_replay()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -529,13 +530,13 @@ func _test_acq():
 		push_error("acq: offers not preserved after save/load (got %d)" % GameState.company_offers.size())
 		failures += 1
 
-	# --- A8: Later companies arrive on schedule ---
+	# --- A8: Later companies arrive on schedule (4 + 2 rostered late) ---
 	GameState.initialize_new_campaign({"name": "Acq Stagger"}, "normal")
 	GameState.select_artifact(0)
 	GameState.elapsed_days = 30.0
 	GameState._tick_company_offers()
-	if GameState.company_offers.size() != 8:
-		push_error("acq: all 8 offers should be listed by day 30, got %d" % GameState.company_offers.size())
+	if GameState.company_offers.size() != 6:
+		push_error("acq: all 6 rostered offers should be listed by day 30, got %d" % GameState.company_offers.size())
 		failures += 1
 
 	if failures == 0:
@@ -1586,6 +1587,83 @@ func _test_roster():
 		print("ROSTER_OK")
 	else:
 		print("%d ROSTER FAILURES" % failures)
+
+func _test_replay():
+	var failures: int = 0
+
+	# --- Y1: Wins score deterministically; losses score on merit ---
+	GameState.initialize_new_campaign({"name": "Replay Score"}, "normal")
+	GameState.select_artifact(0)
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = GameState.get_majority_target() - 6.0
+	GameState._check_market_end()
+	if int(GameState.game_over.get("score", 0)) != 1800:
+		push_error("replay: market win at day 0 should score exactly 1800, got %s" % GameState.game_over.get("score", "?"))
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Replay Loss"}, "normal")
+	GameState.select_artifact(0)
+	GameState.player_market = 5.0
+	for r in GameState.rivals:
+		var rd2: Dictionary = r as Dictionary
+		if rd2.get("id", "") == "RIV_HELIOS":
+			rd2["share"] = GameState.get_majority_target() + 1.0
+	GameState._check_market_end()
+	if int(GameState.game_over.get("score", -1)) != 50:
+		push_error("replay: shutout loss should score 50, got %s" % GameState.game_over.get("score", "?"))
+		failures += 1
+	var legacy_file := FileAccess.open("user://janus_legacy.json", FileAccess.READ)
+	if legacy_file == null:
+		push_error("replay: legacy file should exist after scored runs")
+		failures += 1
+	else:
+		var text: String = legacy_file.get_as_text()
+		legacy_file.close()
+		var json := JSON.new()
+		if json.parse(text) != OK or not (json.data as Dictionary).get("best", {}).has("normal"):
+			push_error("replay: legacy best should record scored runs")
+			failures += 1
+
+	# --- Y2: Same seed deals the same market ---
+	GameState.initialize_new_campaign({"name": "Replay A"}, "normal", 999)
+	var roster_a: Array = GameState.company_roster.duplicate()
+	var price_a: int = int((GameState.company_offers[0] as Dictionary).get("listed_price", 0))
+	GameState.initialize_new_campaign({"name": "Replay B"}, "normal", 999)
+	var roster_b: Array = GameState.company_roster.duplicate()
+	var price_b: int = int((GameState.company_offers[0] as Dictionary).get("listed_price", 0))
+	if roster_a != roster_b or price_a != price_b:
+		push_error("replay: fixed seed should deal identical markets")
+		failures += 1
+	if GameState.company_roster.size() != 6:
+		push_error("replay: roster should deal 4 + 2 late companies, got %d" % GameState.company_roster.size())
+		failures += 1
+
+	# --- Y3: Scenarios apply their setups ---
+	GameState.initialize_new_campaign({"name": "Replay Winter"}, "normal", 4242)
+	GameState.apply_scenario("SCN_WINTER")
+	if GameState.artifact.get("id", "") != "J005":
+		push_error("replay: winter should start on J005, got %s" % GameState.artifact.get("id", "?"))
+		failures += 1
+	if int(GameState.budget.get("funds", 0)) != 12000:
+		push_error("replay: winter hazard pay should total 12000, got %d" % GameState.budget.get("funds", 0))
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Replay Skeleton"}, "expert", 9001)
+	GameState.apply_scenario("SCN_SKELETON")
+	if GameState.scientists.size() != 2:
+		push_error("replay: skeleton crew should remove Reed, roster %d" % GameState.scientists.size())
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Replay Sprint"}, "hard", 777)
+	GameState.apply_scenario("SCN_SPRINT")
+	if absf(GameState.get_rival_market("RIV_HELIOS") - 20.0) > 0.001:
+		push_error("replay: sprint should warm rivals +4 (helios %.1f)" % GameState.get_rival_market("RIV_HELIOS"))
+		failures += 1
+
+	if failures == 0:
+		print("REPLAY_OK")
+	else:
+		print("%d REPLAY FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

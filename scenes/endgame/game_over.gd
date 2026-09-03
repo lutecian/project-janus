@@ -61,7 +61,7 @@ func _display():
 		summary_label.text = "%s captured %s%% of the market while you held only %.1f%%.\n\nYou reached %d days with %d confirmed discoveries — but it was not enough." % [
 			dominant, majority, player_market, days_used, discoveries_confirmed
 		]
-	summary_label.text += "\n\nTitle earned: %s\n%s" % [GameState.get_run_title(), _epilogue_text(won, reason)]
+	summary_label.text += "\n\nTitle earned: %s | Run score: %d\n%s" % [GameState.get_run_title(), int(result.get("score", 0)), _epilogue_text(won, reason)]
 
 func _epilogue_text(won: bool, reason: String) -> String:
 	var days_used: int = int(GameState.elapsed_days)

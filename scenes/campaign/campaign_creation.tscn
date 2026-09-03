@@ -81,7 +81,22 @@ custom_minimum_size = Vector2(0, 36)
 [node name="difficulty_hint" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Normal: market majority target 51%. Easy = lower target + gentler rivals; Hard = higher target + aggressive rivals."
+text = "Normal: market majority target 52%. Easy = lower target + gentler rivals; Hard = higher target + aggressive rivals; Expert locks the scientific path."
+autowrap_mode = 2
+
+[node name="ScenarioLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Scenario"
+
+[node name="scenario_option" type="OptionButton" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+
+[node name="scenario_hint" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Sandbox: your rules. Named scenarios fix the seed, setup and stakes."
+autowrap_mode = 2
 
 [node name="Spacer" type="Control" parent="VBox"]
 layout_mode = 2

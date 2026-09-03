@@ -62,6 +62,7 @@ var military_ties: float = 0.0
 # --- Phase 8 (0.8): acts + roster ---
 var act: int = 1
 var hire_pool: Array = []
+var company_roster: Array = []
 
 const DIFFICULTIES := {
 	"easy": {
@@ -80,7 +81,7 @@ const DIFFICULTIES := {
 	},
 	"hard": {
 		"id": "hard", "display_name": "Hard",
-		"majority_target": 58.0, "rival_multiplier": 1.1,
+		"majority_target": 58.0, "rival_multiplier": 1.0,
 		"helios_start_share": 16.0, "helios_daily_base": 1.1,
 		"player_experiment_gain": 0.6, "player_discovery_gain": 12.0,
 		"player_start_budget": 9000
@@ -200,6 +201,7 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	_reset_knowledge()
 	_reset_discovery()
 	_set_discovery_for_artifact()
+	confirmed_discoveries = []
 	technology_unlocked = false
 	_spawn_rivals()
 	company_offers = []
@@ -228,6 +230,15 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	military_ties = 0.0
 	act = 1
 	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
+	company_roster = ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"]
+	var late := ["CMP_DREDGE", "CMP_KILN", "CMP_VESPER", "CMP_ABYSSAL"]
+	for i in range(late.size() - 1, 0, -1):
+		var j: int = _rng.randi() % (i + 1)
+		var tmp: String = late[i]
+		late[i] = late[j]
+		late[j] = tmp
+	company_roster.append(late[0])
+	company_roster.append(late[1])
 	_log_scientist_intros()
 	helios["thresholds_hit"] = []
 	helios["discovered_first"] = false
@@ -1056,6 +1067,7 @@ func _check_market_end() -> bool:
 			"type": "absorbed"
 		}
 	if not game_over.is_empty():
+		game_over["score"] = get_run_score()
 		_record_legacy()
 		EventBus.game_over.emit(game_over)
 		return true
@@ -1088,6 +1100,8 @@ func _spawn_company_offers():
 	company_offers = []
 	for cdef in defs:
 		var cd: Dictionary = cdef as Dictionary
+		if not cd.get("id", "") in company_roster:
+			continue
 		if float(cd.get("available_from_day", 0.0)) > elapsed_days:
 			continue
 		company_offers.append(_make_company_offer(cd))
@@ -1122,6 +1136,8 @@ func _spawn_due_company_offers():
 	var data: Dictionary = _load_json("res://data/acquisitions/companies.json")
 	for cdef in data.get("companies", []):
 		var cd: Dictionary = cdef as Dictionary
+		if not cd.get("id", "") in company_roster:
+			continue
 		if known.has(cd.get("id", "")):
 			continue
 		if float(cd.get("available_from_day", 0.0)) > elapsed_days:
@@ -1766,6 +1782,42 @@ func _check_act_advance():
 	})
 	EventBus.act_advanced.emit(act)
 
+# --- Phase 9 scenarios: fixed-seed story setups ---
+func _scenario_def(scenario_id: String) -> Dictionary:
+	var data: Dictionary = _load_json("res://data/scenarios/scenarios.json")
+	for sdef in data.get("scenarios", []):
+		var sd: Dictionary = sdef as Dictionary
+		if sd.get("id", "") == scenario_id:
+			return sd
+	return {}
+
+func apply_scenario(scenario_id: String) -> Dictionary:
+	var sdef: Dictionary = _scenario_def(scenario_id)
+	if sdef.is_empty() or scenario_id == "SCN_SANDBOX":
+		return {"ok": true, "sandbox": true}
+	act = maxi(act, int(sdef.get("start_act", 1)))
+	var art_id: String = sdef.get("start_artifact", "")
+	if not art_id.is_empty():
+		for i in range(available_artifacts.size()):
+			if (available_artifacts[i] as Dictionary).get("id", "") == art_id and is_artifact_unlocked(art_id):
+				select_artifact(i)
+				break
+	budget["funds"] = int(budget.get("funds", 0)) + int(sdef.get("funds_bonus", 0))
+	var rb: float = float(sdef.get("rival_bonus", 0.0))
+	if rb != 0.0:
+		for r in rivals:
+			var rd: Dictionary = r as Dictionary
+			if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+				continue
+			rd["share"] = float(rd.get("share", 0)) + rb
+		_sync_helios_rival()
+	var kept: Array = []
+	for s in scientists:
+		if not (s as Dictionary).get("id", "") in (sdef.get("remove_scientists", []) as Array):
+			kept.append(s)
+	scientists = kept
+	return {"ok": true, "name": sdef.get("name", "?")}
+
 # --- Phase 8 roster: hireable replacements, living cap ---
 const ROSTER_CAP := 5
 
@@ -1893,10 +1945,33 @@ func _record_legacy():
 	var best: Dictionary = legacy.get("best", {})
 	var days: float = elapsed_days
 	var entry: Dictionary = best.get(diff_id, {})
-	if entry.is_empty() or float(entry.get("days", 1e9)) > days:
-		best[diff_id] = {"type": win_type, "days": days, "title": get_run_title()}
+	if entry.is_empty() or int(entry.get("score", -1)) < int(game_over.get("score", 0)):
+		best[diff_id] = {"type": win_type, "days": days, "title": get_run_title(), "score": int(game_over.get("score", 0))}
 		legacy["best"] = best
 		_persist_legacy(legacy)
+
+func get_run_score() -> int:
+	var win_type: String = game_over.get("type", "absorbed")
+	var mult := 1.0
+	match difficulty.get("id", "normal"):
+		"easy":
+			mult = 0.75
+		"hard":
+			mult = 1.5
+		"expert":
+			mult = 2.0
+	if not game_over.get("won", false):
+		return int((player_market * 10.0 + confirmed_discoveries.size() * 20.0) * mult)
+	var base := 1000.0
+	if win_type == "researcher":
+		base = 1500.0
+	elif win_type == "monopoly":
+		base = 2500.0
+	var speed: float = maxf(0.0, 80.0 - elapsed_days) * 10.0
+	var score: float = (base + speed) * mult + float(run_badges.size()) * 25.0
+	if continued:
+		score += 500.0
+	return int(score)
 
 func get_run_title() -> String:
 	var type_names := {
@@ -1922,7 +1997,10 @@ func get_legacy_line() -> String:
 			])
 	var badges: Array = legacy.get("badges", [])
 	var total: int = (_load_json("res://data/meta/badges.json") as Dictionary).get("badges", []).size()
-	return "Best — %s | Badges: %d/%d" % ["; ".join(parts), badges.size(), total]
+	var top := 0
+	for diff_id in best:
+		top = maxi(top, int((best[diff_id] as Dictionary).get("score", 0)))
+	return "Best — %s | Top score: %d | Badges: %d/%d" % ["; ".join(parts), top, badges.size(), total]
 
 # --- Phase 3 espionage: funds + risk allocation, not click-to-win ---
 func _espionage_op_def(op_id: String) -> Dictionary:
@@ -2283,7 +2361,8 @@ func get_save_data() -> Dictionary:
 		"pending_memorial": pending_memorial,
 		"military_ties": military_ties,
 		"act": act,
-		"hire_pool": hire_pool
+		"hire_pool": hire_pool,
+		"company_roster": company_roster
 	}
 
 func _save_current_artifact_data():
@@ -2372,6 +2451,7 @@ func load_save_data(data: Dictionary):
 	military_ties = data.get("military_ties", 0.0)
 	act = data.get("act", 1)
 	hire_pool = data.get("hire_pool", ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"])
+	company_roster = data.get("company_roster", ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"])
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

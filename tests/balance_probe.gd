@@ -23,6 +23,8 @@ func _run_all():
 	_probe("normal-systems", "normal", 1234, true, true, false)
 	_probe("hard-systems", "hard", 200, true, true, true)
 	_probe("hard-systems-b", "hard", 777, true, true, true)
+	_probe("hard-systems-c", "hard", 555, true, true, true)
+	_probe("hard-systems-d", "hard", 3141, true, true, true)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
 
