@@ -21,6 +21,8 @@ func _refresh():
 	for fdef in data.get("facilities", []):
 		var fd: Dictionary = fdef as Dictionary
 		var fid: String = fd.get("id", "")
+		if bool(fd.get("prize", false)) and not GameState.has_facility(fid):
+			continue
 		var line := Label.new()
 		var state := "OWNED" if GameState.has_facility(fid) else "$%d" % GameState.facility_price(fid)
 		line.text = "%s [%s]\n%s\n%s" % [

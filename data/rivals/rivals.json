@@ -9,6 +9,9 @@
       "start_share": 12,
       "disposition": "aggressive",
       "director": "Director Ilsa Rennick",
+      "recovery_entry_risk": 15.0,
+      "recovery_sabotage_bonus": 2.0,
+      "prize_facility": "FAC_PRIZE_HEL",
       "taunts": [
         "Rennick (HELIOS): 'Cute prototype. We bought three companies before breakfast.'",
         "Rennick (HELIOS): 'Your lead amuses our board. Briefly.'"
@@ -22,6 +25,9 @@
       "start_share": 6,
       "disposition": "steady",
       "director": "Dr. Amos Bermant",
+      "recovery_entry_risk": 5.0,
+      "recovery_sabotage_bonus": 0.0,
+      "prize_facility": "FAC_PRIZE_BER",
       "taunts": [
         "Bermant: 'Slow and funded beats fast and broke, friend.'",
         "Bermant: 'We publish. You posture. The field notices.'"
@@ -35,6 +41,9 @@
       "start_share": 5,
       "disposition": "publisher",
       "director": "Provost D. Okafor",
+      "recovery_entry_risk": 5.0,
+      "recovery_sabotage_bonus": 0.0,
+      "prize_facility": "FAC_PRIZE_NOR",
       "taunts": [
         "Okafor (Northwind): 'Our preprint is already cited. Where is yours?'",
         "Okafor (Northwind): 'Open science always wins. Ask anyone. We did.'"
@@ -48,6 +57,9 @@
       "start_share": 7,
       "disposition": "wildcard",
       "director": "CEO 'Lucky' Marsh",
+      "recovery_entry_risk": 10.0,
+      "recovery_sabotage_bonus": 0.0,
+      "prize_facility": "FAC_PRIZE_VAN",
       "taunts": [
         "Marsh (Vantage): 'Bet it all! Bet it all! (It worked. It always works.)'",
         "Marsh (Vantage): 'Volatility is just victory, annualized.'"
@@ -61,6 +73,9 @@
       "start_share": 5,
       "disposition": "publisher",
       "director": "Chair A. Solenne",
+      "recovery_entry_risk": 5.0,
+      "recovery_sabotage_bonus": 0.0,
+      "prize_facility": "FAC_PRIZE_SOL",
       "taunts": [
         "Solenne: 'We endowed three chairs this quarter. What did you endow?'",
         "Solenne: 'Patience compounds. So does our share price.'"
@@ -74,6 +89,9 @@
       "start_share": 6,
       "disposition": "wildcard",
       "director": "Director V. Moroz",
+      "recovery_entry_risk": 10.0,
+      "recovery_sabotage_bonus": 0.0,
+      "prize_facility": "FAC_PRIZE_KIT",
       "taunts": [
         "Moroz (Kitezh): 'The state provides. The state collects.'",
         "Moroz (Kitezh): 'Your market is a rounding error in our five-year plan.'"

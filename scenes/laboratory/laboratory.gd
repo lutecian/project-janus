@@ -84,10 +84,22 @@ func _refresh_ui():
 	var event_text := ""
 	if not GameState.active_event.is_empty():
 		event_text = " | EVENT: %s" % GameState.active_event.get("name", "?")
-	day_budget_label.text = "Day %d | $%d | My Market: %.1f%% | ACT %d: %s%s" % [
-		GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market(),
-		GameState.act, GameState.get_act_name(), event_text
-	]
+	if GameState.insolvent_streak > 0 and not GameState.in_recovery:
+		event_text += " | INSOLVENT x%d — fund the lab or lose it" % GameState.insolvent_streak
+	if GameState.in_recovery:
+		var aname := "Unknown"
+		for r in GameState.rivals:
+			if (r as Dictionary).get("id", "") == GameState.acquirer_id:
+				aname = (r as Dictionary).get("name", "Unknown")
+		day_budget_label.text = "Day %d | IN DIVISION (%s) | Influence: %d/100 | %d days left" % [
+			GameState.elapsed_days, aname,
+			int(GameState.influence), int(ceil(GameState.recovery_days_left))
+		]
+	else:
+		day_budget_label.text = "Day %d | $%d | My Market: %.1f%% | ACT %d: %s%s" % [
+			GameState.elapsed_days, GameState.budget.get("funds", 0), GameState.get_player_market(),
+			GameState.act, GameState.get_act_name(), event_text
+		]
 	_populate_artifacts()
 	_populate_scientists()
 	_populate_candidates()
@@ -126,6 +138,8 @@ func _populate_scientists():
 		var condition := ""
 		if sci.get("status", "ACTIVE") == "DECEASED":
 			condition = " [DECEASED]"
+		elif sci.get("status", "ACTIVE") == "DEFECTED":
+			condition = " [DEFECTED]"
 		elif sci.get("status", "ACTIVE") == "INJURED":
 			condition = " [INJURED, HP %d]" % int(sci.get("health", 0))
 		label.text = "%s %s — %s | '%s' [P:%s O:%s C:%s]%s" % [

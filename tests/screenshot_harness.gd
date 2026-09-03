@@ -19,6 +19,8 @@ var screens: Array = [
 	{"path": "res://scenes/experiment/helios_intel.tscn", "state": true},
 	{"path": "res://scenes/settings/settings.tscn", "state": true},
 	{"path": "res://scenes/endgame/game_over.tscn", "state": "victory"},
+	{"path": "res://scenes/endgame/game_over.tscn", "state": "acquired"},
+	{"path": "res://scenes/laboratory/laboratory.tscn", "state": "recovery"},
 	{"path": "res://scenes/acquisitions/acquisitions.tscn", "state": true},
 	{"path": "res://scenes/contracts/contracts.tscn", "state": true},
 	{"path": "res://scenes/espionage/espionage.tscn", "state": true},
@@ -92,8 +94,22 @@ func _call_next():
 			"player_market": 54.0, "dominant_rival": "HELIOS Research Authority",
 			"type": "market_leader"
 		}
+	elif (entry.get("state") is String) and (entry.get("state") == "acquired"):
+		GameState.in_recovery = false
+		GameState.game_over = {
+			"won": false, "reason": "absorption", "type": "acquired",
+			"acquirer": "RIV_HELIOS", "dominant_rival": "HELIOS Research Authority",
+			"player_market": 12.0
+		}
+	elif (entry.get("state") is String) and (entry.get("state") == "recovery"):
+		GameState.game_over = {}
+		GameState.in_recovery = true
+		GameState.acquirer_id = "RIV_HELIOS"
+		GameState.influence = 47.0
+		GameState.recovery_days_left = 13.0
 	else:
 		GameState.game_over = {}
+		GameState.in_recovery = false
 	var pack: PackedScene = load(entry["path"])
 	_current = pack.instantiate()
 	get_tree().root.add_child(_current)

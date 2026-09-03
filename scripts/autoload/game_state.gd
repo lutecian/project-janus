@@ -69,6 +69,18 @@ var active_mutators: Array = []
 var challenge_date: String = ""
 var use_ng: bool = false
 
+# --- Phase 11 (0.11): post-absorption recovery branch ---
+var insolvent_streak: int = 0
+var in_recovery: bool = false
+var acquirer_id: String = ""
+var influence: float = 0.0
+var recovery_days_left: float = 0.0
+var recovery_strikes: int = 0
+var parent_ops_success: int = 0
+var parent_sabotage_ok: bool = false
+var parent_expose_ok: bool = false
+var telemetry: Array = []
+
 const DIFFICULTIES := {
 	"easy": {
 		"id": "easy", "display_name": "Easy",
@@ -242,6 +254,16 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
 	active_mutators = []
 	challenge_date = ""
+	insolvent_streak = 0
+	in_recovery = false
+	acquirer_id = ""
+	influence = 0.0
+	recovery_days_left = 0.0
+	recovery_strikes = 0
+	parent_ops_success = 0
+	parent_sabotage_ok = false
+	parent_expose_ok = false
+	telemetry = []
 	company_roster = ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"]
 	var late := ["CMP_DREDGE", "CMP_KILN", "CMP_VESPER", "CMP_ABYSSAL"]
 	for i in range(late.size() - 1, 0, -1):
@@ -315,7 +337,10 @@ func _spawn_rivals():
 			"implosions": 0,
 			"director": rd.get("director", ""),
 			"taunts": (rd.get("taunts", []) as Array).duplicate(),
-			"milestones_hit": []
+			"milestones_hit": [],
+			"recovery_entry_risk": float(rd.get("recovery_entry_risk", 5.0)),
+			"recovery_sabotage_bonus": float(rd.get("recovery_sabotage_bonus", 0.0)),
+			"prize_facility": rd.get("prize_facility", "")
 		})
 		idx += 1
 	_sync_helios_rival()
@@ -539,8 +564,8 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 		_staff_wipe_defeat()
 		return {}
 	var cost: int = _get_experiment_cost(exp_id)
-	if scientist.get("status", "ACTIVE") == "DECEASED":
-		push_warning("Cannot assign a deceased scientist: %s" % scientist.get("id", "?"))
+	if not _is_available(scientist):
+		push_warning("Cannot assign an unavailable scientist: %s" % scientist.get("id", "?"))
 		return {}
 	if budget["funds"] < cost:
 		push_warning("Insufficient funds for experiment: %s (need %d, have %d)" % [exp_id, cost, budget["funds"]])
@@ -555,6 +580,10 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 	knowledge_gain = maxi(knowledge_gain, base_gain)
 	if has_facility("FAC_LAB"):
 		knowledge_gain += 1
+	if has_facility("FAC_PRIZE_HEL"):
+		knowledge_gain += 2
+	if has_facility("FAC_PRIZE_VAN") and _rng.randf() < 0.25:
+		knowledge_gain *= 2
 	if elapsed_days < player_sabotaged_until:
 		knowledge_gain = maxi(int(knowledge_gain / 2), 1)
 
@@ -599,6 +628,8 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 			sci_state = s as Dictionary
 	if not sci_state.is_empty():
 		sci_state["stress"] = mini(int(sci_state.get("stress", 0)) + 4, 100)
+	if in_recovery:
+		influence = clampf(influence + 2.0, 0.0, 100.0)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 
 	_check_incidents()
@@ -815,7 +846,10 @@ func name_discovery(player_name: String):
 func _get_experiment_cost(experiment_id: String) -> int:
 	var data := _load_json("res://data/resources/budget.json")
 	var costs: Dictionary = data.get("experiment_costs", {})
-	return costs.get(experiment_id, 300)
+	var cost: int = int(costs.get(experiment_id, 300))
+	if has_facility("FAC_PRIZE_BER"):
+		cost = maxi(int(cost * 0.75), 1)
+	return cost
 
 func _apply_daily_overhead():
 	# Facility running costs. The budget already charges experiment costs individually;
@@ -833,6 +867,8 @@ func _check_funding():
 		var interval: Dictionary = intervals[budget["next_funding_index"]] as Dictionary
 		if elapsed_days >= interval.get("day", 999):
 			var amount: int = int(round(float(interval.get("amount", 0)) * _mut_mult("funding_mult", 1.0)))
+			if has_facility("FAC_PRIZE_SOL"):
+				amount = int(round(amount * 1.25))
 			budget["funds"] += amount
 			budget["funding_received"] += amount
 			budget["next_funding_index"] += 1
@@ -979,6 +1015,8 @@ func _tick_lab_work():
 
 	# Owned subsidiaries contribute their (outcome-scaled) research to our share.
 	_tick_owned_companies()
+	if has_facility("FAC_PRIZE_NOR"):
+		player_market += 0.5
 
 	# Rivals advance their market share on their own timeline.
 	var lead := 0.0
@@ -1026,6 +1064,8 @@ func _tick_new_day(worker_ids: Array):
 		if sd.get("id", "") in worker_ids:
 			continue
 		sd["stress"] = maxi(int(sd.get("stress", 0)) - 8, 0)
+	_tick_insolvency()
+	_tick_recovery()
 
 func run_day_batch(pairs: Array) -> Array:
 	var results: Array = []
@@ -1061,10 +1101,17 @@ func _helios_market_from_lead(lead_share: float) -> void:
 func _award_discovery_market():
 	var gain: float = float(difficulty.get("player_discovery_gain", 11.0))
 	player_market += gain
+	if in_recovery:
+		influence = clampf(influence + 10.0, 0.0, 100.0)
 
 func _check_market_end() -> bool:
 	if not game_over.is_empty():
 		return true
+	if in_recovery:
+		if _any_rival_majority(get_majority_target()):
+			_dissolve("dissolved")
+			return true
+		return false
 	var majority: float = get_majority_target()
 	if _check_domination():
 		game_over = {
@@ -1427,6 +1474,8 @@ func has_facility(facility_id: String) -> bool:
 func buy_facility(facility_id: String) -> Dictionary:
 	if has_facility(facility_id):
 		return {"ok": false, "reason": "owned"}
+	if str(facility_id).begins_with("FAC_PRIZE_"):
+		return {"ok": false, "reason": "not_for_sale"}
 	var fdef: Dictionary = _facility_def(facility_id)
 	if fdef.is_empty():
 		return {"ok": false, "reason": "no_def"}
@@ -1627,11 +1676,11 @@ func _pick_involved_scientist() -> String:
 		var lid: String = last.get("scientist_id", "")
 		for s in scientists:
 			var sd: Dictionary = s as Dictionary
-			if sd.get("id", "") == lid and sd.get("status", "ACTIVE") != "DECEASED":
+			if sd.get("id", "") == lid and _is_available(sd):
 				return lid
 	var alive: Array = []
 	for s in scientists:
-		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+		if _is_available(s as Dictionary):
 			alive.append((s as Dictionary).get("id", ""))
 	if alive.is_empty():
 		return ""
@@ -1735,6 +1784,8 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 				"helios_progress": helios["progress"]
 			})
 			EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+			if in_recovery:
+				influence = clampf(influence + 8.0, 0.0, 100.0)
 			return {"ok": true, "detail": "Crisis contained with funding."}
 		elif method == "team":
 			var hurt: int = 10
@@ -1745,6 +1796,8 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 			var victim2: String = _pick_involved_scientist()
 			if not victim2.is_empty():
 				_harm_scientist(victim2, hurt, "on the response team")
+			if in_recovery:
+				influence = clampf(influence + 8.0, 0.0, 100.0)
 			active_crises.erase(cd)
 			intelligence_reports.append({
 				"day": elapsed_days, "threshold": -2,
@@ -1755,10 +1808,13 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 		return {"ok": false, "reason": "bad_method"}
 	return {"ok": false, "reason": "no_crisis"}
 
+func _is_available(sci: Dictionary) -> bool:
+	return sci.get("status", "ACTIVE") != "DECEASED" and sci.get("status", "ACTIVE") != "DEFECTED"
+
 func _living_scientists() -> Array:
 	var out := []
 	for s in scientists:
-		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+		if _is_available(s as Dictionary):
 			out.append(s)
 	return out
 
@@ -1924,6 +1980,196 @@ func hire_scientist(sci_id: String) -> Dictionary:
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	return {"ok": true, "cost": bonus}
 
+# --- Phase 11 recovery: post-absorption second chance (hidden branch) ---
+func log_telemetry(event: String, detail: Dictionary = {}):
+	var entry := {"day": elapsed_days, "event": event}
+	for k in detail:
+		entry[k] = detail[k]
+	telemetry.append(entry)
+
+func flush_telemetry(outcome: String):
+	var line := {
+		"campaign_id": campaign_id, "outcome": outcome,
+		"difficulty": difficulty.get("id", "?"), "days": elapsed_days,
+		"events": telemetry
+	}
+	var file := FileAccess.open("user://janus_telemetry.jsonl", FileAccess.READ_WRITE)
+	var existing := ""
+	if file != null:
+		existing = file.get_as_text()
+		file.close()
+	var out := FileAccess.open("user://janus_telemetry.jsonl", FileAccess.WRITE)
+	if out == null:
+		return
+	if not existing.is_empty():
+		out.store_string(existing)
+		if not existing.ends_with("\n"):
+			out.store_string("\n")
+	out.store_string(JSON.stringify(line) + "\n")
+	out.close()
+
+func _leading_rival() -> Dictionary:
+	var best := {}
+	var best_share := -1.0
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		if float(rd.get("share", 0)) > best_share:
+			best_share = float(rd.get("share", 0))
+			best = rd
+	return best
+
+func _tick_insolvency():
+	if in_recovery or not game_over.is_empty():
+		insolvent_streak = 0
+		return
+	if int(budget.get("funds", 0)) < 0:
+		insolvent_streak += 1
+	else:
+		insolvent_streak = 0
+	if insolvent_streak >= 3:
+		_trigger_absorption()
+
+func _trigger_absorption():
+	var leader: Dictionary = _leading_rival()
+	if leader.is_empty():
+		return
+	var acquirer: String = leader.get("id", "RIV_HELIOS")
+	game_over = {
+		"won": false, "reason": "absorption", "type": "acquired",
+		"acquirer": acquirer,
+		"dominant_rival": leader.get("name", "Unknown"),
+		"player_market": player_market
+	}
+	log_telemetry("absorption", {
+		"acquirer": acquirer, "funds": int(budget.get("funds", 0)),
+		"player_market": player_market,
+		"scientists": scientists.size(), "day": int(elapsed_days)
+	})
+	game_over["score"] = get_run_score()
+	_record_legacy()
+	EventBus.game_over.emit(game_over)
+
+func report_for_work() -> Dictionary:
+	if game_over.is_empty() or game_over.get("type", "") != "acquired":
+		return {"ok": false, "reason": "no_offer"}
+	if in_recovery:
+		return {"ok": false, "reason": "already"}
+	in_recovery = true
+	acquirer_id = game_over.get("acquirer", "RIV_HELIOS")
+	influence = 25.0
+	recovery_days_left = 20.0
+	budget["funds"] = maxi(int(budget.get("funds", 0)), 2000)
+	recovery_strikes = 0
+	parent_ops_success = 0
+	parent_sabotage_ok = false
+	parent_expose_ok = false
+	esp_risk = minf(esp_risk + _acquirer_entry_risk(), 100.0)
+	game_over = {}
+	var aname := "Unknown"
+	for r in rivals:
+		if (r as Dictionary).get("id", "") == acquirer_id:
+			aname = (r as Dictionary).get("name", "Unknown")
+	story_log.append({
+		"day": elapsed_days, "artifact_id": "", "kind": "memo",
+		"title": "INTERNAL MEMORANDUM — " + aname,
+		"text": "Your tenure as an independent Director has ended. Your termination has been rescinded. Effective immediately, you are appointed Director, Janus Research Division. You now report to %s Executive Management. Your division has 20 days to prove its worth. Do not disappoint us twice." % aname
+	})
+	log_telemetry("reported", {"acquirer": acquirer_id})
+	return {"ok": true, "acquirer": acquirer_id}
+
+func _acquirer_def() -> Dictionary:
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == acquirer_id:
+			return rd
+	return {}
+
+func _acquirer_entry_risk() -> float:
+	return float(_acquirer_def().get("recovery_entry_risk", 5.0))
+
+func _parent_risk_mult() -> float:
+	if acquirer_id == "RIV_HELIOS":
+		return 1.5
+	return 1.25
+
+func _tick_recovery():
+	if not in_recovery:
+		return
+	recovery_days_left -= 1.0
+	influence = clampf(influence, 0.0, 100.0)
+	if influence >= 80.0:
+		_restore_independence()
+		return
+	if get_rival_market(acquirer_id) >= get_majority_target():
+		_dissolve("dissolved")
+		return
+	if recovery_days_left <= 0.0:
+		_dissolve("dissolved")
+
+func _dissolve(reason: String):
+	in_recovery = false
+	var aname := "Unknown"
+	for r in rivals:
+		if (r as Dictionary).get("id", "") == acquirer_id:
+			aname = (r as Dictionary).get("name", "Unknown")
+	game_over = {
+		"won": false, "reason": reason, "type": "absorbed",
+		"dominant_rival": aname, "player_market": player_market
+	}
+	log_telemetry("dissolved", {"reason": reason})
+	game_over["score"] = get_run_score()
+	_record_legacy()
+	flush_telemetry("dissolved")
+	EventBus.game_over.emit(game_over)
+
+func _restore_independence() -> Dictionary:
+	if not in_recovery:
+		return {"ok": false, "reason": "not_recovering"}
+	player_market = 15.0
+	budget["funds"] = mini(int(budget.get("funds", 0)), 5000)
+	if not owned_companies.is_empty():
+		var drop: int = _rng.randi() % owned_companies.size()
+		owned_companies.remove_at(drop)
+	var losable: Array = []
+	for f in facilities_owned:
+		if not str(f).begins_with("FAC_PRIZE_"):
+			losable.append(f)
+	if not losable.is_empty():
+		facilities_owned.erase(losable[_rng.randi() % losable.size()])
+	var living: Array = []
+	for s in scientists:
+		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+			living.append(s)
+	if not living.is_empty():
+		var deserter: Dictionary = living[_rng.randi() % living.size()]
+		deserter["status"] = "DEFECTED"
+	var prize := ""
+	if parent_ops_success >= 1:
+		prize = str(_acquirer_def().get("prize_facility", ""))
+		if prize != "" and not prize in facilities_owned:
+			facilities_owned.append(prize)
+	in_recovery = false
+	influence = 0.0
+	recovery_strikes = 0
+	story_log.append({
+		"day": elapsed_days, "artifact_id": "", "kind": "spinout",
+		"title": "JANUS, REBORN",
+		"text": "Spinout complete. Janus is independent again — smaller, scarred, and free. What was taken stays taken. What was learned comes home."
+	})
+	award_badge("reborn")
+	if parent_sabotage_ok and parent_expose_ok:
+		award_badge("hostile")
+	if prize != "":
+		award_badge("know_your_enemy")
+	log_telemetry("restored", {
+		"prize": prize, "days_used": int(20.0 - recovery_days_left),
+		"player_market": player_market
+	})
+	flush_telemetry("restored")
+	return {"ok": true, "prize": prize}
+
 # --- Phase 3 endings: tiered paths (monopoly > researcher > market_leader) ---
 func _confirmed_artifact_count() -> int:
 	var count := 0
@@ -2021,6 +2267,7 @@ func _record_legacy():
 		if prev.get("date", "") != challenge_date or int(prev.get("score", -1)) < int(game_over.get("score", 0)):
 			legacy_c["daily"] = {"date": challenge_date, "score": int(game_over.get("score", 0)), "mutator": active_mutators[0] if not active_mutators.is_empty() else ""}
 			_persist_legacy(legacy_c)
+	flush_telemetry("ended")
 	var diff_id: String = difficulty.get("id", "normal")
 	var legacy: Dictionary = _load_legacy()
 	var best: Dictionary = legacy.get("best", {})
@@ -2120,7 +2367,10 @@ func perform_espionage_op(op_id: String, target_id: String = "") -> Dictionary:
 		return {"ok": false, "reason": "need_target"}
 	budget["funds"] = int(budget.get("funds", 0)) - cost
 	budget["spent"] = int(budget.get("spent", 0)) + cost
-	esp_risk = minf(esp_risk + float(odef.get("risk_add", 0.0)), 100.0)
+	var risk_add: float = float(odef.get("risk_add", 0.0))
+	if in_recovery:
+		risk_add *= _parent_risk_mult()
+	esp_risk = minf(esp_risk + risk_add, 100.0)
 	var chance: float = clampf(
 		float(odef.get("base_success", 0.5)) + esp_cover / 250.0 - esp_risk / 200.0, 0.15, 0.95
 	)
@@ -2137,6 +2387,13 @@ func perform_espionage_op(op_id: String, target_id: String = "") -> Dictionary:
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	EventBus.espionage_updated.emit()
 	return {"ok": true, "success": success, "detail": detail, "risk": esp_risk, "cover": esp_cover}
+
+func _parent_op_bonus(target_id: String, base: float) -> float:
+	if not in_recovery or target_id != acquirer_id:
+		return 0.0
+	parent_ops_success += 1
+	influence = clampf(influence + base, 0.0, 100.0)
+	return base
 
 func _apply_espionage_success(op_id: String, target_id: String) -> String:
 	if op_id == "OP_SURVEY":
@@ -2158,6 +2415,7 @@ func _apply_espionage_success(op_id: String, target_id: String) -> String:
 					],
 					"helios_progress": helios["progress"]
 				})
+				_parent_op_bonus(target_id, 3.0)
 				return "Surveillance complete: rival pipeline mapped."
 		return "Surveillance found nothing."
 	if op_id == "OP_STEAL":
@@ -2169,13 +2427,22 @@ func _apply_espionage_success(op_id: String, target_id: String) -> String:
 			return "Nothing left worth stealing."
 		var pick: String = locked[_rng.randi() % locked.size()]
 		_unlock_technology_for_discovery("ESP_STEAL", pick)
+		if in_recovery:
+			parent_ops_success += 1
+			influence = clampf(influence + 4.0, 0.0, 100.0)
 		return "Infiltration succeeded: rival tech pulled into your tree."
 	if op_id == "OP_SABOTAGE":
 		for r in rivals:
 			var rd: Dictionary = r as Dictionary
 			if rd.get("id", "") == target_id:
-				rd["sabotaged_until"] = elapsed_days + 6.0
-				return "Sabotage succeeded: %s slowed for 6 days." % rd.get("name", "?")
+				var slow_days := 6.0
+				if has_facility("FAC_PRIZE_KIT"):
+					slow_days = 9.0
+				rd["sabotaged_until"] = elapsed_days + slow_days
+				if in_recovery and target_id == acquirer_id:
+					parent_sabotage_ok = true
+					_parent_op_bonus(target_id, 6.0 + float(_acquirer_def().get("recovery_sabotage_bonus", 0.0)))
+				return "Sabotage succeeded: %s slowed for %d days." % [rd.get("name", "?"), int(slow_days)]
 		return "Sabotage found no target."
 	if op_id == "OP_COUNTER":
 		esp_cover = minf(esp_cover + 12.0, 50.0)
@@ -2187,6 +2454,9 @@ func _apply_espionage_success(op_id: String, target_id: String) -> String:
 			if rd.get("id", "") == target_id:
 				rd["share"] = maxf(float(rd.get("share", 0)) - 6.0, 0.0)
 				_sync_helios_rival()
+				if in_recovery and target_id == acquirer_id:
+					parent_expose_ok = true
+					_parent_op_bonus(target_id, 8.0)
 				return "Leak published: %s reputation ruined (-6%% share)." % rd.get("name", "?")
 		return "Leak found no target."
 	return "Op completed."
@@ -2213,6 +2483,12 @@ func _espionage_caught(op_id: String) -> String:
 		best["share"] = float(best.get("share", 0)) + 4.0
 		_sync_helios_rival()
 	esp_risk = 50.0
+	if in_recovery:
+		recovery_strikes += 1
+		influence = maxf(influence - 20.0, 0.0)
+		if recovery_strikes >= 2:
+			_dissolve("purged")
+			return "CAUGHT: the parent company purges the Janus division. It is over."
 	return "CAUGHT: operation exposed. Scandal incident, funding cut, leading rival gains."
 
 # --- Phase 3 world events: conditional shape-changers, never hard locks ---
@@ -2367,6 +2643,8 @@ func _complete_contract():
 	if bool(cdef.get("military", false)):
 		award_badge("war_contractor")
 		military_ties = minf(military_ties + 25.0, 100.0)
+	if in_recovery:
+		influence = clampf(influence + 5.0, 0.0, 100.0)
 	completed_contracts.append(cdef.get("id", ""))
 	active_contract = {}
 	next_offer_day = elapsed_days + 10.0
@@ -2458,7 +2736,17 @@ func get_save_data() -> Dictionary:
 		"company_roster": company_roster,
 		"active_mutators": active_mutators,
 		"challenge_date": challenge_date,
-		"use_ng": use_ng
+		"use_ng": use_ng,
+		"insolvent_streak": insolvent_streak,
+		"in_recovery": in_recovery,
+		"acquirer_id": acquirer_id,
+		"influence": influence,
+		"recovery_days_left": recovery_days_left,
+		"recovery_strikes": recovery_strikes,
+		"parent_ops_success": parent_ops_success,
+		"parent_sabotage_ok": parent_sabotage_ok,
+		"parent_expose_ok": parent_expose_ok,
+		"telemetry": telemetry
 	}
 
 func _save_current_artifact_data():
@@ -2551,6 +2839,16 @@ func load_save_data(data: Dictionary):
 	active_mutators = data.get("active_mutators", [])
 	challenge_date = data.get("challenge_date", "")
 	use_ng = data.get("use_ng", false)
+	insolvent_streak = data.get("insolvent_streak", 0)
+	in_recovery = data.get("in_recovery", false)
+	acquirer_id = data.get("acquirer_id", "")
+	influence = data.get("influence", 0.0)
+	recovery_days_left = data.get("recovery_days_left", 0.0)
+	recovery_strikes = data.get("recovery_strikes", 0)
+	parent_ops_success = data.get("parent_ops_success", 0)
+	parent_sabotage_ok = data.get("parent_sabotage_ok", false)
+	parent_expose_ok = data.get("parent_expose_ok", false)
+	telemetry = data.get("telemetry", [])
 	_rng.seed = seed
 	EventBus.campaign_loaded.emit()
 

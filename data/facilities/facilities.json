@@ -41,6 +41,54 @@
       "flavor": "Armed professionals at every door. Fewer accidents, fewer intrusions.",
       "cost": 4500,
       "effect": "+30 security (incidents and enemy ops rarer)"
+    },
+    {
+      "id": "FAC_PRIZE_HEL",
+      "name": "Helios Assault Doctrine",
+      "flavor": "Stolen from inside HELIOS: their aggressive research playbook. +2 knowledge per experiment.",
+      "cost": 0,
+      "effect": "+2 knowledge per experiment",
+      "prize": true
+    },
+    {
+      "id": "FAC_PRIZE_BER",
+      "name": "Bermant Operating System",
+      "flavor": "Bermant's internal efficiency manuals. Experiments cost 25% less.",
+      "cost": 0,
+      "effect": "Experiment costs x0.75",
+      "prize": true
+    },
+    {
+      "id": "FAC_PRIZE_NOR",
+      "name": "Northwind Syndication",
+      "flavor": "Northwind's commercialization rolodex. +0.5 market per day.",
+      "cost": 0,
+      "effect": "+0.5 market per day",
+      "prize": true
+    },
+    {
+      "id": "FAC_PRIZE_VAN",
+      "name": "Vantage Variance Engine",
+      "flavor": "Vantage's beautiful, reckless method: 25% of experiments yield double knowledge.",
+      "cost": 0,
+      "effect": "25% double knowledge",
+      "prize": true
+    },
+    {
+      "id": "FAC_PRIZE_SOL",
+      "name": "Solenne Endowment",
+      "flavor": "Solenne's patient capital network. All funding pays 25% more.",
+      "cost": 0,
+      "effect": "Funding x1.25",
+      "prize": true
+    },
+    {
+      "id": "FAC_PRIZE_KIT",
+      "name": "Kitezh Deep Cover",
+      "flavor": "Kitezh tradecraft: your sabotage lasts 9 days instead of 6.",
+      "cost": 0,
+      "effect": "Sabotage lasts 9 days",
+      "prize": true
     }
   ]
 }

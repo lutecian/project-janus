@@ -8,6 +8,9 @@
     {"id": "distinguished", "name": "Distinguished Researcher", "description": "Win the scientific path."},
     {"id": "monopoly", "name": "The Monopoly", "description": "Win by domination."},
     {"id": "overnight_monopoly", "name": "Overnight Monopoly", "description": "Dominate in under 40 days."},
-    {"id": "first_blood", "name": "First Blood", "description": "Lose a scientist to the work."}
+    {"id": "first_blood", "name": "First Blood", "description": "Lose a scientist to the work."},
+    {"id": "reborn", "name": "JANUS, REBORN", "description": "Classified.", "hidden": true},
+    {"id": "hostile", "name": "HOSTILE WORK ENVIRONMENT", "description": "Classified.", "hidden": true},
+    {"id": "know_your_enemy", "name": "KNOW YOUR ENEMY", "description": "Classified.", "hidden": true}
   ]
 }

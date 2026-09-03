@@ -5,10 +5,12 @@ extends Control
 @onready var summary_label: RichTextLabel = $ScrollContainer/VBox/summary_label
 @onready var btn_menu: Button = $ScrollContainer/VBox/ButtonRow/btn_menu
 @onready var btn_continue: Button = $ScrollContainer/VBox/ButtonRow/btn_continue
+@onready var btn_report: Button = $ScrollContainer/VBox/ButtonRow/btn_report
 
 func _ready():
 	btn_menu.pressed.connect(_on_menu)
 	btn_continue.pressed.connect(_on_continue)
+	btn_report.pressed.connect(_on_report)
 	AudioManager.stop_music()
 	_display()
 	var res2: Dictionary = GameState.get_game_over()
@@ -18,6 +20,7 @@ func _ready():
 		AudioManager.play_sfx("defeat")
 	var result: Dictionary = GameState.get_game_over()
 	btn_continue.visible = bool(result.get("won", false)) and result.get("type", "") != "monopoly"
+	btn_report.visible = result.get("type", "") == "acquired"
 
 func _display():
 	var result: Dictionary = GameState.get_game_over()
@@ -54,6 +57,13 @@ func _display():
 		summary_label.text = "You reached %.1f%% of the market (target: %.1f%%) on day %d.\n\n%d confirmed discoveries. Your research reshaped the field.\n\n%s now trails behind your lead." % [
 			player_market, majority, days_used, discoveries_confirmed, dominant
 		]
+	elif reason == "absorption":
+		result_label.text = "DEFEAT"
+		result_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.3))
+		subtitle_label.text = "Insolvent. %s has acquired Janus." % dominant
+		summary_label.text = "The money ran out on day %d with %d confirmed discoveries. %s now owns the labs, the artifacts, and you.\n\nYour tenure as an independent Director has ended.\n\n...What is this? A memorandum, hand-delivered. It bears your name." % [
+			days_used, discoveries_confirmed, dominant
+		]
 	else:
 		result_label.text = "DEFEAT"
 		result_label.add_theme_color_override("font_color", Color(1.0, 0.35, 0.3))
@@ -84,6 +94,12 @@ func _epilogue_text(won: bool, reason: String) -> String:
 func _on_menu():
 	SaveManager.delete_save()
 	get_tree().change_scene_to_file("res://scenes/main/main_menu.tscn")
+
+func _on_report():
+	var res: Dictionary = GameState.report_for_work()
+	if res.get("ok", false):
+		SaveManager.save_game()
+		get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 
 func _on_continue():
 	var res: Dictionary = GameState.continue_after_win()

@@ -166,6 +166,7 @@ func _test_next():
 		_test_roster()
 		_test_replay()
 		_test_chal()
+		_test_recovery()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -1782,6 +1783,231 @@ func _test_chal():
 	else:
 		print("%d CHAL FAILURES" % failures)
 
+func _enter_recovery() -> Dictionary:
+	GameState.initialize_new_campaign({"name": "Recovery Setup"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = -5000
+	GameState._rng.seed = 4242
+	for i in range(3):
+		GameState._tick_new_day([])
+	if GameState.game_over.get("type", "") != "acquired":
+		return {}
+	var rep: Dictionary = GameState.report_for_work()
+	if not rep.get("ok", false):
+		return {}
+	return rep
+
+func _test_recovery():
+	var failures: int = 0
+
+	# --- Q1: Three insolvent days trigger absorption by the leader ---
+	GameState.initialize_new_campaign({"name": "Recovery Trigger"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = -5000
+	GameState._rng.seed = 4242
+	GameState._tick_new_day([])
+	if not GameState.game_over.is_empty():
+		push_error("recovery: one bad day should not end the run")
+		failures += 1
+	GameState._tick_new_day([])
+	GameState._tick_new_day([])
+	if GameState.game_over.get("type", "") != "acquired":
+		push_error("recovery: 3 insolvent days should trigger acquisition, got %s" % GameState.game_over)
+		failures += 1
+	if GameState.game_over.get("acquirer", "") == "":
+		push_error("recovery: absorption should name an acquirer")
+		failures += 1
+	if GameState.in_recovery:
+		push_error("recovery: branch should not start before reporting")
+		failures += 1
+
+	# --- Q2: Other defeats stay terminal ---
+	GameState.initialize_new_campaign({"name": "Recovery Terminal"}, "normal")
+	GameState.select_artifact(0)
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = GameState.get_majority_target() + 1.0
+	GameState.player_market = 5.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "absorbed":
+		push_error("recovery: rival majority must stay terminal")
+		failures += 1
+	if GameState.report_for_work().get("ok", true):
+		push_error("recovery: no report after terminal defeat")
+		failures += 1
+
+	# --- Q3: Reporting starts the branch with memo state ---
+	var rep: Dictionary = _enter_recovery()
+	if rep.is_empty():
+		push_error("recovery: report flow should succeed")
+		failures += 1
+	else:
+		if not GameState.in_recovery or absf(GameState.influence - 25.0) > 0.001:
+			push_error("recovery: report should set influence 25")
+			failures += 1
+		if absf(GameState.recovery_days_left - 20.0) > 0.001:
+			push_error("recovery: report should set a 20-day clock")
+			failures += 1
+		if GameState.is_game_over():
+			push_error("recovery: reporting should clear the defeat for play")
+			failures += 1
+
+	# --- Q4: Influence rises through work, falls nowhere cheap ---
+	var inf0: float = GameState.influence
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	GameState.budget["funds"] = 50000
+	GameState.run_experiment(heat, GameState.scientists[0])
+	if GameState.influence <= inf0:
+		push_error("recovery: research should raise influence")
+		failures += 1
+	GameState._tick_contracts()
+	var before_c: float = GameState.influence
+	GameState.active_contract = {"id": "CTR_FOOD", "days_done": 9.0, "days_required": 1.0}
+	GameState._tick_contracts()
+	if GameState.influence <= before_c:
+		push_error("recovery: contracts should raise influence")
+		failures += 1
+
+	# --- Q5: Sabotage vs parent pays influence, exposes risk ---
+	var acq: String = GameState.acquirer_id
+	var risk0: float = GameState.esp_risk
+	var sres: String = GameState._apply_espionage_success("OP_SABOTAGE", acq)
+	if GameState.influence < 20.0:
+		push_error("recovery: parent sabotage should pay influence, got '%s'" % sres)
+		failures += 1
+	if not GameState.parent_sabotage_ok or GameState.parent_ops_success < 1:
+		push_error("recovery: parent op should be tracked")
+		failures += 1
+	GameState._apply_espionage_success("OP_EXPOSE", acq)
+	if not GameState.parent_expose_ok:
+		push_error("recovery: parent expose should be tracked")
+		failures += 1
+	if GameState.esp_risk < risk0:
+		push_error("recovery: risk bookkeeping broken")
+		failures += 1
+
+	# --- Q6: Spinout restores a scarred Janus with exactly one prize ---
+	GameState.budget["funds"] = 30000
+	GameState.buy_facility("FAC_LAB")
+	GameState.acquire_company((GameState.company_offers[0] as Dictionary).get("id", ""))
+	GameState.influence = 78.0
+	var owned_before: int = GameState.owned_companies.size()
+	var facs_before: int = GameState.facilities_owned.size()
+	GameState.run_experiment(heat, GameState.scientists[0])
+	if GameState.in_recovery or GameState.is_game_over():
+		push_error("recovery: crossing 80 influence should restore automatically")
+		failures += 1
+	if GameState.in_recovery or GameState.is_game_over():
+		push_error("recovery: restored game should be playable, not over")
+		failures += 1
+	if absf(GameState.get_player_market() - 15.0) > 0.001:
+		push_error("recovery: restore should reset market to 15")
+		failures += 1
+	if GameState.budget["funds"] > 5000:
+		push_error("recovery: restore should cap funds at 5000")
+		failures += 1
+	if GameState.owned_companies.size() != owned_before - 1:
+		push_error("recovery: restore should cost one subsidiary")
+		failures += 1
+	var prizes := 0
+	for f in GameState.facilities_owned:
+		if str(f).begins_with("FAC_PRIZE_"):
+			prizes += 1
+	if prizes != 1:
+		push_error("recovery: exactly one prize facility, got %d" % prizes)
+		failures += 1
+	if GameState.facilities_owned.size() != facs_before:
+		push_error("recovery: facilities should net -1 +prize (%d -> %d)" % [facs_before, GameState.facilities_owned.size()])
+		failures += 1
+	var defected := 0
+	for s in GameState.scientists:
+		if (s as Dictionary).get("status", "") == "DEFECTED":
+			defected += 1
+	if defected != 1:
+		push_error("recovery: exactly one scientist should defect, got %d" % defected)
+		failures += 1
+	if "reborn" not in GameState.run_badges or "hostile" not in GameState.run_badges or "know_your_enemy" not in GameState.run_badges:
+		push_error("recovery: restore should award reborn/hostile/know_your_enemy, got %s" % GameState.run_badges)
+		failures += 1
+	if GameState._restore_independence().get("ok", true):
+		push_error("recovery: second restore must fail (no infinite loop)")
+		failures += 1
+
+	# --- Q7: Failure ends it for real ---
+	_enter_recovery()
+	GameState.recovery_days_left = 1.0
+	GameState._tick_new_day([])
+	if not GameState.is_game_over() or GameState.game_over.get("reason", "") != "dissolved":
+		push_error("recovery: deadline should dissolve the division")
+		failures += 1
+	_enter_recovery()
+	GameState.recovery_strikes = 1
+	GameState.esp_risk = 95.0
+	GameState.budget["funds"] = 50000
+	var caught := false
+	for i in range(30):
+		var op: Dictionary = GameState.perform_espionage_op("OP_EXPOSE", GameState.acquirer_id)
+		if "purges" in op.get("detail", ""):
+			caught = true
+			break
+		if GameState.is_game_over():
+			caught = GameState.game_over.get("reason", "") == "purged"
+			break
+	if not caught:
+		push_error("recovery: repeated heat should end in a purge")
+		failures += 1
+
+	# --- Q8: Seeded determinism + save/load + telemetry ---
+	GameState.initialize_new_campaign({"name": "Recovery Det"}, "normal", 31337)
+	GameState.budget["funds"] = -5000
+	for i in range(3):
+		GameState._tick_new_day([])
+	var acq_a: String = GameState.game_over.get("acquirer", "?")
+	GameState.initialize_new_campaign({"name": "Recovery Det2"}, "normal", 31337)
+	GameState.budget["funds"] = -5000
+	for i in range(3):
+		GameState._tick_new_day([])
+	if GameState.game_over.get("acquirer", "!") != acq_a:
+		push_error("recovery: same seed should name the same acquirer")
+		failures += 1
+	_enter_recovery()
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if not GameState.in_recovery or GameState.acquirer_id == "":
+		push_error("recovery: branch state lost after save/load")
+		failures += 1
+	var saw_absorb := false
+	for t in GameState.telemetry:
+		if (t as Dictionary).get("event", "") == "absorption":
+			saw_absorb = true
+	if not saw_absorb:
+		push_error("recovery: telemetry should record the absorption")
+		failures += 1
+
+	# --- Q9: The main campaign continues after restore ---
+	GameState.influence = 100.0
+	GameState.parent_ops_success = 1
+	GameState._restore_independence()
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS" and GameState.get_majority_target() > 30.0:
+			rd["share"] = GameState.get_majority_target() - 20.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "market_leader":
+		push_error("recovery: restored campaign should be winnable, got %s" % GameState.game_over.get("type", "?"))
+		failures += 1
+
+	if failures == 0:
+		print("RECOVERY_OK")
+	else:
+		print("%d RECOVERY FAILURES" % failures)
+
 func _test_pacing():
 	var failures: int = 0
 	var exps: Array = GameState.load_experiment_definitions()
@@ -1799,7 +2025,7 @@ func _test_pacing():
 	while active_days < 300 and not GameState.is_game_over() and guard < 1000:
 		guard += 1
 		for s in GameState.scientists:
-			if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+			if GameState._is_available(s as Dictionary):
 				sci = s as Dictionary
 				break
 		if GameState.budget["funds"] < GameState._get_experiment_cost("EXP_HEATING"):

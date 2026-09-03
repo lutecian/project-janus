@@ -27,6 +27,8 @@ func _run_all():
 	_probe("hard-systems-d", "hard", 3141, true, true, true)
 	_probe_batch("normal-batch", "normal", 1234, false)
 	_probe_batch("hard-batch", "hard", 200, true)
+	_probe_recovery("rec-research", 4242, false)
+	_probe_recovery("rec-saboteur", 4243, true)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
 
@@ -169,7 +171,7 @@ func _probe_batch(tag: String, difficulty_id: String, seed: int, use_systems: bo
 		var team: Array = []
 		for s in GameState.scientists:
 			var sd: Dictionary = s as Dictionary
-			if sd.get("status", "ACTIVE") != "DECEASED" and team.size() < 2:
+			if GameState._is_available(sd) and team.size() < 2:
 				team.append(sd)
 		if team.is_empty():
 			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
@@ -198,10 +200,45 @@ func _probe_batch(tag: String, difficulty_id: String, seed: int, use_systems: bo
 		bailouts
 	])
 
+func _probe_recovery(tag: String, seed: int, saboteur: bool):
+	GameState.initialize_new_campaign({"name": "Probe " + tag}, "normal", seed)
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = -5000
+	for i in range(3):
+		GameState._tick_new_day([])
+	if GameState.game_over.get("type", "") != "acquired":
+		print("PROBE %s: NOENTRY" % tag)
+		return
+	var acq: String = GameState.game_over.get("acquirer", "?")
+	if not GameState.report_for_work().get("ok", false):
+		print("PROBE %s: NOREPORT" % tag)
+		return
+	var days := 0.0
+	var bailouts := 0
+	while days < 80 and GameState.in_recovery and not GameState.is_game_over():
+		if saboteur and GameState.esp_risk < 45.0:
+			GameState.perform_espionage_op("OP_SABOTAGE", GameState.acquirer_id)
+		var sci := _living_pick()
+		if sci.is_empty():
+			break
+		if int(GameState.budget.get("funds", 0)) < GameState._get_experiment_cost("EXP_HEATING"):
+			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
+			bailouts += 1
+		GameState.run_experiment(_exp_def, sci)
+		days = GameState.elapsed_days
+	var outcome := "timeout"
+	if not GameState.in_recovery and not GameState.is_game_over():
+		outcome = "restored"
+	elif GameState.is_game_over():
+		outcome = str(GameState.game_over.get("reason", "?"))
+	print("PROBE %s: %s acq=%s days=%.0f inf=%.0f bailouts=%d badges=%s" % [
+		tag, outcome, acq, days, GameState.influence, bailouts, GameState.run_badges
+	])
+
 func _living_pick() -> Dictionary:
 	for s in GameState.scientists:
 		var sd: Dictionary = s as Dictionary
-		if sd.get("status", "ACTIVE") != "DECEASED":
+		if GameState._is_available(sd):
 			return sd
 	return {}
 
