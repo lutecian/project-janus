@@ -51,10 +51,10 @@ const DIFFICULTIES := {
 	},
 	"hard": {
 		"id": "hard", "display_name": "Hard",
-		"majority_target": 52.0, "rival_multiplier": 1.4,
+		"majority_target": 52.0, "rival_multiplier": 1.1,
 		"helios_start_share": 16.0, "helios_daily_base": 1.1,
-		"player_experiment_gain": 0.6, "player_discovery_gain": 11.0,
-		"player_start_budget": 8000
+		"player_experiment_gain": 0.6, "player_discovery_gain": 12.0,
+		"player_start_budget": 9000
 	}
 }
 
@@ -1148,7 +1148,7 @@ func _rival_crushed(rd: Dictionary) -> bool:
 		return true
 	if rd.get("status", "active") != "active":
 		return true
-	return float(rd.get("share", 0)) <= player_market * 0.5
+	return float(rd.get("share", 0)) <= player_market * 0.4
 
 func _check_domination() -> bool:
 	if rivals.is_empty():
@@ -1170,7 +1170,7 @@ func get_domination_progress() -> Dictionary:
 			how = "bankrupt"
 		elif rd.get("status", "active") == "exited":
 			how = "exited"
-		elif float(rd.get("share", 0)) <= player_market * 0.5:
+		elif float(rd.get("share", 0)) <= player_market * 0.4:
 			how = "outgrown"
 		if how != "contesting":
 			crushed += 1
@@ -1308,7 +1308,7 @@ func _espionage_cost_mult() -> float:
 		"easy":
 			return 0.8
 		"hard":
-			return 1.3
+			return 1.2
 	return 1.0
 
 func perform_espionage_op(op_id: String, target_id: String = "") -> Dictionary:
