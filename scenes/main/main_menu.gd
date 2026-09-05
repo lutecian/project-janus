@@ -18,7 +18,7 @@ func _ready():
 	btn_quit.pressed.connect(_on_quit_pressed)
 	btn_daily.pressed.connect(_on_daily_pressed)
 	btn_load.disabled = not SaveManager.has_save()
-	title_label.text = "PROJECT JANUS"
+	title_label.text = "PROJECT JANUS " + GameState.GAME_VERSION
 	status_label.text = ""
 	legacy_label.text = GameState.get_legacy_line()
 	AudioManager.start_music("menu")

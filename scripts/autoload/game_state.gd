@@ -1,5 +1,6 @@
 extends Node
 
+const GAME_VERSION := "0.12.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -63,6 +64,7 @@ var military_ties: float = 0.0
 var act: int = 1
 var hire_pool: Array = []
 var company_roster: Array = []
+var esp_successes: int = 0
 
 # --- Phase 10 (0.10): challenges + NG+ ---
 var active_mutators: Array = []
@@ -70,6 +72,8 @@ var challenge_date: String = ""
 var use_ng: bool = false
 
 # --- Phase 11 (0.11): post-absorption recovery branch ---
+var tutorial_done: Array = []
+
 var last_buyout_day: float = -99.0
 var insolvent_streak: int = 0
 var in_recovery: bool = false
@@ -253,8 +257,10 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	military_ties = 0.0
 	act = 1
 	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
+	esp_successes = 0
 	active_mutators = []
 	challenge_date = ""
+	tutorial_done = []
 	last_buyout_day = -99.0
 	insolvent_streak = 0
 	in_recovery = false
@@ -1017,17 +1023,28 @@ func _tick_market():
 	_tick_new_day([])
 
 # Work-scale tick: every experiment, whether solo or batched.
+# Rivals work per DAY (below), so batching more experiments genuinely outpaces
+# them instead of speeding them up too.
 func _tick_lab_work():
 	# Player earns a small share from sustained lab work (not from buying).
 	var player_gain: float = float(difficulty.get("player_experiment_gain", 0.55))
 	player_market += player_gain
+	EventBus.market_updated.emit(player_market, rivals)
 
+# Day-scale tick: once per facility day, solo or batched.
+func _tick_new_day(worker_ids: Array):
+	_apply_daily_overhead()
+	_check_funding()
+	_check_budget_events()
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	# Owned subsidiaries contribute their (outcome-scaled) research to our share.
 	_tick_owned_companies()
 	if has_facility("FAC_PRIZE_NOR"):
 		player_market += 0.5
-
-	# Rivals advance their market share on their own timeline.
+	# Rolling offers expire or get grabbed; wildcards can implode or exit.
+	_tick_company_offers()
+	_tick_rival_instability()
+	# Rivals advance their market share on their own daily timeline.
 	var lead := 0.0
 	for r in rivals:
 		var rd: Dictionary = r as Dictionary
@@ -1054,17 +1071,6 @@ func _tick_lab_work():
 			rd2["share"] = 0.0
 	_sync_helios_rival()
 	_helios_market_from_lead(lead)
-	EventBus.market_updated.emit(player_market, rivals)
-
-# Day-scale tick: once per facility day, solo or batched.
-func _tick_new_day(worker_ids: Array):
-	_apply_daily_overhead()
-	_check_funding()
-	_check_budget_events()
-	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
-	# Rolling offers expire or get grabbed; wildcards can implode or exit.
-	_tick_company_offers()
-	_tick_rival_instability()
 	# Contracts progress on workdays; world events tick; heat cools if you lie low.
 	_tick_contracts()
 	_tick_events()
@@ -1317,6 +1323,8 @@ func acquire_company(company_id: String) -> Dictionary:
 		"techs_remaining": techs
 	}
 	owned_companies.append(owned)
+	if owned_companies.size() >= 3:
+		award_badge("tycoon")
 	_unlock_next_owned_tech(owned)
 	company_offers.erase(offer)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
@@ -2002,6 +2010,54 @@ func hire_scientist(sci_id: String) -> Dictionary:
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	return {"ok": true, "cost": bonus}
 
+# --- Onboarding: goals + tutorial checklist ---
+func get_current_goal() -> String:
+	if in_recovery:
+		return "Regain independence: %d/80 influence, %d days left." % [int(influence), int(ceil(recovery_days_left))]
+	if discovery.get("state", "") != "confirmed":
+		return "Confirm %s on %s (knowledge %d%% — 30 suspects, 70 confirms)." % [
+			discovery.get("discovery_id", "?"), artifact.get("id", "?"), int(knowledge.get("progress", 0))
+		]
+	if player_market < get_majority_target():
+		return "Grow market to %.0f%% (now %.1f%%). Research, deals and sabotage all move it." % [
+			get_majority_target(), player_market
+		]
+	var prog: Dictionary = get_domination_progress()
+	if int(prog.get("crushed", 0)) < int(prog.get("total", 0)):
+		return "Dominate: %d/%d rivals crushed. Buy, bankrupt or outgrow the rest." % [
+			int(prog.get("crushed", 0)), int(prog.get("total", 0))
+		]
+	return "Finish them."
+
+func check_tutorial() -> Array:
+	var data: Dictionary = _load_json("res://data/meta/tutorial.json")
+	var steps: Array = data.get("steps", [])
+	var pending: Array = []
+	for sdef in steps:
+		var sd: Dictionary = sdef as Dictionary
+		var sid: String = sd.get("id", "")
+		if sid in tutorial_done:
+			continue
+		var done := false
+		match sid:
+			"first_experiment":
+				done = not experiment_history.is_empty()
+			"first_suspected":
+				done = knowledge.get("state", "unknown") != "unknown"
+			"first_confirmed":
+				done = discovery.get("state", "") == "confirmed"
+			"first_tech":
+				done = not unlocked_technologies.is_empty()
+			"first_deal":
+				done = (not owned_companies.is_empty() or not completed_contracts.is_empty()
+					or not facilities_owned.is_empty() or hire_pool.size() < 3
+					or esp_cover > 0.0 or parent_ops_success > 0)
+		if done:
+			tutorial_done.append(sid)
+		else:
+			pending.append(sd.get("text", sid))
+	return pending
+
 # --- Phase 11 recovery: post-absorption second chance (hidden branch) ---
 func log_telemetry(event: String, detail: Dictionary = {}):
 	var entry := {"day": elapsed_days, "event": event}
@@ -2283,6 +2339,10 @@ func _record_legacy():
 		var legacy0: Dictionary = _load_legacy()
 		legacy0["ng_wins"] = int(legacy0.get("ng_wins", 0)) + 1
 		_persist_legacy(legacy0)
+		if elapsed_days < 30.0:
+			award_badge("speed_demon")
+		if continued:
+			award_badge("survivor")
 	if challenge_date != "":
 		var legacy_c: Dictionary = _load_legacy()
 		var prev: Dictionary = legacy_c.get("daily", {})
@@ -2401,6 +2461,9 @@ func perform_espionage_op(op_id: String, target_id: String = "") -> Dictionary:
 	var detail := ""
 	if success:
 		detail = _apply_espionage_success(op_id, target_id)
+		esp_successes += 1
+		if esp_successes >= 5:
+			award_badge("spymaster")
 	else:
 		esp_risk = minf(esp_risk + 10.0, 100.0)
 		detail = "Op failed. Heat rises."
@@ -2756,10 +2819,12 @@ func get_save_data() -> Dictionary:
 		"act": act,
 		"hire_pool": hire_pool,
 		"company_roster": company_roster,
+		"esp_successes": esp_successes,
 		"active_mutators": active_mutators,
 		"challenge_date": challenge_date,
 		"use_ng": use_ng,
 		"last_buyout_day": last_buyout_day,
+		"tutorial_done": tutorial_done,
 		"insolvent_streak": insolvent_streak,
 		"in_recovery": in_recovery,
 		"acquirer_id": acquirer_id,
@@ -2858,11 +2923,13 @@ func load_save_data(data: Dictionary):
 	military_ties = data.get("military_ties", 0.0)
 	act = data.get("act", 1)
 	hire_pool = data.get("hire_pool", ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"])
+	esp_successes = data.get("esp_successes", 0)
 	company_roster = data.get("company_roster", ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"])
 	active_mutators = data.get("active_mutators", [])
 	challenge_date = data.get("challenge_date", "")
 	use_ng = data.get("use_ng", false)
 	last_buyout_day = data.get("last_buyout_day", -99.0)
+	tutorial_done = data.get("tutorial_done", [])
 	insolvent_streak = data.get("insolvent_streak", 0)
 	in_recovery = data.get("in_recovery", false)
 	acquirer_id = data.get("acquirer_id", "")

@@ -11,6 +11,10 @@
     {"id": "first_blood", "name": "First Blood", "description": "Lose a scientist to the work."},
     {"id": "reborn", "name": "JANUS, REBORN", "description": "Classified.", "hidden": true},
     {"id": "hostile", "name": "HOSTILE WORK ENVIRONMENT", "description": "Classified.", "hidden": true},
-    {"id": "know_your_enemy", "name": "KNOW YOUR ENEMY", "description": "Classified.", "hidden": true}
+    {"id": "know_your_enemy", "name": "KNOW YOUR ENEMY", "description": "Classified.", "hidden": true},
+    {"id": "speed_demon", "name": "Speed Demon", "description": "Win in under 30 days."},
+    {"id": "survivor", "name": "Survivor", "description": "Win after continuing past a victory."},
+    {"id": "tycoon", "name": "Tycoon", "description": "Own 3 subsidiaries at once."},
+    {"id": "spymaster", "name": "Spymaster", "description": "Succeed at 5 espionage operations in one campaign."}
   ]
 }

@@ -196,6 +196,15 @@ All **additive**: the game is winnable via pure research with any system untouch
 
 ---
 
+## 12b. As-built amendments (measured deviations from the locked design)
+- Domination crush bar is 0.4× player share, not merely "highest share" — keeps Market Leader distinct.
+- Buyout market transfer capped (+4 per buyout); buyouts need 10% standing + 7-day board cooldown (closed a day-one sweep).
+- Scientific win = full confirmation + all-tech depth OR 3-artifact collection (single-artifact confirms flip together, so depth/collection gate it).
+- Majority targets: 44 / 52 / 58 / 62 (Easy/Normal/Hard/Expert), retuned by probe, not 51 flat.
+- Rivals tick per day, not per experiment (batching would otherwise speed them up too).
+- Recovery branch (0.11): insolvency → acquisition → hidden influence game; not in the original plan.
+- Expert locks science; acts gate artifacts and scale aggression; contracts/companies/events deal from seeded decks.
+
 ## 13. Testing strategy
 
 Extend the existing suite (scene_test_runner: ALL_SCENES_OK / LOGIC_OK / SIM_OK / COVERAGE_OK):

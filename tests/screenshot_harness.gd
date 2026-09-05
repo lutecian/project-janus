@@ -25,6 +25,7 @@ var screens: Array = [
 	{"path": "res://scenes/contracts/contracts.tscn", "state": true},
 	{"path": "res://scenes/espionage/espionage.tscn", "state": true},
 	{"path": "res://scenes/facilities/facilities.tscn", "state": true},
+	{"path": "res://scenes/help/codex.tscn", "state": true},
 ]
 
 var _idx := 0

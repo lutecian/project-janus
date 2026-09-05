@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3 uid="uid://cod00001"]
+
+[ext_resource type="Script" path="res://scenes/help/codex.gd" id="1_script"]
+
+[node name="Codex" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="title_label" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.2, 0.84, 1, 1)
+text = "FIELD MANUAL"
+horizontal_alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="body_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 400)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 14
+scroll_active = true
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="btn_back" type="Button" parent="ScrollContainer/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 40)
+text = "Back to Lab"

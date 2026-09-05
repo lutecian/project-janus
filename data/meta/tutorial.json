@@ -1,0 +1,9 @@
+{
+  "steps": [
+    {"id": "first_experiment", "text": "Run your first experiment (Experiments)."},
+    {"id": "first_suspected", "text": "Reach SUSPECTED on a discovery (keep experimenting)."},
+    {"id": "first_confirmed", "text": "CONFIRM a discovery (70% knowledge, or gather evidence)."},
+    {"id": "first_tech", "text": "Unlock a technology (confirmations unlock tech)."},
+    {"id": "first_deal", "text": "Make your first deal: acquire a lab, sign a contract, build, hire, or run an op."}
+  ]
+}

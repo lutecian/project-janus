@@ -24,7 +24,8 @@ func _ready():
 		"res://scenes/acquisitions/acquisitions.tscn",
 		"res://scenes/contracts/contracts.tscn",
 		"res://scenes/espionage/espionage.tscn",
-		"res://scenes/facilities/facilities.tscn"
+		"res://scenes/facilities/facilities.tscn",
+		"res://scenes/help/codex.tscn"
 	]
 	_test_next()
 
@@ -167,6 +168,7 @@ func _test_next():
 		_test_replay()
 		_test_chal()
 		_test_recovery()
+		_test_tutorial()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -2048,6 +2050,64 @@ func _test_recovery():
 		print("RECOVERY_OK")
 	else:
 		print("%d RECOVERY FAILURES" % failures)
+
+func _test_tutorial():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Tutorial Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- U1: Fresh campaign shows all steps + a research goal ---
+	var pending: Array = GameState.check_tutorial()
+	if pending.size() != 5:
+		push_error("tutorial: fresh campaign should show 5 steps, got %d" % pending.size())
+		failures += 1
+	if not GameState.get_current_goal().begins_with("Confirm"):
+		push_error("tutorial: first goal should be confirmation, got '%s'" % GameState.get_current_goal())
+		failures += 1
+
+	# --- U2: Steps complete through play ---
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	GameState.run_experiment(heat, GameState.scientists[0])
+	pending = GameState.check_tutorial()
+	var texts := "; ".join(pending)
+	if "first experiment" in texts.to_lower():
+		push_error("tutorial: first experiment step should clear")
+		failures += 1
+	GameState.knowledge["progress"] = 70
+	GameState.run_experiment(heat, GameState.scientists[0])
+	pending = GameState.check_tutorial()
+	if pending.size() != 1 or not pending[0].begins_with("Make your first deal"):
+		push_error("tutorial: only the deal step should remain, got %s" % pending)
+		failures += 1
+	GameState.buy_facility("FAC_SCANNER")
+	pending = GameState.check_tutorial()
+	if not pending.is_empty():
+		push_error("tutorial: all steps should clear, left %s" % pending)
+		failures += 1
+
+	# --- U3: Goal tracks market, then domination ---
+	GameState.player_market = 10.0
+	if not GameState.get_current_goal().begins_with("Grow market"):
+		push_error("tutorial: goal should track market, got '%s'" % GameState.get_current_goal())
+		failures += 1
+
+	# --- U4: Save/load preserves tutorial ---
+	var save := GameState.get_save_data()
+	GameState.load_save_data(save)
+	if GameState.tutorial_done.size() != 5:
+		push_error("tutorial: completed steps lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("TUT_OK")
+	else:
+		print("%d TUT FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

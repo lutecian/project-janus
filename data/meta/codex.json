@@ -1,0 +1,24 @@
+{
+  "sections": [
+    {
+      "title": "THE GOAL",
+      "body": "Grow your market share to the majority target before any rival. Research (experiments + confirmed discoveries) is the engine; acquisitions, contracts, espionage and facilities are accelerators. You can also win through full scientific completion (Distinguished Researcher) or by crushing every rival (The Monopoly). Lose if a rival takes majority, if you go insolvent three days running (acquired), or if your roster is wiped out."
+    },
+    {
+      "title": "RESEARCH",
+      "body": "Pick an artifact, assign scientists, run experiments to raise knowledge. At 30% a discovery is SUSPECTED; at 70% it CONFIRMS (or gather 4 matching evidence observations for secondaries). Confirmations pay market share and unlock technologies. Queue one experiment per scientist per day, then Run Day. Rest stressed scientists (stress over 70 hurts quality)."
+    },
+    {
+      "title": "RIVALS & MARKET",
+      "body": "Four rivals grow every day; HELIOS is fastest. Watch them in Rival Intelligence. Slow them with sabotage and exposes, buy them out (needs 10% standing, board approval weekly), or outgrow them 2.5-to-1. Wildcards can implode; leaders absorb weaklings."
+    },
+    {
+      "title": "MONEY & DEALS",
+      "body": "Experiments and overhead burn cash daily; grants arrive on schedule. Acquire labs (check diligence first), sign one contract at a time, build facilities, hire from candidates when someone dies. Going broke three days straight gets Janus acquired — which opens a hidden second chance."
+    },
+    {
+      "title": "DANGER",
+      "body": "Radioactive and crisis work injures people. INJURED scientists work poorly; the dead stay dead (memorialized). Keep cover up, resolve crises fast, and never let all three starters die with no hires waiting."
+    }
+  ]
+}

@@ -190,6 +190,27 @@ theme_override_font_sizes/font_size = 14
 text = ""
 horizontal_alignment = 1
 
+[node name="guide_panel" type="PanelContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_type_variation = &"accent_card"
+
+[node name="guide_vbox" type="VBoxContainer" parent="MarginContainer/VBox/guide_panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="goal_label" type="Label" parent="MarginContainer/VBox/guide_panel/guide_vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
+text = "Goal"
+autowrap_mode = 2
+
+[node name="tutorial_label" type="Label" parent="MarginContainer/VBox/guide_panel/guide_vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 2
+
 [node name="Sep5" type="HSeparator" parent="MarginContainer/VBox"]
 layout_mode = 2
 
@@ -205,6 +226,11 @@ text = "Main Menu"
 layout_mode = 2
 custom_minimum_size = Vector2(120, 40)
 text = "Save"
+
+[node name="btn_help" type="Button" parent="MarginContainer/VBox/footer_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Manual"
 
 [node name="MemorialOverlay" type="PanelContainer" parent="."]
 visible = false
