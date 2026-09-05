@@ -34,6 +34,15 @@ horizontal_alignment = 1
 [node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
 
+[node name="portrait_rect" type="ColorRect" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(220, 220)
+size_flags_horizontal = 4
+color = Color(0, 0, 0, 0)
+
+[node name="SepPortrait" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
 [node name="desc_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 60)

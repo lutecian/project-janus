@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://hel00001"]
+[gd_scene load_steps=3 format=3 uid="uid://hel00001"]
 
 [ext_resource type="Script" path="res://scenes/experiment/helios_intel.gd" id="1_script"]
+[ext_resource type="Script" path="res://scenes/experiment/market_bars.gd" id="2_bars"]
 
 [node name="HeliosIntel" type="Control"]
 layout_mode = 3
@@ -34,6 +35,11 @@ horizontal_alignment = 1
 
 [node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
+
+[node name="market_bars" type="Control" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 140)
+script = ExtResource("2_bars")
 
 [node name="helios_info" type="Label" parent="ScrollContainer/VBox"]
 layout_mode = 2

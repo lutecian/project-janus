@@ -24,8 +24,18 @@ extends Control
 @onready var memorial_title: Label = $MemorialOverlay/MemorialVBox/memorial_title
 @onready var memorial_text: Label = $MemorialOverlay/MemorialVBox/memorial_text
 @onready var btn_memorial_continue: Button = $MemorialOverlay/MemorialVBox/btn_memorial_continue
+@onready var bg_rect: ColorRect = $BgRect
+
+func _apply_bg():
+	var shader := load("res://assets/shaders/lab_bg.gdshader") as Shader
+	if shader == null:
+		return
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	bg_rect.material = mat
 
 func _ready():
+	_apply_bg()
 	btn_artifact.pressed.connect(_go.bind("res://scenes/experiment/artifact_detail.tscn"))
 	btn_scientists.pressed.connect(_go.bind("res://scenes/experiment/scientist_detail.tscn"))
 	btn_experiments.pressed.connect(_go.bind("res://scenes/experiment/experiment_selection.tscn"))

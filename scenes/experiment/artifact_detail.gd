@@ -1,7 +1,17 @@
 extends Control
 
 @onready var title_label: Label = $ScrollContainer/VBox/title_label
+@onready var portrait_rect: ColorRect = $ScrollContainer/VBox/portrait_rect
 @onready var desc_label: RichTextLabel = $ScrollContainer/VBox/desc_label
+
+const PORTRAIT_STYLE := {
+	"J001": {"a": Color(0.2, 0.84, 1.0), "b": Color(0.02, 0.05, 0.1), "pattern": 0.0, "scale": 3.0, "speed": 0.35},
+	"J002": {"a": Color(1.0, 0.55, 0.2), "b": Color(0.1, 0.03, 0.01), "pattern": 0.0, "scale": 4.0, "speed": 0.25},
+	"J003": {"a": Color(0.4, 1.0, 0.6), "b": Color(0.01, 0.08, 0.03), "pattern": 0.0, "scale": 2.5, "speed": 0.2},
+	"J004": {"a": Color(1.0, 0.8, 0.25), "b": Color(0.1, 0.06, 0.01), "pattern": 2.0, "scale": 3.0, "speed": 0.5},
+	"J005": {"a": Color(0.6, 0.9, 1.0), "b": Color(0.02, 0.06, 0.12), "pattern": 1.0, "scale": 3.5, "speed": 0.3},
+	"J006": {"a": Color(0.7, 0.4, 1.0), "b": Color(0.0, 0.0, 0.0), "pattern": 2.0, "scale": 4.0, "speed": 0.4}
+}
 @onready var known_label: Label = $ScrollContainer/VBox/known_label
 @onready var knowledge_state: Label = $ScrollContainer/VBox/knowledge_state
 @onready var discoveries_label: RichTextLabel = $ScrollContainer/VBox/discoveries_label
@@ -11,7 +21,22 @@ extends Control
 
 func _ready():
 	btn_back.pressed.connect(_on_back)
+	_apply_portrait()
 	_display_artifact()
+
+func _apply_portrait():
+	var style: Dictionary = PORTRAIT_STYLE.get(GameState.artifact.get("id", "J001"), PORTRAIT_STYLE["J001"])
+	var shader := load("res://assets/shaders/artifact_portrait.gdshader") as Shader
+	if shader == null:
+		return
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("color_a", style.get("a", Color.CYAN))
+	mat.set_shader_parameter("color_b", style.get("b", Color.BLACK))
+	mat.set_shader_parameter("pattern", float(style.get("pattern", 0.0)))
+	mat.set_shader_parameter("scale_uv", float(style.get("scale", 3.0)))
+	mat.set_shader_parameter("speed", float(style.get("speed", 0.35)))
+	portrait_rect.material = mat
 
 func _display_artifact():
 	title_label.text = "OBJECT %s — %s" % [

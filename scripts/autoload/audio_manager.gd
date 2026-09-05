@@ -14,6 +14,7 @@ var current_mode := ""
 var _tension_on := false
 
 func _ready():
+	AudioServer.set_bus_mute(0, false)
 	music_player = AudioStreamPlayer.new()
 	music_player.volume_db = -16.0
 	tension_player = AudioStreamPlayer.new()
@@ -41,7 +42,22 @@ func apply_volume(vol: float):
 	var db := -80.0
 	if vol > 0.0:
 		db = linear_to_db(clampf(vol / 100.0, 0.01, 1.0))
+	AudioServer.set_bus_mute(0, false)
 	AudioServer.set_bus_volume_db(0, db)
+
+func get_driver_info() -> String:
+	return "%s @ %dHz, %d buses, %d streams" % [
+		AudioServer.get_driver_name(), AudioServer.get_mix_rate(),
+		AudioServer.bus_count, streams.size()
+	]
+
+func is_voice_active() -> bool:
+	if music_player.playing or tension_player.playing:
+		return true
+	for p in _sfx_pool:
+		if (p as AudioStreamPlayer).playing:
+			return true
+	return false
 
 # --- synthesis helpers ---
 func _pack(samples: PackedFloat32Array) -> PackedByteArray:

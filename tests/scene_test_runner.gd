@@ -541,6 +541,47 @@ func _test_acq():
 		push_error("acq: all 6 rostered offers should be listed by day 30, got %d" % GameState.company_offers.size())
 		failures += 1
 
+	# --- A9: No day-one sweep — buyouts need credibility + board cooldown ---
+	GameState.initialize_new_campaign({"name": "Acq Sweep"}, "easy")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 100000
+	GameState.player_market = 0.0
+	var first_rival: String = ""
+	for r in GameState.rivals:
+		first_rival = (r as Dictionary).get("id", "")
+		break
+	if GameState.buy_out_rival(first_rival).get("reason", "") != "no_credibility":
+		push_error("acq: buyout with no market standing should be refused")
+		failures += 1
+	GameState.player_market = 15.0
+	if not GameState.buy_out_rival(first_rival).get("ok", false):
+		push_error("acq: credible buyout should succeed")
+		failures += 1
+	# Same-day sweep must be impossible, whatever the field holds.
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false):
+			continue
+		var attempt: Dictionary = GameState.buy_out_rival(rd.get("id", ""))
+		if attempt.get("ok", false):
+			push_error("acq: same-day sweep buyout should be refused, %s went through" % rd.get("id", "?"))
+			failures += 1
+		elif attempt.get("reason", "") != "board_cooldown":
+			push_error("acq: expected board_cooldown, got '%s'" % attempt.get("reason", "?"))
+			failures += 1
+	# After the cooldown, business resumes as normal.
+	GameState.elapsed_days += 7.0
+	var next_id: String = ""
+	for r in GameState.rivals:
+		var rd2: Dictionary = r as Dictionary
+		if not rd2.get("acquired_by_player", false):
+			next_id = rd2.get("id", "")
+			break
+	if next_id != "" and not GameState.is_game_over():
+		if not GameState.buy_out_rival(next_id).get("ok", false):
+			push_error("acq: buyout after cooldown should succeed")
+			failures += 1
+
 	if failures == 0:
 		print("ACQ_OK")
 	else:

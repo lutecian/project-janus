@@ -11,7 +11,7 @@ extends Control
 @onready var discovery_panel: VBoxContainer = $ScrollContainer/VBox/discovery_panel
 @onready var status_label: Label = $ScrollContainer/VBox/status_label
 @onready var btn_save: Button = $ScrollContainer/VBox/ButtonRow/btn_save
-@onready var narrative_label: RichTextLabel = $ScrollContainer/VBox/narrative_label
+@onready var narrative_label: RichTextLabel = $ScrollContainer/VBox/NarrativePanel/narrative_label
 
 func _ready():
 	btn_continue.pressed.connect(_on_continue_pressed)

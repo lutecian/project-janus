@@ -1,6 +1,7 @@
 extends Control
 
 @onready var title_label: Label = $ScrollContainer/VBox/title_label
+@onready var market_bars: Control = $ScrollContainer/VBox/market_bars
 @onready var helios_info: Label = $ScrollContainer/VBox/helios_info
 @onready var reports_label: RichTextLabel = $ScrollContainer/VBox/reports_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
@@ -17,6 +18,11 @@ func _display_intel():
 	]
 	var ordered: Array = GameState.rivals.duplicate()
 	ordered.sort_custom(func(a, b): return float(a.get("share", 0)) > float(b.get("share", 0)))
+	var rows: Array = [{"id": "PLAYER", "name": "YOU", "share": GameState.get_player_market()}]
+	for r in ordered:
+		var rd: Dictionary = r as Dictionary
+		rows.append({"id": rd.get("id", "?"), "name": rd.get("name", "?"), "share": float(rd.get("share", 0))})
+	market_bars.set_entries(rows)
 	for r in ordered:
 		var rd: Dictionary = r as Dictionary
 		market_text += "%-28s %5.1f%%\n" % [

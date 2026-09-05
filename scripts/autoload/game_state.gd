@@ -70,6 +70,7 @@ var challenge_date: String = ""
 var use_ng: bool = false
 
 # --- Phase 11 (0.11): post-absorption recovery branch ---
+var last_buyout_day: float = -99.0
 var insolvent_streak: int = 0
 var in_recovery: bool = false
 var acquirer_id: String = ""
@@ -254,6 +255,7 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
 	active_mutators = []
 	challenge_date = ""
+	last_buyout_day = -99.0
 	insolvent_streak = 0
 	in_recovery = false
 	acquirer_id = ""
@@ -365,7 +367,13 @@ func _load_budget_data():
 		"events_received": []
 	}
 
+var _json_cache := {}
+
 func _load_json(path: String) -> Dictionary:
+	# Data files are static per session: cache parsed results and hand out
+	# deep copies (file IO + parse happen once; callers can never mutate cache).
+	if _json_cache.has(path):
+		return (_json_cache[path] as Dictionary).duplicate(true)
 	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
 		push_error("Cannot open JSON: " + path)
@@ -377,7 +385,8 @@ func _load_json(path: String) -> Dictionary:
 		push_error("JSON parse error: " + path)
 		return {}
 	if json.data is Dictionary:
-		return json.data as Dictionary
+		_json_cache[path] = json.data
+		return (json.data as Dictionary).duplicate(true)
 	return {}
 
 func _load_artifact_data():
@@ -1035,6 +1044,14 @@ func _tick_lab_work():
 		_check_rival_taunt(rd)
 		if rd.get("id", "") == "RIV_HELIOS":
 			lead = new_share
+	for r in rivals:
+		var rd2: Dictionary = r as Dictionary
+		if rd2.get("acquired_by_player", false) or rd2.get("status", "active") != "active":
+			continue
+		var sh: float = float(rd2.get("share", 0))
+		if sh < ACQ_EXIT_SHARE:
+			rd2["status"] = "exited"
+			rd2["share"] = 0.0
 	_sync_helios_rival()
 	_helios_market_from_lead(lead)
 	EventBus.market_updated.emit(player_market, rivals)
@@ -1388,6 +1405,10 @@ func buy_out_rival(rival_id: String) -> Dictionary:
 			continue
 		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
 			return {"ok": false, "reason": "not_active"}
+		if player_market < 10.0:
+			return {"ok": false, "reason": "no_credibility"}
+		if elapsed_days - last_buyout_day < 7.0:
+			return {"ok": false, "reason": "board_cooldown"}
 		var price: int = get_rival_buyout_price(rival_id)
 		if int(budget.get("funds", 0)) < price:
 			return {"ok": false, "reason": "insufficient_funds"}
@@ -1397,6 +1418,7 @@ func buy_out_rival(rival_id: String) -> Dictionary:
 		rd["acquired_by_player"] = true
 		rd["status"] = "acquired"
 		rd["share"] = 0.0
+		last_buyout_day = elapsed_days
 		player_market += minf(ACQ_BUYOUT_CAP, old_share * 0.15)
 		_sync_helios_rival()
 		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
@@ -2737,6 +2759,7 @@ func get_save_data() -> Dictionary:
 		"active_mutators": active_mutators,
 		"challenge_date": challenge_date,
 		"use_ng": use_ng,
+		"last_buyout_day": last_buyout_day,
 		"insolvent_streak": insolvent_streak,
 		"in_recovery": in_recovery,
 		"acquirer_id": acquirer_id,
@@ -2839,6 +2862,7 @@ func load_save_data(data: Dictionary):
 	active_mutators = data.get("active_mutators", [])
 	challenge_date = data.get("challenge_date", "")
 	use_ng = data.get("use_ng", false)
+	last_buyout_day = data.get("last_buyout_day", -99.0)
 	insolvent_streak = data.get("insolvent_streak", 0)
 	in_recovery = data.get("in_recovery", false)
 	acquirer_id = data.get("acquirer_id", "")

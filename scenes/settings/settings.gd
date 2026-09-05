@@ -6,6 +6,9 @@ extends Control
 @onready var fullscreen_toggle: CheckButton = $VBox/FullscreenToggle
 @onready var gore_label: Label = $VBox/GoreLabel
 @onready var gore_toggle: CheckButton = $VBox/GoreToggle
+@onready var audio_label: Label = $VBox/AudioLabel
+@onready var btn_test_sound: Button = $VBox/btn_test_sound
+@onready var sound_result: Label = $VBox/sound_result
 @onready var btn_reset_save: Button = $VBox/btn_reset_save
 @onready var btn_back: Button = $VBox/btn_back
 
@@ -13,9 +16,11 @@ func _ready():
 	volume_slider.value_changed.connect(_on_volume_changed)
 	fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
 	gore_toggle.toggled.connect(_on_gore_toggled)
+	btn_test_sound.pressed.connect(_on_test_sound)
 	btn_reset_save.pressed.connect(_on_reset_save)
 	btn_back.pressed.connect(_on_back)
 	_load_settings()
+	audio_label.text = "Audio: " + AudioManager.get_driver_info()
 
 func _load_settings():
 	var settings := ConfigFile.new()
@@ -63,6 +68,17 @@ func _on_gore_toggled(pressed: bool):
 
 func _update_gore_label(pressed: bool):
 	gore_label.text = "Graphic content: ON" if pressed else "Graphic content: OFF"
+
+func _on_test_sound():
+	AudioManager.play_sfx("alarm")
+	AudioManager.start_music("menu")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if AudioManager.is_voice_active():
+		sound_result.text = "Sound check: PLAYING (if you hear nothing, check system volume/output device)."
+	else:
+		sound_result.text = "Sound check: SILENT (driver reports no active voice — please report this)."
 
 func _on_reset_save():
 	SaveManager.delete_save()

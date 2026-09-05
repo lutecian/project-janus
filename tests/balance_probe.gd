@@ -29,6 +29,10 @@ func _run_all():
 	_probe_batch("hard-batch", "hard", 200, true)
 	_probe_recovery("rec-research", 4242, false)
 	_probe_recovery("rec-saboteur", 4243, true)
+	_probe("expert-pure", "expert", 300, false, false, false)
+	_probe("expert-systems", "expert", 300, true, true, true)
+	_probe_domination("domination-hard", "hard", 400)
+	_probe_recovery_other("rec-bermant", 4244)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
 
@@ -231,9 +235,137 @@ func _probe_recovery(tag: String, seed: int, saboteur: bool):
 		outcome = "restored"
 	elif GameState.is_game_over():
 		outcome = str(GameState.game_over.get("reason", "?"))
-	print("PROBE %s: %s acq=%s days=%.0f inf=%.0f bailouts=%d badges=%s" % [
-		tag, outcome, acq, days, GameState.influence, bailouts, GameState.run_badges
+	# Farm check: after a restore, keep playing pure research to the true end.
+	var final := ""
+	if outcome == "restored":
+		while days < 160 and not GameState.is_game_over():
+			var sci2 := _living_pick()
+			if sci2.is_empty():
+				break
+			if int(GameState.budget.get("funds", 0)) < GameState._get_experiment_cost("EXP_HEATING"):
+				GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
+				bailouts += 1
+			GameState.run_experiment(_exp_def, sci2)
+			days = GameState.elapsed_days
+		if GameState.is_game_over():
+			final = str(GameState.game_over.get("type", "?"))
+	print("PROBE %s: %s acq=%s days=%.0f inf=%.0f bailouts=%d final=%s badges=%s" % [
+		tag, outcome, acq, days, GameState.influence, bailouts, final, GameState.run_badges
 	])
+
+func _probe_domination(tag: String, difficulty_id: String, seed: int):
+	GameState.initialize_new_campaign({"name": "Probe " + tag}, difficulty_id, seed)
+	GameState.select_artifact(0)
+	_sci = GameState.scientists[0]
+	var bailouts := 0
+	var days := 0.0
+	while days < 300 and not GameState.is_game_over():
+		_sci = _living_pick()
+		if _sci.is_empty():
+			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
+			return
+		_try_buy_cheapest()
+		_try_buyout_reserved()
+		_try_expose_smallest()
+		if int(GameState.budget.get("funds", 0)) < GameState._get_experiment_cost("EXP_HEATING"):
+			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
+			bailouts += 1
+		GameState.run_experiment(_exp_def, _sci)
+		days = GameState.elapsed_days
+	var go: Dictionary = GameState.game_over
+	var prog: Dictionary = GameState.get_domination_progress()
+	print("PROBE %s: %s type=%s days=%.0f crushed=%d/%d bailouts=%d" % [
+		tag,
+		"WIN" if go.get("won", false) else "LOSE",
+		go.get("type", go.get("reason", "?")),
+		days, int(prog.get("crushed", 0)), int(prog.get("total", 0)), bailouts
+	])
+
+func _try_expose_smallest():
+	if GameState.esp_risk >= 45.0:
+		return
+	var target := ""
+	var best := 1e9
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		if float(rd.get("share", 0)) < best:
+			best = float(rd.get("share", 0))
+			target = rd.get("id", "")
+	if target != "":
+		GameState.perform_espionage_op("OP_EXPOSE", target)
+
+func _try_buyout_reserved():
+	var best_id := ""
+	var best_price := 1 << 30
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		var price: int = GameState.get_rival_buyout_price(rd.get("id", ""))
+		if price < best_price:
+			best_price = price
+			best_id = rd.get("id", "")
+	if best_id != "" and int(GameState.budget.get("funds", 0)) >= best_price * 2:
+		GameState.buy_out_rival(best_id)
+
+func _try_buyout_cheapest():
+	var best_id := ""
+	var best_price := 1 << 30
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		var price: int = GameState.get_rival_buyout_price(rd.get("id", ""))
+		if price < best_price:
+			best_price = price
+			best_id = rd.get("id", "")
+	if best_id != "" and int(GameState.budget.get("funds", 0)) >= best_price:
+		GameState.buy_out_rival(best_id)
+
+func _probe_recovery_other(tag: String, seed: int):
+	GameState.initialize_new_campaign({"name": "Probe " + tag}, "normal", seed)
+	GameState.select_artifact(0)
+	var other := ""
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") != "RIV_HELIOS" and rd.get("status", "active") == "active" and other == "":
+			other = rd.get("id", "")
+			rd["share"] = 30.0
+		elif rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = 10.0
+	if other == "":
+		print("PROBE %s: NOFIELD" % tag)
+		return
+	GameState.budget["funds"] = -5000
+	for i in range(3):
+		GameState._tick_new_day([])
+	if GameState.game_over.get("acquirer", "") != other:
+		print("PROBE %s: WRONGACQ %s" % [tag, GameState.game_over.get("acquirer", "?")])
+		return
+	if not GameState.report_for_work().get("ok", false):
+		print("PROBE %s: NOREPORT" % tag)
+		return
+	var days := 0.0
+	while days < 80 and GameState.in_recovery and not GameState.is_game_over():
+		var sci := _living_pick()
+		if sci.is_empty():
+			break
+		if int(GameState.budget.get("funds", 0)) < GameState._get_experiment_cost("EXP_HEATING"):
+			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
+		GameState.run_experiment(_exp_def, sci)
+		days = GameState.elapsed_days
+	var outcome := "timeout"
+	if not GameState.in_recovery and not GameState.is_game_over():
+		outcome = "restored"
+	elif GameState.is_game_over():
+		outcome = str(GameState.game_over.get("reason", "?"))
+	var prize := ""
+	for f in GameState.facilities_owned:
+		if str(f).begins_with("FAC_PRIZE_"):
+			prize = str(f)
+	print("PROBE %s: %s acq=%s days=%.0f prize=%s" % [tag, outcome, other, days, prize])
 
 func _living_pick() -> Dictionary:
 	for s in GameState.scientists:
