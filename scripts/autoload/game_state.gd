@@ -641,6 +641,7 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 			sci_state = s as Dictionary
 	if not sci_state.is_empty():
 		sci_state["stress"] = mini(int(sci_state.get("stress", 0)) + 4, 100)
+		sci_state["experience"] = int(sci_state.get("experience", 0)) + 1
 	if in_recovery:
 		influence = clampf(influence + 2.0, 0.0, 100.0)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
@@ -679,6 +680,13 @@ func _check_dangerous_experiment(exp_id: String):
 			if inc_dict.get("id", "") == "INC_EQUIPMENT_FAILURE":
 				_apply_incident(inc_dict)
 				break
+
+func scientist_level(sci_id: String) -> int:
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("id", "") == sci_id:
+			return mini(1 + int(sqrt(float(int(sd.get("experience", 0))) / 2.0)), 6)
+	return 1
 
 func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dictionary) -> float:
 	var skills: Dictionary = scientist.get("skills", {})
@@ -721,6 +729,8 @@ func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dicti
 		quality *= 0.7
 	if int(scientist.get("stress", 0)) > 70:
 		quality *= 0.8
+	var sci_level: int = mini(1 + int(sqrt(float(int(scientist.get("experience", 0))) / 2.0)), 6)
+	quality *= 1.0 + 0.02 * float(sci_level - 1)
 
 	return clampf(quality, 0.1, 2.0)
 

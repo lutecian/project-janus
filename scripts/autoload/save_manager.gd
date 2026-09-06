@@ -4,6 +4,21 @@ const SAVE_DIR := "user://saves/"
 const SAVE_FILE := "campaign.json"
 const TEMP_FILE := "campaign.json.tmp"
 const SCHEMA_VERSION := 1
+const SLOT_COUNT := 3
+
+var current_slot: int = 1
+
+func _slot_file(slot: int) -> String:
+	return "campaign_slot%d.json" % clampi(slot, 1, SLOT_COUNT)
+
+func _slot_temp(slot: int) -> String:
+	return "campaign_slot%d.json.tmp" % clampi(slot, 1, SLOT_COUNT)
+
+func set_slot(slot: int):
+	current_slot = clampi(slot, 1, SLOT_COUNT)
+
+func slot_has_save(slot: int) -> bool:
+	return FileAccess.file_exists(SAVE_DIR.path_join(_slot_file(slot)))
 
 func _ready():
 	DirAccess.make_dir_recursive_absolute(SAVE_DIR)
@@ -19,10 +34,11 @@ func save_game() -> bool:
 
 	var data: Dictionary = GameState.get_save_data()
 	data["save_schema_version"] = SCHEMA_VERSION
+	data["save_slot"] = current_slot
 	var json_string := JSON.stringify(data, "\t")
 
-	var temp_path := SAVE_DIR.path_join(TEMP_FILE)
-	var final_path := SAVE_DIR.path_join(SAVE_FILE)
+	var temp_path := SAVE_DIR.path_join(_slot_temp(current_slot))
+	var final_path := SAVE_DIR.path_join(_slot_file(current_slot))
 
 	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if not file:
@@ -45,10 +61,14 @@ func save_game() -> bool:
 	return true
 
 func load_game() -> bool:
-	var path := SAVE_DIR.path_join(SAVE_FILE)
+	var path := SAVE_DIR.path_join(_slot_file(current_slot))
 	if not FileAccess.file_exists(path):
-		push_warning("No save file found at: " + path)
-		return false
+		var legacy := SAVE_DIR.path_join(SAVE_FILE)
+		if current_slot == 1 and FileAccess.file_exists(legacy):
+			path = legacy
+		else:
+			push_warning("No save file found at: " + path)
+			return false
 	var file := FileAccess.open(path, FileAccess.READ)
 	if not file:
 		push_error("Cannot open save file for reading: " + path)
@@ -83,10 +103,9 @@ func _migrate_save(data: Dictionary, from_version: int) -> Dictionary:
 	return data
 
 func has_save() -> bool:
-	var path := SAVE_DIR.path_join(SAVE_FILE)
-	return FileAccess.file_exists(path)
+	return slot_has_save(current_slot)
 
 func delete_save() -> void:
-	var path := SAVE_DIR.path_join(SAVE_FILE)
+	var path := SAVE_DIR.path_join(_slot_file(current_slot))
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)

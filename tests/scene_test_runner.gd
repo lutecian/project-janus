@@ -1650,6 +1650,37 @@ func _test_roster():
 		push_error("roster: roster/pool not preserved after save/load")
 		failures += 1
 
+	# --- R4: Experience accumulates into levels ---
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+	for i in range(5):
+		GameState.run_experiment(heat, GameState.scientists[0])
+	var xp: int = int(GameState.scientists[0].get("experience", -1))
+	if xp != 5:
+		push_error("roster: 5 experiments should bank 5 xp, got %d" % xp)
+		failures += 1
+	if GameState.scientist_level("SCIENTIST_CHEN") != 2:
+		push_error("roster: 5 xp should reach level 2")
+		failures += 1
+
+	# --- R5: Save slots clamp and track without touching disk ---
+	SaveManager.set_slot(5)
+	if SaveManager.current_slot != 3:
+		push_error("roster: slot should clamp to 3")
+		failures += 1
+	SaveManager.set_slot(0)
+	if SaveManager.current_slot != 1:
+		push_error("roster: slot should clamp to 1")
+		failures += 1
+	SaveManager.set_slot(2)
+	if SaveManager.current_slot != 2:
+		push_error("roster: slot 2 should select")
+		failures += 1
+	SaveManager.set_slot(1)
+
 	if failures == 0:
 		print("ROSTER_OK")
 	else:

@@ -86,6 +86,29 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Daily Challenge"
 
+[node name="slot_row" type="HBoxContainer" parent="Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="btn_slot_prev" type="Button" parent="Card/VBox/slot_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 40)
+text = "<"
+
+[node name="slot_label" type="Label" parent="Card/VBox/slot_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 40)
+theme_override_font_sizes/font_size = 15
+text = "Save Slot 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="btn_slot_next" type="Button" parent="Card/VBox/slot_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 40)
+text = ">"
+
 [node name="Spacer2" type="Control" parent="Card/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)

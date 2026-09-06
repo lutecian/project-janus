@@ -34,6 +34,8 @@ func _run_all():
 	_probe("expert-systems", "expert", 300, true, true, true)
 	_probe("expert-thrifty", "expert", 300, true, false, true)
 	_probe_domination("domination-hard", "hard", 400)
+	_probe_domination("domination-normal", "normal", 401)
+	_probe_domination("domination-normal-b", "normal", 402)
 	_probe_recovery_other("rec-bermant", 4244)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
@@ -274,13 +276,31 @@ func _probe_domination(tag: String, difficulty_id: String, seed: int):
 			bailouts += 1
 		GameState.run_experiment(_exp_def, _sci)
 		days = GameState.elapsed_days
+		if GameState.is_game_over() and GameState.game_over.get("type", "") == "market_leader":
+			GameState.continue_after_win()
+	while days < 200 and not GameState.is_game_over():
+		_sci = _living_pick()
+		if _sci.is_empty():
+			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
+			return
+		_try_buy_cheapest()
+		_try_buyout_reserved()
+		_try_expose_smallest()
+		if int(GameState.budget.get("funds", 0)) < GameState._get_experiment_cost("EXP_HEATING"):
+			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
+			bailouts += 1
+		GameState.run_experiment(_exp_def, _sci)
+		days = GameState.elapsed_days
+		if GameState.is_game_over() and GameState.game_over.get("type", "") == "market_leader":
+			GameState.continue_after_win()
 	var go: Dictionary = GameState.game_over
 	var prog: Dictionary = GameState.get_domination_progress()
-	print("PROBE %s: %s type=%s days=%.0f crushed=%d/%d bailouts=%d" % [
+	print("PROBE %s: %s type=%s days=%.0f crushed=%d/%d bailouts=%d continued=%s" % [
 		tag,
 		"WIN" if go.get("won", false) else "LOSE",
 		go.get("type", go.get("reason", "?")),
-		days, int(prog.get("crushed", 0)), int(prog.get("total", 0)), bailouts
+		days, int(prog.get("crushed", 0)), int(prog.get("total", 0)), bailouts,
+		GameState.continued
 	])
 
 func _try_expose_smallest():

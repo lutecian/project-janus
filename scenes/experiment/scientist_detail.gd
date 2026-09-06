@@ -52,8 +52,8 @@ func _display_scientist():
 	var health: int = int(scientist.get("health", 100))
 	var loyalty: int = int(scientist.get("loyalty", 100))
 	var exp: int = int(scientist.get("experience", 0))
-	status_label.text = "Status: %s | Stress: %d | Health: %d | Loyalty: %d | Experience: %d" % [
-		status, stress, health, loyalty, exp
+	status_label.text = "Status: %s | Stress: %d | Health: %d | Loyalty: %d | Experience: %d (Lv %d)" % [
+		status, stress, health, loyalty, exp, GameState.scientist_level(scientist.get("id", ""))
 	]
 
 	var history_text := ""

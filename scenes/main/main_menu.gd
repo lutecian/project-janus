@@ -5,6 +5,9 @@ extends Control
 @onready var btn_settings: Button = $Card/VBox/btn_settings
 @onready var btn_quit: Button = $Card/VBox/btn_quit
 @onready var btn_daily: Button = $Card/VBox/btn_daily
+@onready var btn_slot_prev: Button = $Card/VBox/slot_row/btn_slot_prev
+@onready var btn_slot_next: Button = $Card/VBox/slot_row/btn_slot_next
+@onready var slot_label: Label = $Card/VBox/slot_row/slot_label
 @onready var title_label: Label = $Card/VBox/title_label
 @onready var status_label: Label = $Card/VBox/status_label
 @onready var legacy_label: Label = $Card/VBox/legacy_label
@@ -18,7 +21,9 @@ func _ready():
 	btn_settings.pressed.connect(_on_settings_pressed)
 	btn_quit.pressed.connect(_on_quit_pressed)
 	btn_daily.pressed.connect(_on_daily_pressed)
-	btn_load.disabled = not SaveManager.has_save()
+	btn_slot_prev.pressed.connect(_on_slot_step.bind(-1))
+	btn_slot_next.pressed.connect(_on_slot_step.bind(1))
+	_update_slot_ui()
 	title_label.text = "PROJECT JANUS " + GameState.GAME_VERSION
 	status_label.text = ""
 	legacy_label.text = GameState.get_legacy_line()
@@ -54,6 +59,17 @@ func _on_settings_pressed():
 
 func _on_quit_pressed():
 	get_tree().quit()
+
+func _on_slot_step(direction: int):
+	SaveManager.set_slot(SaveManager.current_slot + direction)
+	_update_slot_ui()
+
+func _update_slot_ui():
+	var used := ""
+	if not SaveManager.has_save():
+		used = " (empty)"
+	slot_label.text = "Save Slot %d%s" % [SaveManager.current_slot, used]
+	btn_load.disabled = not SaveManager.has_save()
 
 func _on_daily_pressed():
 	if SaveManager.has_save():
