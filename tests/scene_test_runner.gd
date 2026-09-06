@@ -712,8 +712,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 18:
-		push_error("ctr: expected 18-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 20:
+		push_error("ctr: expected 20-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -804,7 +804,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 17:
+	if GameState.contract_deck.size() != 19:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -1329,6 +1329,29 @@ func _test_story():
 		failures += 1
 	if not GameState.fired_beats.has("J001:danger"):
 		push_error("story: fired beats lost after save/load")
+		failures += 1
+
+	# --- T6: Content integrity — registry, arcs, scenarios cover the field ---
+	GameState.initialize_new_campaign({"name": "Story Integrity"}, "normal")
+	if GameState.available_artifacts.size() != 9:
+		push_error("story: expected 9 artifacts registered, got %d" % GameState.available_artifacts.size())
+		failures += 1
+	var arcs: Dictionary = GameState._load_json("res://data/narrative/artifact_arcs.json")
+	var arc_ids := {}
+	for arc in arcs.get("arcs", []):
+		arc_ids[(arc as Dictionary).get("artifact_id", "")] = true
+		var beats: Dictionary = (arc as Dictionary).get("beats", {})
+		for kind in ["dormant", "suspected", "confirmed", "danger"]:
+			if not beats.has(kind):
+				push_error("story: %s missing %s beat" % [(arc as Dictionary).get("artifact_id", "?"), kind])
+				failures += 1
+	for art in GameState.available_artifacts:
+		if not arc_ids.has((art as Dictionary).get("id", "")):
+			push_error("story: %s has no arc" % (art as Dictionary).get("id", "?"))
+			failures += 1
+	GameState.apply_scenario("SCN_BRINE")
+	if GameState.artifact.get("id", "") != "J007":
+		push_error("story: brine should start on J007, got %s" % GameState.artifact.get("id", "?"))
 		failures += 1
 
 	if failures == 0:

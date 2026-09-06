@@ -125,6 +125,69 @@
           "text": "During the dangerous run a manipulator arm crossed the aperture plane and came back wrong — same alloy, same serials, mirrored chirality, still warm. The operator's glove, which had also crossed, came back empty with the fingers bent the wrong way. The operator will not describe what the hand felt. The hand is gone. The description would not bring it back."
         }
       }
+    },
+    {
+      "artifact_id": "J007",
+      "beats": {
+        "dormant": {
+          "title": "Salt Choir",
+          "text": "The brine pool built another antenna overnight — a perfect fractal yagi aimed at nothing. Radio scans the band and finds a carrier with no modulation, or modulation so slow a single bit takes a week. The team has started a betting pool on what the first bit means."
+        },
+        "suspected": {
+          "title": "Somebody's Transmitter",
+          "text": "The antennas work. That is the finding that ended two careers' worth of skepticism in one afternoon: salt water, arranged by itself, receiving 34 dBi from an empty sky. The question is no longer whether someone is transmitting. The question is whether they know we finally built the receiver."
+        },
+        "confirmed": {
+          "title": "Refilled From Nowhere",
+          "text": "Drained, dried, and sealed, the pool refilled by morning with identical brine to the part per billion. Matter from nowhere, arranged with intent. The containment report classifies J007 as 'a place that happens to look like a pool.' Staff now knock before entering its room. No one ordered them to."
+        },
+        "danger": {
+          "title": "It Answered",
+          "text": "The dangerous run pumped power into the brine array and the carrier answered — structured, immediate, in the clear. Translation is pending and may stay pending forever, because the only linguist who has heard the full reply resigned by fax from another country."
+        }
+      }
+    },
+    {
+      "artifact_id": "J008",
+      "beats": {
+        "dormant": {
+          "title": "Ledger Stone",
+          "text": "Forty-four thousand tallies and counting, one per decision made nearby. The stone keeps better records of this facility than administration does. Someone joked about asking it for the budget numbers. Someone else already did. The numbers matched."
+        },
+        "suspected": {
+          "title": "Counted",
+          "text": "Blind trials confirm it: the stone knows when you choose. Coffee or tea, left or right, stay or go — a tally for each, 99.2% correspondence. The 0.8% haunts the statisticians. What does it do with the decisions it misses?"
+        },
+        "confirmed": {
+          "title": "Alone Together",
+          "text": "The stone sleeps only when unwatched within forty meters, which means it knows when it is alone, which means it is never truly alone while we know that. Philosophy has been banned from the observation room. The dormancy finding stands regardless."
+        },
+        "danger": {
+          "title": "The Missing Tallies",
+          "text": "During the dangerous run the stone etched three thousand tallies in nine seconds — decisions nobody made. The leading theory is futures. The trailing theory, whispered, is that something else in the room was deciding very, very fast."
+        }
+      }
+    },
+    {
+      "artifact_id": "J009",
+      "beats": {
+        "dormant": {
+          "title": "Hollow Lantern",
+          "text": "It burns cold blue light whenever an experiment fails nearby, which means it has burned almost constantly since arrival. Someone hung a sign on it: 'MORALE OFFICER.' Nobody took the sign down. It may be the most honest object in the building."
+        },
+        "suspected": {
+          "title": "Feeding on Failure",
+          "text": "The correlation is exact: every failed run brightens the lantern by twelve percent. It is not schadenfreude — instruments have no emotions — but the night crew has started apologizing to it before risky runs, just in case."
+        },
+        "confirmed": {
+          "title": "Four Hundred Failures, Frosted",
+          "text": "The frost on the glass graphs every failed run the lab has ever logged, in miniature, perfectly. Four hundred failures, memorialized in ice. The lantern is the only thing here that remembers everything we got wrong. The staff find this comforting. That fact is in the log."
+        },
+        "danger": {
+          "title": "It Wanted More",
+          "text": "The dangerous run failed on purpose — a deliberate null result to test the lantern's appetite. It flared brighter than ever recorded and stayed lit for three days. The lesson, entered formally into the record: do not feed it on purpose. It notices intention."
+        }
+      }
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "id": "J008",
+  "display_name": "Ledger Stone",
+  "visible_description": "A slate tablet that etches tally marks by itself whenever someone nearby makes a decision. The current count is 44,031.",
+  "known_initial_data": {
+    "mass_kg": 9.4,
+    "diameter_cm": 33.2,
+    "surface_temperature_c": 21.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "decision_coupled_inscription",
+    "trigger": "observer_choice_events",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 21.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

@@ -362,6 +362,46 @@
       ],
       "discovery_chance_increase": 0.05,
       "crisis": {"days": 4, "resolve_cost": 1800, "kind": "rupture"}
+    },
+    {
+      "id": "INC_SALT_SHORT",
+      "name": "Brine Array Short",
+      "description": "The salt antenna array discharged into the lab grid.",
+      "graphic_description": "Thirty-four dBi found the building wiring all at once. Breakers exploded out of their panels in a row, and the electrician took 240 volts hand-to-hand across his chest. His heart restarted on the third try. He remembers the sound the array made, and nothing else.",
+      "casualty": 20,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.1,
+        "budget_cost": 800,
+        "days_lost": 1
+      },
+      "observations": [
+        "Array discharged into grid. Breakers destroyed row-wide.",
+        "Operator recovered after third defibrillation."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_TALLY_FEVER",
+      "name": "Tally Fever",
+      "description": "Staff near the Ledger Stone developed obsessive counting behaviors.",
+      "graphic_description": "Three researchers cannot stop counting — steps, tiles, blinks — and one of them scratched tallies into her own forearm with a pen until it bled, to 'keep the official record.' The stone added three tallies while she did it.",
+      "casualty": 15,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.15,
+        "budget_cost": 500,
+        "days_lost": 1
+      },
+      "observations": [
+        "Compulsive counting in three staff. One self-injury, minor.",
+        "Stone tally count rose during the episode."
+      ],
+      "discovery_chance_increase": 0.1
     }
   ],
   "incident_cooldown_days": 5,

@@ -1,0 +1,27 @@
+{
+  "id": "J009",
+  "display_name": "Hollow Lantern",
+  "visible_description": "A lantern with no fuel that burns cold blue light whenever an experiment fails nearby. It has burned almost constantly since arrival.",
+  "known_initial_data": {
+    "mass_kg": 3.1,
+    "diameter_cm": 22.6,
+    "surface_temperature_c": -12.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "failure_resonant_luminescence",
+    "trigger": "experiment_failure_events",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": true,
+    "temperature_stable_equilibrium_c": -12.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

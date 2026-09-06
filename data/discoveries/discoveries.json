@@ -99,6 +99,66 @@
       "player_namable": true,
       "technology_unlock": "deep_field_probe",
       "effect": {"type": "event_skim", "lookback_s": 0.4}
+    },
+    {
+      "discovery_id": "DISC_SALT_ANTENNA",
+      "artifact_id": "J007",
+      "internal_name": "Salt Antenna Formation",
+      "display_name_before_naming": "Unclassified Brine Geometry",
+      "description": "The pool arranges salt into working antenna geometries that receive narrowband signals from no known transmitter.",
+      "player_namable": true,
+      "technology_unlock": "gravity_sensor",
+      "effect": {"type": "salt_antenna", "gain_dbi": 34.0}
+    },
+    {
+      "discovery_id": "DISC_BRINE_MEMORY",
+      "artifact_id": "J007",
+      "internal_name": "Brine Memory",
+      "display_name_before_naming": "Unclassified Refill Effect",
+      "description": "Drained brine returns overnight with identical isotopic ratios, down to the part per billion.",
+      "player_namable": true,
+      "technology_unlock": "thermal_containment",
+      "effect": {"type": "brine_memory", "fidelity": 1.0}
+    },
+    {
+      "discovery_id": "DISC_TALLY_COUPLING",
+      "artifact_id": "J008",
+      "internal_name": "Decision-Tally Coupling",
+      "display_name_before_naming": "Unclassified Inscription",
+      "description": "The stone etches one tally per nearby decision, with 99.2% correspondence across blind trials.",
+      "player_namable": true,
+      "technology_unlock": "experimental_field_sensor",
+      "effect": {"type": "tally_coupling", "correspondence": 0.992}
+    },
+    {
+      "discovery_id": "DISC_LEDGER_SLEEP",
+      "artifact_id": "J008",
+      "internal_name": "Ledger Dormancy",
+      "display_name_before_naming": "Unclassified Quiet Periods",
+      "description": "The stone goes quiet only when no conscious observer is within forty meters. It knows when it is alone.",
+      "player_namable": true,
+      "technology_unlock": "field_stabilizer",
+      "effect": {"type": "ledger_sleep", "radius_m": 40.0}
+    },
+    {
+      "discovery_id": "DISC_FAILURE_LUMEN",
+      "artifact_id": "J009",
+      "internal_name": "Failure Luminescence",
+      "display_name_before_naming": "Unclassified Cold Light",
+      "description": "The lantern burns brighter with every failed experiment nearby, as if feeding on disappointment.",
+      "player_namable": true,
+      "technology_unlock": "resonance_amplifier",
+      "effect": {"type": "failure_lumen", "gain_per_failure": 0.12}
+    },
+    {
+      "discovery_id": "DISC_LANTERN_FROST",
+      "artifact_id": "J009",
+      "internal_name": "Lantern Frost Cycle",
+      "display_name_before_naming": "Unclassified Cold Pattern",
+      "description": "Frost on the lantern glass forms failure statistics in miniature: every past failed run, graphed.",
+      "player_namable": true,
+      "technology_unlock": "cryo_lattice",
+      "effect": {"type": "lantern_frost", "resolution_runs": 400}
     }
   ]
 }

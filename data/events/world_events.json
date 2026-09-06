@@ -125,6 +125,24 @@
       "player_bonus": 0.2,
       "funds_grant": 2500,
       "duration_days": 8
+    },
+    {
+      "id": "EVT_QUIET",
+      "name": "The Quiet Quarter",
+      "flavor": "For once, nothing explodes, leaks, or declares war. Labs do their best work in the silence.",
+      "rival_mult": 0.9,
+      "player_bonus": 0.3,
+      "funds_grant": 800,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_HEARING",
+      "name": "Congressional Hearings",
+      "flavor": "Politicians discover the field exists and demand answers on television. Everything slows; lawyers bill.",
+      "rival_mult": 0.8,
+      "player_bonus": 0.0,
+      "funds_grant": -800,
+      "duration_days": 8
     }
   ]
 }

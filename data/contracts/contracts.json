@@ -234,6 +234,32 @@
       "market_bonus": 2.0,
       "military": false,
       "event_tag": "EVT_EMBARGO"
+    },
+    {
+      "id": "CTR_COLDCHAIN",
+      "issuer": "Polar Logistics Cooperative",
+      "title": "Polar Cold Chain",
+      "flavor": "Keep vaccines frozen across a thawing Arctic. The ice is the easy part.",
+      "days_required": 5,
+      "upfront": 1250,
+      "completion_pay": 1850,
+      "tech_key": "cryo_lattice",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_LANTERN",
+      "issuer": "Office of Contingency Planning",
+      "title": "Failure Litany Array",
+      "flavor": "Only after the gold rush starts. Instrument every failure in the building, on purpose this time.",
+      "days_required": 6,
+      "upfront": 1700,
+      "completion_pay": 2400,
+      "tech_key": "deep_field_probe",
+      "market_bonus": 2.5,
+      "military": false,
+      "event_tag": "EVT_GOLD"
     }
   ]
 }

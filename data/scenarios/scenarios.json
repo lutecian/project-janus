@@ -65,7 +65,7 @@
     {
       "id": "SCN_STORM",
       "name": "Storm Warning",
-      "flavor": "Hard rules, and war breaks out on day 8. Sell to the army or be overrun.",
+      "flavor": "Hard pace, and war breaks out on day 8. Sell to the army or be overrun.",
       "start_act": 1,
       "seed": 9999,
       "difficulty": "hard",
@@ -74,6 +74,19 @@
       "rival_bonus": 0.0,
       "remove_scientists": [],
       "force_event": "EVT_WAR"
+    },
+    {
+      "id": "SCN_BRINE",
+      "name": "Salt Air",
+      "flavor": "Start on the Salt Choir with brine money. Listen for the slow bit.",
+      "start_act": 2,
+      "seed": 7171,
+      "difficulty": "normal",
+      "start_artifact": "J007",
+      "funds_bonus": 1500,
+      "rival_bonus": 0.0,
+      "remove_scientists": [],
+      "force_event": ""
     },
     {
       "id": "SCN_SKELETON",

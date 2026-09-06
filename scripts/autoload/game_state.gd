@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.19.0"
+const GAME_VERSION := "0.20.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -402,7 +402,10 @@ func _load_artifact_data():
 		"res://data/artifacts/j003.json",
 		"res://data/artifacts/j004.json",
 		"res://data/artifacts/j005.json",
-		"res://data/artifacts/j006.json"
+		"res://data/artifacts/j006.json",
+		"res://data/artifacts/j007.json",
+		"res://data/artifacts/j008.json",
+		"res://data/artifacts/j009.json"
 	]
 	for path in paths:
 		var data := _load_json(path)
@@ -1974,7 +1977,7 @@ func _act_def(act_id: int) -> Dictionary:
 		var ad: Dictionary = adef as Dictionary
 		if int(ad.get("id", 1)) == act_id:
 			return ad
-	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
+	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
 
 func get_act_name() -> String:
 	return _act_def(act).get("name", "Containment")
