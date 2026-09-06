@@ -712,8 +712,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 14:
-		push_error("ctr: expected 14-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 18:
+		push_error("ctr: expected 18-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -804,7 +804,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 13:
+	if GameState.contract_deck.size() != 17:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -1398,6 +1398,69 @@ func _test_action():
 	GameState.load_save_data(save)
 	if GameState.active_crises.size() != 1:
 		push_error("action: active crisis lost after save/load")
+		failures += 1
+
+	# --- C6: Crisis kinds bite differently ---
+	GameState.initialize_new_campaign({"name": "Action Kinds"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	var rupture := {
+		"id": "INC_TEST_RUP", "name": "Test Rupture", "description": "d",
+		"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+		"crisis": {"days": 5, "resolve_cost": 1500, "kind": "rupture"}
+	}
+	GameState._apply_incident(rupture)
+	var ridx: int = GameState.active_crises.size() - 1
+	(GameState.active_crises[ridx] as Dictionary)["days_left"] = 1.0
+	var rf: int = GameState.budget["funds"]
+	GameState._tick_crises()
+	if GameState.budget["funds"] != rf - 5000:
+		push_error("action: rupture expiry should cost 5000, funds %d" % GameState.budget["funds"])
+		failures += 1
+	var hp_before := 0
+	for s in GameState.scientists:
+		hp_before += int((s as Dictionary).get("health", 0))
+	for k in [11, 22, 33, 44]:
+		var conta := {
+			"id": "INC_TEST_CON", "name": "Test Contamination", "description": "d",
+			"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+			"crisis": {"days": 5, "resolve_cost": 1500, "kind": "contamination"}
+		}
+		GameState._apply_incident(conta)
+		var cidx: int = GameState.active_crises.size() - 1
+		(GameState.active_crises[cidx] as Dictionary)["days_left"] = 1.0
+		GameState._rng.seed = k
+		GameState._tick_crises()
+	var hp_after := 0
+	for s in GameState.scientists:
+		hp_after += int((s as Dictionary).get("health", 0))
+	if hp_after >= hp_before:
+		push_error("action: contamination expiry should injure staff")
+		failures += 1
+
+	# --- C7: Poaching steals the disloyal, warns the loyal ---
+	GameState.initialize_new_campaign({"name": "Action Poach"}, "normal")
+	GameState.select_artifact(0)
+	var helios_r := {}
+	for r in GameState.rivals:
+		if (r as Dictionary).get("id", "") == "RIV_HELIOS":
+			helios_r = r as Dictionary
+	for s in GameState.scientists:
+		(s as Dictionary)["loyalty"] = 90
+	(GameState.scientists[0] as Dictionary)["loyalty"] = 10
+	var cover0: float = GameState.esp_cover
+	var poach_text: String = GameState._apply_enemy_op(helios_r, "poach")
+	if (GameState.scientists[0] as Dictionary).get("status", "") != "DEFECTED":
+		push_error("action: disloyal scientist should defect, got '%s'" % poach_text)
+		failures += 1
+	if "turncoat" not in GameState.run_badges:
+		push_error("action: poach should award turncoat")
+		failures += 1
+	for s in GameState.scientists:
+		(s as Dictionary)["loyalty"] = 90
+	var poach_text2: String = GameState._apply_enemy_op(helios_r, "poach")
+	if GameState.esp_cover <= cover0:
+		push_error("action: resisted poach should teach cover, got '%s'" % poach_text2)
 		failures += 1
 
 	if failures == 0:

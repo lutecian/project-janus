@@ -219,7 +219,7 @@
         "Aperture plane now ringed in floor paint, three meters out."
       ],
       "discovery_chance_increase": 0.1,
-      "crisis": {"days": 5, "resolve_cost": 1500}
+      "crisis": {"days": 5, "resolve_cost": 1500, "kind": "breach"}
     },
     {
       "id": "INC_FROSTBITE_CASUALTY",
@@ -280,7 +280,88 @@
         "Interlock assembly replaced wholesale. Old unit quarantined, not scrapped — nobody wants to touch it."
       ],
       "discovery_chance_increase": 0.15,
-      "crisis": {"days": 5, "resolve_cost": 1500}
+      "crisis": {"days": 5, "resolve_cost": 1500, "kind": "contamination"}
+    },
+    {
+      "id": "INC_WHISPER_FIELD",
+      "name": "Whisper Field",
+      "description": "Audio pickups near the artifact recorded structured patterns resembling speech.",
+      "graphic_description": "The night-shift recording is seven hours of room tone with a voice in it that is not on any staff roster, reciting mass readings two seconds before the instruments display them. The linguist quit. The recording keeps playing in the break room because no one will be the one to turn it off.",
+      "casualty": 5,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.1,
+        "budget_cost": 400,
+        "days_lost": 0
+      },
+      "observations": [
+        "Structured audio patterns correlate with mass readings at +2s lead.",
+        "Linguist resigned. Recording archived under seal."
+      ],
+      "discovery_chance_increase": 0.1
+    },
+    {
+      "id": "INC_MIRROR_PROTOCOL",
+      "name": "Mirror Protocol Breach",
+      "description": "A rival's surveillance implant was found in a spectrometer.",
+      "graphic_description": "The implant was the size of a grain of rice and it was warm. It had been recording for eleven weeks. Forensics found skin cells under the casing that match no one on staff, and a second implant, dead, inside the first one like a Russian doll.",
+      "casualty": 0,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.0,
+        "budget_cost": 1000,
+        "days_lost": 1
+      },
+      "observations": [
+        "Surveillance implant recovered. Eleven weeks of logs compromised.",
+        "Counter-intel sweep ordered across all benches."
+      ],
+      "discovery_chance_increase": 0.0
+    },
+    {
+      "id": "INC_GRAVITY_WELL",
+      "name": "Gravity Well Event",
+      "description": "A localized gravity spike pinned equipment to the floor.",
+      "graphic_description": "The spike hit 6G for four seconds. A cart full of glassware became a single fused sculpture. A tech caught under a toppling rack now walks with a cane and tells the story better than it happened.",
+      "casualty": 20,
+      "severity": "moderate",
+      "trigger_chance": 0.015,
+      "knowledge_state_required": "suspected",
+      "effects": {
+        "observation_quality_reduction": 0.1,
+        "budget_cost": 600,
+        "days_lost": 1
+      },
+      "observations": [
+        "6G spike, four seconds. Equipment fused, one cane issued.",
+        "Gravitational safety margins rewritten facility-wide."
+      ],
+      "discovery_chance_increase": 0.05
+    },
+    {
+      "id": "INC_RUPTURE_ALARM",
+      "name": "Coolant Rupture",
+      "description": "A coolant line burst across the cryo bench.",
+      "graphic_description": "The line let go with a sound like a gunshot and boiling coolant took the skin off a tech's forearms in sheets. The rupture kept pumping for ninety seconds while the shutoff, corroded shut, laughed at everyone.",
+      "casualty": 25,
+      "severity": "major",
+      "trigger_chance": 0.01,
+      "knowledge_state_required": "any",
+      "effects": {
+        "observation_quality_reduction": 0.15,
+        "budget_cost": 1400,
+        "days_lost": 2
+      },
+      "observations": [
+        "Coolant line burst. Two forearms degloved, shutoff corroded.",
+        "All cryo lines replaced. Old ones kept as a warning."
+      ],
+      "discovery_chance_increase": 0.05,
+      "crisis": {"days": 4, "resolve_cost": 1800, "kind": "rupture"}
     }
   ],
   "incident_cooldown_days": 5,

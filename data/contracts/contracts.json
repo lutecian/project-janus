@@ -182,6 +182,58 @@
       "military": true,
       "event_tag": "",
       "min_ties": 25
+    },
+    {
+      "id": "CTR_GREENHOUSE",
+      "issuer": "Verdant Collective",
+      "title": "Resonance Greenhouses",
+      "flavor": "Acoustic growth stimulation for vertical farms. Gentle work, honest pay.",
+      "days_required": 4,
+      "upfront": 850,
+      "completion_pay": 1250,
+      "tech_key": "resonance_amplifier",
+      "market_bonus": 1.5,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_VAULT",
+      "issuer": "Meridian Vault Society",
+      "title": "Deep-Time Vault",
+      "flavor": "A hundred-thousand-year archive needs sensors that outlive languages.",
+      "days_required": 6,
+      "upfront": 1500,
+      "completion_pay": 2100,
+      "tech_key": "deep_field_probe",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_TRIAGE",
+      "issuer": "Emergency Medical Corps",
+      "title": "Field Cryo Triage",
+      "flavor": "Battlefield cold-chain for blood and plasma. Military, but the kind with stretchers.",
+      "days_required": 5,
+      "upfront": 1300,
+      "completion_pay": 1900,
+      "tech_key": "cryo_lattice",
+      "market_bonus": 2.0,
+      "military": true,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_MONSOON",
+      "issuer": "Coastal Adaptation Fund",
+      "title": "Storm Break Array",
+      "flavor": "Offered after the embargo bites. Resonance pylons that blunt storm surge.",
+      "days_required": 5,
+      "upfront": 1400,
+      "completion_pay": 2000,
+      "tech_key": "resonance_amplifier",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": "EVT_EMBARGO"
     }
   ]
 }

@@ -15,6 +15,7 @@
     {"id": "speed_demon", "name": "Speed Demon", "description": "Win in under 30 days."},
     {"id": "survivor", "name": "Survivor", "description": "Win after continuing past a victory."},
     {"id": "tycoon", "name": "Tycoon", "description": "Own 3 subsidiaries at once."},
-    {"id": "spymaster", "name": "Spymaster", "description": "Succeed at 5 espionage operations in one campaign."}
+    {"id": "spymaster", "name": "Spymaster", "description": "Succeed at 5 espionage operations in one campaign."},
+    {"id": "turncoat", "name": "Turncoat Season", "description": "Lose a scientist to a rival poach."}
   ]
 }

@@ -98,6 +98,33 @@
       "player_bonus": 0.0,
       "funds_grant": -500,
       "duration_days": 8
+    },
+    {
+      "id": "EVT_ECLIPSE",
+      "name": "Total Eclipse Window",
+      "flavor": "A rare eclipse stills the ionosphere. Delicate measurements everywhere get easier.",
+      "rival_mult": 1.0,
+      "player_bonus": 0.4,
+      "funds_grant": 600,
+      "duration_days": 6
+    },
+    {
+      "id": "EVT_DEFECTION",
+      "name": "Rival Defection Wave",
+      "flavor": "A rival's staff walks out over ethics. Their loss is everyone's recruiting season — except the scramble slows all labs.",
+      "rival_mult": 0.85,
+      "player_bonus": 0.1,
+      "funds_grant": 400,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_GOLD",
+      "name": "Venture Gold Rush",
+      "flavor": "Dumb money floods the field. Everyone hires, everyone races, valuations detach from reality.",
+      "rival_mult": 1.25,
+      "player_bonus": 0.2,
+      "funds_grant": 2500,
+      "duration_days": 8
     }
   ]
 }

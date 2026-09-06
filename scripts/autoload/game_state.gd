@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.18.0"
+const GAME_VERSION := "0.19.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -1613,7 +1613,7 @@ func _tick_enemy_ops():
 
 func _apply_enemy_op(rd: Dictionary, kind: String = "") -> String:
 	if kind.is_empty():
-		var kinds := ["raid", "smear", "sabotage"]
+		var kinds := ["raid", "smear", "sabotage", "poach"]
 		kind = kinds[_rng.randi() % kinds.size()]
 	var detail := ""
 	if kind == "raid":
@@ -1624,6 +1624,30 @@ func _apply_enemy_op(rd: Dictionary, kind: String = "") -> String:
 	elif kind == "smear":
 		player_market = maxf(player_market - 2.0, 0.0)
 		detail = "%s smeared your reputation (-2%% market)." % rd.get("name", "?")
+	elif kind == "poach":
+		var mark := ""
+		var low := 101
+		for s in scientists:
+			var sd: Dictionary = s as Dictionary
+			if not _is_available(sd):
+				continue
+			if int(sd.get("loyalty", 100)) < low:
+				low = int(sd.get("loyalty", 100))
+				mark = sd.get("id", "")
+		if mark != "" and low < 50:
+			for s in scientists:
+				if (s as Dictionary).get("id", "") == mark:
+					(s as Dictionary)["status"] = "DEFECTED"
+			story_log.append({
+				"day": elapsed_days, "artifact_id": "", "kind": "defection",
+				"title": "Defection: %s" % _scientist_name(mark),
+				"text": "%s was poached by %s. Better money, fewer nightmares, no contest." % [_scientist_name(mark), rd.get("name", "?")]
+			})
+			award_badge("turncoat")
+			detail = "%s poached %s (loyalty %d)." % [rd.get("name", "?"), _scientist_name(mark), low]
+		else:
+			esp_cover = minf(esp_cover + 5.0, 50.0)
+			detail = "%s tried to poach your staff; they reported it (+5 cover)." % rd.get("name", "?")
 	else:
 		player_sabotaged_until = elapsed_days + 3.0
 		detail = "%s sabotaged your labs (research slowed 3 days)." % rd.get("name", "?")
@@ -1834,10 +1858,17 @@ func _maybe_spawn_crisis(record: Dictionary, incident: Dictionary):
 	var sev: String = record.get("severity", "minor")
 	if not (sev in ["major", "critical", "severe"]) and not incident.has("crisis"):
 		return
-	var block: Dictionary = incident.get("crisis", {"days": 5, "resolve_cost": 1500})
+	var block: Dictionary = incident.get("crisis", {"days": 5, "resolve_cost": 1500, "kind": "breach"})
+	var kind: String = block.get("kind", "breach")
+	var cname := "Containment Crisis: %s" % record.get("name", "Unknown")
+	if kind == "contamination":
+		cname = "Contamination: %s" % record.get("name", "Unknown")
+	elif kind == "rupture":
+		cname = "Rupture: %s" % record.get("name", "Unknown")
 	active_crises.append({
 		"id": "%s-d%d" % [record.get("id", "CRI"), int(elapsed_days)],
-		"name": "Containment Crisis: %s" % record.get("name", "Unknown"),
+		"name": cname,
+		"kind": kind,
 		"days_left": float(block.get("days", 5)),
 		"resolve_cost": int(block.get("resolve_cost", 1500)),
 		"incident_id": record.get("id", "")
@@ -1850,13 +1881,22 @@ func _tick_crises():
 		if float(cd.get("days_left", 0.0)) > 0.0:
 			continue
 		active_crises.erase(cd)
-		budget["funds"] = int(budget.get("funds", 0)) - 3000
-		var victim: String = _pick_involved_scientist()
-		if not victim.is_empty():
-			_harm_scientist(victim, 30, "in the uncontained aftermath")
+		var kind: String = cd.get("kind", "breach")
+		if kind == "contamination":
+			for s in scientists:
+				var sd: Dictionary = s as Dictionary
+				if _is_available(sd) and _rng.randf() < 0.5:
+					_harm_scientist(sd.get("id", ""), 20, "in the uncontained contamination")
+		elif kind == "rupture":
+			budget["funds"] = int(budget.get("funds", 0)) - 5000
+		else:
+			budget["funds"] = int(budget.get("funds", 0)) - 3000
+			var victim: String = _pick_involved_scientist()
+			if not victim.is_empty():
+				_harm_scientist(victim, 30, "in the uncontained aftermath")
 		intelligence_reports.append({
 			"day": elapsed_days, "threshold": -2,
-			"text": "UNCONTAINED: %s burned out of control. -$3000 emergency response, casualties." % cd.get("name", "?"),
+			"text": "UNCONTAINED: %s burned out of control." % cd.get("name", "?"),
 			"helios_progress": helios["progress"]
 		})
 		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
