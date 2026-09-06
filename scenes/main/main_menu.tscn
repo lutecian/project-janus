@@ -86,6 +86,13 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Daily Challenge"
 
+[node name="btn_weekly" type="Button" parent="Card/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(250, 50)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Weekly Challenge"
+
 [node name="slot_row" type="HBoxContainer" parent="Card/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8

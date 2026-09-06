@@ -270,7 +270,7 @@ func _update_queue_ui():
 		for entry in day_plan:
 			var ed: Dictionary = entry as Dictionary
 			var sci: Dictionary = GameState.scientists[int(ed.get("sci_index", -1))]
-			parts.append("%s: %s" % [sci.get("first_name", "?"), ed.get("exp_id", "?")])
+			parts.append("%s: %s (%s)" % [sci.get("first_name", "?"), ed.get("exp_id", "?"), ed.get("art", "?")])
 		queue_label.text = "Day plan (%d): %s" % [day_plan.size(), "; ".join(parts)]
 		btn_run_day.disabled = false
 		btn_run_day.text = "Run Day (%d)" % day_plan.size()
@@ -347,7 +347,7 @@ func _on_queue_pressed():
 		if int((entry as Dictionary).get("sci_index", -1)) == selected_scientist_index:
 			status_label.text = "That scientist is already in the day plan."
 			return
-	day_plan.append({"sci_index": selected_scientist_index, "exp_id": selected_experiment_id})
+	day_plan.append({"sci_index": selected_scientist_index, "exp_id": selected_experiment_id, "art": GameState.artifact.get("id", "")})
 	selected_scientist_index = -1
 	selected_experiment_id = ""
 	_refresh_ui()
@@ -363,7 +363,7 @@ func _on_run_day_pressed():
 	for entry in day_plan:
 		var ed: Dictionary = entry as Dictionary
 		var sci: Dictionary = GameState.scientists[int(ed.get("sci_index", -1))]
-		pairs.append({"exp": _get_experiment_by_id(ed.get("exp_id", "")), "sci": sci})
+		pairs.append({"exp": _get_experiment_by_id(ed.get("exp_id", "")), "sci": sci, "art": ed.get("art", "")})
 	var results: Array = GameState.run_day_batch(pairs)
 	day_plan = []
 	SaveManager.save_game()

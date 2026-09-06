@@ -37,6 +37,45 @@
       "remove_scientists": []
     },
     {
+      "id": "SCN_GRANT",
+      "name": "Solenne Grant",
+      "flavor": "Easy rules with a fat endowment. Learn the ropes, richly.",
+      "start_act": 1,
+      "seed": 12321,
+      "difficulty": "easy",
+      "start_artifact": "J001",
+      "funds_bonus": 5000,
+      "rival_bonus": 0.0,
+      "remove_scientists": [],
+      "force_event": ""
+    },
+    {
+      "id": "SCN_IRONMAN",
+      "name": "Ironman Protocol",
+      "flavor": "One scientist. No replacements inbound. Try not to get anyone killed.",
+      "start_act": 1,
+      "seed": 5555,
+      "difficulty": "normal",
+      "start_artifact": "J001",
+      "funds_bonus": 2000,
+      "rival_bonus": 0.0,
+      "remove_scientists": ["SCIENTIST_REED", "SCIENTIST_VASQUEZ"],
+      "force_event": ""
+    },
+    {
+      "id": "SCN_STORM",
+      "name": "Storm Warning",
+      "flavor": "Hard rules, and war breaks out on day 8. Sell to the army or be overrun.",
+      "start_act": 1,
+      "seed": 9999,
+      "difficulty": "hard",
+      "start_artifact": "J001",
+      "funds_bonus": 0,
+      "rival_bonus": 0.0,
+      "remove_scientists": [],
+      "force_event": "EVT_WAR"
+    },
+    {
       "id": "SCN_SKELETON",
       "name": "Skeleton Crew",
       "flavor": "Expert rules. Reed never made it to the facility. Good luck.",

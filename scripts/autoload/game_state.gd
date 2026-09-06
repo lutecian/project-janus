@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.17.0"
+const GAME_VERSION := "0.18.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -257,6 +257,7 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	act = 1
 	hire_pool = ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
 	esp_successes = 0
+	incoming_bids = []
 	active_mutators = []
 	challenge_date = ""
 	tutorial_done = []
@@ -1101,6 +1102,7 @@ func _tick_new_day(worker_ids: Array):
 		player_market += 0.25
 	_tick_enemy_ops()
 	_tick_consolidation()
+	_maybe_hostile_bid()
 	_tick_crises()
 	for s in scientists:
 		var sd: Dictionary = s as Dictionary
@@ -1133,12 +1135,20 @@ func run_day_batch(pairs: Array) -> Array:
 		var sci: Dictionary = pd.get("sci", {})
 		if exp_def.is_empty() or sci.is_empty():
 			continue
-		if sci.get("status", "ACTIVE") == "DECEASED":
+		if not _is_available(sci):
 			continue
 		if sci.get("id", "") in used_scientists:
 			continue
 		if int(budget.get("funds", 0)) < _get_experiment_cost(exp_def.get("id", "")):
 			continue
+		var art_id: String = str(pd.get("art", ""))
+		if art_id != "" and art_id != artifact.get("id", ""):
+			for i in range(available_artifacts.size()):
+				if (available_artifacts[i] as Dictionary).get("id", "") == art_id:
+					select_artifact(i)
+					break
+			if artifact.get("id", "") != art_id:
+				continue
 		used_scientists[sci.get("id", "")] = true
 		worker_ids.append(sci.get("id", ""))
 		results.append(run_experiment(exp_def, sci, false))
@@ -1357,6 +1367,7 @@ func acquire_company(company_id: String) -> Dictionary:
 		"outcome": outcome,
 		"mult": _deal_multiplier(outcome),
 		"daily_research": float(offer.get("daily_research", 0.25)),
+		"true_value": float(offer.get("true_value", 0.0)),
 		"techs_remaining": techs
 	}
 	owned_companies.append(owned)
@@ -1980,9 +1991,22 @@ static func daily_mutator() -> String:
 	rng.seed = daily_seed()
 	return ids[rng.randi() % ids.size()]
 
+static func weekly_seed() -> int:
+	return int(Time.get_unix_time_from_system() / 604800.0)
+
+static func weekly_mutator() -> String:
+	var ids := ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = weekly_seed() * 31 + 7
+	return ids[rng.randi() % ids.size()]
+
 func start_daily_challenge():
 	challenge_date = str(daily_seed())
 	active_mutators = [daily_mutator()]
+
+func start_weekly_challenge():
+	challenge_date = "W" + str(weekly_seed())
+	active_mutators = [weekly_mutator()]
 
 func _ng_level() -> int:
 	return mini(int(_load_legacy().get("ng_wins", 0)), 5)
@@ -2023,6 +2047,9 @@ func apply_scenario(scenario_id: String) -> Dictionary:
 				continue
 			rd["share"] = float(rd.get("share", 0)) + rb
 		_sync_helios_rival()
+	var force_ev: String = sdef.get("force_event", "")
+	if force_ev != "":
+		event_schedule.append({"id": force_ev, "day": 8.0})
 	var kept: Array = []
 	for s in scientists:
 		if not (s as Dictionary).get("id", "") in (sdef.get("remove_scientists", []) as Array):
@@ -2079,6 +2106,66 @@ func get_memorial() -> Array:
 		if not found:
 			out.append({"name": "KIA: " + _scientist_name(sd.get("id", "")), "day": -1, "text": "They gave everything to the work."})
 	return out
+
+# --- Hostile bids: rivals try to buy YOUR subsidiaries ---
+var incoming_bids: Array = []
+
+func _maybe_hostile_bid():
+	if owned_companies.is_empty() or in_recovery:
+		return
+	var leader: Dictionary = _leading_rival()
+	if leader.is_empty() or float(leader.get("share", 0)) <= 25.0:
+		return
+	if leader.get("disposition", "") not in ["aggressive", "wildcard"]:
+		return
+	if _rng.randf() >= 0.03:
+		return
+	var target: Dictionary = (owned_companies[_rng.randi() % owned_companies.size()] as Dictionary)
+	_open_hostile_bid(target, leader)
+
+func _open_hostile_bid(owned: Dictionary, bidder: Dictionary) -> Dictionary:
+	for b in incoming_bids:
+		if (b as Dictionary).get("company_id", "") == owned.get("id", ""):
+			return {}
+	var bid := {
+		"id": "BID_%s_d%d" % [owned.get("id", ""), int(elapsed_days)],
+		"company_id": owned.get("id", ""),
+		"company_name": owned.get("name", "?"),
+		"bidder_id": bidder.get("id", ""),
+		"bidder_name": bidder.get("name", "?"),
+		"price": int(round(float(owned.get("true_value", 0.0)) * 1.5))
+	}
+	incoming_bids.append(bid)
+	intelligence_reports.append({
+		"day": elapsed_days, "threshold": -5,
+		"text": "%s bids $%d for your subsidiary %s. Sell or refuse." % [
+			bidder.get("name", "?"), int(bid["price"]), owned.get("name", "?")
+		],
+		"helios_progress": helios["progress"]
+	})
+	return bid
+
+func accept_hostile_bid(bid_id: String) -> Dictionary:
+	for b in incoming_bids:
+		var bd: Dictionary = b as Dictionary
+		if bd.get("id", "") != bid_id:
+			continue
+		budget["funds"] = int(budget.get("funds", 0)) + int(bd.get("price", 0))
+		for i in range(owned_companies.size()):
+			if (owned_companies[i] as Dictionary).get("id", "") == bd.get("company_id", ""):
+				owned_companies.remove_at(i)
+				break
+		incoming_bids.erase(bd)
+		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+		return {"ok": true, "price": int(bd.get("price", 0))}
+	return {"ok": false, "reason": "no_bid"}
+
+func decline_hostile_bid(bid_id: String) -> Dictionary:
+	for b in incoming_bids:
+		if (b as Dictionary).get("id", "") == bid_id:
+			incoming_bids.erase(b)
+			return {"ok": true}
+	return {"ok": false, "reason": "no_bid"}
 
 # --- Phase 8 roster: hireable replacements, living cap ---
 const ROSTER_CAP := 5
@@ -2454,9 +2541,12 @@ func _record_legacy():
 			award_badge("survivor")
 	if challenge_date != "":
 		var legacy_c: Dictionary = _load_legacy()
-		var prev: Dictionary = legacy_c.get("daily", {})
+		var slot_key := "daily"
+		if challenge_date.begins_with("W"):
+			slot_key = "weekly"
+		var prev: Dictionary = legacy_c.get(slot_key, {})
 		if prev.get("date", "") != challenge_date or int(prev.get("score", -1)) < int(game_over.get("score", 0)):
-			legacy_c["daily"] = {"date": challenge_date, "score": int(game_over.get("score", 0)), "mutator": active_mutators[0] if not active_mutators.is_empty() else ""}
+			legacy_c[slot_key] = {"date": challenge_date, "score": int(game_over.get("score", 0)), "mutator": active_mutators[0] if not active_mutators.is_empty() else ""}
 			_persist_legacy(legacy_c)
 	flush_telemetry("ended")
 	var diff_id: String = difficulty.get("id", "normal")
@@ -2526,6 +2616,9 @@ func get_legacy_line() -> String:
 	var daily_text := ""
 	if not daily.is_empty():
 		daily_text = " | Daily %s: %d" % [daily.get("date", "?"), int(daily.get("score", 0))]
+	var weekly: Dictionary = legacy.get("weekly", {})
+	if not weekly.is_empty():
+		daily_text += " | Weekly %s: %d" % [weekly.get("date", "?"), int(weekly.get("score", 0))]
 	return "Best — %s | Top score: %d%s | Badges: %d/%d" % ["; ".join(parts), top, daily_text, badges.size(), total]
 
 # --- Phase 3 espionage: funds + risk allocation, not click-to-win ---
@@ -2929,6 +3022,7 @@ func get_save_data() -> Dictionary:
 		"hire_pool": hire_pool,
 		"company_roster": company_roster,
 		"esp_successes": esp_successes,
+		"incoming_bids": incoming_bids,
 		"active_mutators": active_mutators,
 		"challenge_date": challenge_date,
 		"use_ng": use_ng,
@@ -3032,6 +3126,7 @@ func load_save_data(data: Dictionary):
 	military_ties = data.get("military_ties", 0.0)
 	act = data.get("act", 1)
 	hire_pool = data.get("hire_pool", ["SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"])
+	incoming_bids = data.get("incoming_bids", [])
 	esp_successes = data.get("esp_successes", 0)
 	company_roster = data.get("company_roster", ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"])
 	active_mutators = data.get("active_mutators", [])

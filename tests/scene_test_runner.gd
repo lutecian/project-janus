@@ -617,6 +617,49 @@ func _test_acq():
 		push_error("acq: all 6 rostered offers should be listed by day 30, got %d" % GameState.company_offers.size())
 		failures += 1
 
+	# --- A10: Rivals bid for your subsidiaries; you set the terms ---
+	GameState.initialize_new_campaign({"name": "Acq Bids"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.acquire_company((GameState.company_offers[0] as Dictionary).get("id", ""))
+	var owned0: Dictionary = GameState.owned_companies[0]
+	var helios0 := {}
+	for r in GameState.rivals:
+		var rdx: Dictionary = r as Dictionary
+		if rdx.get("id", "") == "RIV_HELIOS":
+			rdx["share"] = 30.0
+			helios0 = rdx
+		else:
+			rdx["share"] = 5.0
+	var bid: Dictionary = GameState._open_hostile_bid(owned0, helios0)
+	if bid.is_empty() or int(bid.get("price", 0)) <= 0:
+		push_error("acq: bid should open with a price, got %s" % bid)
+		failures += 1
+	var funds_pre: int = GameState.budget["funds"]
+	var sale: Dictionary = GameState.accept_hostile_bid(bid.get("id", ""))
+	if not sale.get("ok", false) or GameState.budget["funds"] != funds_pre + int(bid.get("price", 0)):
+		push_error("acq: selling should pay the bid price")
+		failures += 1
+	if not GameState.owned_companies.is_empty():
+		push_error("acq: sold subsidiary should leave the roster")
+		failures += 1
+	GameState.acquire_company((GameState.company_offers[0] as Dictionary).get("id", ""))
+	var bid2: Dictionary = GameState._open_hostile_bid(GameState.owned_companies[0], helios0)
+	if GameState.decline_hostile_bid(bid2.get("id", "")).get("ok", false) != true:
+		push_error("acq: declining should work")
+		failures += 1
+	if GameState.owned_companies.size() != 1 or not GameState.incoming_bids.is_empty():
+		push_error("acq: declined bid should leave everything in place")
+		failures += 1
+	for r in GameState.rivals:
+		(r as Dictionary)["share"] = 5.0
+	GameState.elapsed_days = 0.0
+	for i in range(5):
+		GameState._tick_new_day([])
+	if not GameState.incoming_bids.is_empty():
+		push_error("acq: weak field should never bid")
+		failures += 1
+
 	# --- A9: No day-one sweep — buyouts need credibility + board cooldown ---
 	GameState.initialize_new_campaign({"name": "Acq Sweep"}, "easy")
 	GameState.select_artifact(0)
@@ -1675,6 +1718,36 @@ func _test_batch():
 		push_error("batch: deceased scientist should be skipped, got %d" % with_dead.size())
 		failures += 1
 
+	# --- B3: Batches span artifacts; locked ones are skipped ---
+	GameState.initialize_new_campaign({"name": "Batch Cross"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 1000
+	var chenx: Dictionary = GameState.scientists[0]
+	var reedx: Dictionary = GameState.scientists[1]
+	var locked_run: Array = GameState.run_day_batch([
+		{"exp": heat, "sci": chenx, "art": "J001"},
+		{"exp": heat, "sci": reedx, "art": "J004"}
+	])
+	if locked_run.size() != 1:
+		push_error("batch: locked-artifact leg should skip, got %d" % locked_run.size())
+		failures += 1
+	GameState.knowledge["progress"] = 70
+	GameState.run_experiment(heat, chenx)
+	if GameState.act != 2:
+		push_error("batch: setup should reach act 2")
+		failures += 1
+	var cross: Array = GameState.run_day_batch([
+		{"exp": heat, "sci": chenx, "art": "J001"},
+		{"exp": heat, "sci": reedx, "art": "J004"}
+	])
+	if cross.size() != 2:
+		push_error("batch: unlocked cross-artifact day should run both, got %d" % cross.size())
+		failures += 1
+	if GameState.artifact.get("id", "") != "J004":
+		push_error("batch: day should end on the last leg's artifact")
+		failures += 1
+
 	if failures == 0:
 		print("BATCH_OK")
 	else:
@@ -1982,6 +2055,54 @@ func _test_chal():
 		if lj4.parse(ltext) != OK or (lj4.data as Dictionary).get("daily", {}).get("date", "") != str(GameState.daily_seed()):
 			push_error("chal: daily result not recorded")
 			failures += 1
+
+	# --- H6b: Weekly challenges mirror dailies ---
+	if GameState.weekly_seed() <= 0 or GameState.weekly_mutator() != GameState.weekly_mutator():
+		push_error("chal: weekly seed/mutator broken")
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Chal Weekly"}, "normal")
+	GameState.start_weekly_challenge()
+	if not GameState.challenge_date.begins_with("W"):
+		push_error("chal: weekly date should carry W prefix, got '%s'" % GameState.challenge_date)
+		failures += 1
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	for r in GameState.rivals:
+		var rdw: Dictionary = r as Dictionary
+		if rdw.get("id", "") == "RIV_HELIOS":
+			rdw["share"] = 5.0
+	GameState._check_market_end()
+	var lfw := FileAccess.open("user://janus_legacy.json", FileAccess.READ)
+	if lfw == null:
+		push_error("chal: legacy file missing after weekly win")
+		failures += 1
+	else:
+		var ltextw: String = lfw.get_as_text()
+		lfw.close()
+		var ljw := JSON.new()
+		if ljw.parse(ltextw) != OK or (ljw.data as Dictionary).get("weekly", {}).get("date", "") != GameState.challenge_date:
+			push_error("chal: weekly result not recorded")
+			failures += 1
+
+	# --- H7: New scenarios apply ---
+	GameState.initialize_new_campaign({"name": "Scn Grant"}, "easy", 12321)
+	GameState.apply_scenario("SCN_GRANT")
+	if int(GameState.budget.get("funds", 0)) != 17500:
+		push_error("chal: grant should total 17500, got %d" % GameState.budget.get("funds", 0))
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Scn Iron"}, "normal", 5555)
+	GameState.apply_scenario("SCN_IRONMAN")
+	if GameState.scientists.size() != 1:
+		push_error("chal: ironman should leave one scientist, got %d" % GameState.scientists.size())
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Scn Storm"}, "hard", 9999)
+	GameState.apply_scenario("SCN_STORM")
+	var stormed := false
+	for entry in GameState.event_schedule:
+		if (entry as Dictionary).get("id", "") == "EVT_WAR":
+			stormed = true
+	if not stormed:
+		push_error("chal: storm should schedule war")
+		failures += 1
 
 	# --- H6: Save/load preserves challenge + NG state ---
 	GameState.active_mutators = ["MUT_GLASS"]

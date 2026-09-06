@@ -8,9 +8,23 @@ extends Control
 @onready var status_label: Label = $ScrollContainer/VBox/status_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
 
+var bids_box: VBoxContainer
+
 func _ready():
 	btn_back.pressed.connect(_on_back)
 	EventBus.game_over.connect(_on_game_over)
+	var vbox: VBoxContainer = $ScrollContainer/VBox
+	var header := Label.new()
+	header.text = "HOSTILE BIDS ON YOUR ASSETS"
+	header.add_theme_font_size_override("font_size", 18)
+	header.horizontal_alignment = 1
+	bids_box = VBoxContainer.new()
+	bids_box.add_theme_constant_override("separation", 8)
+	vbox.add_child(header)
+	vbox.add_child(bids_box)
+	var brow: Control = $ScrollContainer/VBox/ButtonRow
+	vbox.move_child(header, brow.get_index())
+	vbox.move_child(bids_box, brow.get_index() + 1)
 	_refresh()
 
 func _refresh():
@@ -22,6 +36,7 @@ func _refresh():
 	_populate_offers()
 	_populate_rivals()
 	_populate_owned()
+	_populate_bids()
 	_update_domination()
 
 func _clear(container: VBoxContainer):
@@ -133,6 +148,48 @@ func _populate_owned():
 			" (%d tech in pipeline)" % remaining.size() if not remaining.is_empty() else ""
 		])
 	owned_label.text = "\n".join(parts)
+
+func _populate_bids():
+	_clear(bids_box)
+	if GameState.incoming_bids.is_empty():
+		var none := Label.new()
+		none.text = "No bids on your subsidiaries. Rivals only bid once a leader passes 25%."
+		none.add_theme_font_size_override("font_size", 13)
+		bids_box.add_child(none)
+		return
+	for b in GameState.incoming_bids:
+		var bd: Dictionary = b as Dictionary
+		var line := Label.new()
+		line.text = "%s bids $%d for %s." % [
+			bd.get("bidder_name", "?"), int(bd.get("price", 0)), bd.get("company_name", "?")
+		]
+		line.add_theme_font_size_override("font_size", 14)
+		line.autowrap_mode = 2
+		bids_box.add_child(line)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var sell_btn := Button.new()
+		sell_btn.text = "Sell ($%d)" % int(bd.get("price", 0))
+		sell_btn.pressed.connect(_on_bid.bind(bd.get("id", ""), true))
+		row.add_child(sell_btn)
+		var refuse_btn := Button.new()
+		refuse_btn.text = "Refuse"
+		refuse_btn.pressed.connect(_on_bid.bind(bd.get("id", ""), false))
+		row.add_child(refuse_btn)
+		bids_box.add_child(row)
+
+func _on_bid(bid_id: String, accept: bool):
+	var res: Dictionary
+	if accept:
+		res = GameState.accept_hostile_bid(bid_id)
+		if res.get("ok", false):
+			status_label.text = "Subsidiary sold for $%d." % int(res.get("price", 0))
+		else:
+			status_label.text = "Sale failed (%s)." % res.get("reason", "?")
+	else:
+		res = GameState.decline_hostile_bid(bid_id)
+		status_label.text = "Bid refused. They will remember that." if res.get("ok", false) else "No such bid."
+	_refresh()
 
 func _update_domination():
 	var prog: Dictionary = GameState.get_domination_progress()

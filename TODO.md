@@ -51,7 +51,7 @@
 - [x] Research budget (budget screen, funding schedule to day 40)
 - [x] Basic incidents (incident reports screen, log, crises, graphic variants)
 - [x] Limited facility layout (facilities screen + visual floorplan)
-- [ ] Scientist experience system (fields exist/displayed; no mechanical effect yet)
+- [x] Scientist experience system (+1/run, 6 levels, +2% quality/level) (fields exist/displayed; no mechanical effect yet)
 - [x] Scientist injuries (INJURED/DECEASED/DEFECTED states, infirmary, memorial)
 - [x] More HELIOS behavior (full rival field: 6 rivals, buyouts, ops, taunts, consolidation)
 - [x] Artifact interactions (12 experiments incl. dangerous track)
