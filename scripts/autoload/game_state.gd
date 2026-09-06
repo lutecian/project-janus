@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.20.0"
+const GAME_VERSION := "0.21.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -590,6 +590,8 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 	knowledge_gain = maxi(knowledge_gain, base_gain)
 	if has_facility("FAC_LAB"):
 		knowledge_gain += 1
+	if has_facility("FAC_LAB_2"):
+		knowledge_gain += 1
 	if has_facility("FAC_PRIZE_HEL"):
 		knowledge_gain += 2
 	if has_facility("FAC_PRIZE_VAN") and _rng.randf() < 0.25:
@@ -968,6 +970,8 @@ func _check_incidents(scientist: Dictionary = {}):
 			chance *= 0.5
 		if has_facility("FAC_SHIELD"):
 			chance *= 0.5
+		if has_facility("FAC_SHIELD_2"):
+			chance *= 0.5
 		chance *= 1.0 - get_security() / 200.0
 		chance *= 1.0 - minf(malfunction_guard, 0.9)
 		if _rng.randf() < chance:
@@ -997,7 +1001,9 @@ func _apply_incident(incident: Dictionary):
 		"graphic_description": incident.get("graphic_description", ""),
 		"severity": base_severity,
 		"day": elapsed_days,
-		"mitigated": mitigated
+		"mitigated": mitigated,
+		"artifact_id": artifact.get("id", ""),
+		"casualty": int(incident.get("casualty", 0))
 	}
 	incidents.append(record)
 	var involved: String = _pick_involved_scientist()
@@ -1102,6 +1108,8 @@ func _tick_new_day(worker_ids: Array):
 	_tick_events()
 	esp_risk = maxf(esp_risk - 2.0, 0.0)
 	if has_facility("FAC_DESK"):
+		player_market += 0.25
+	if has_facility("FAC_DESK_2"):
 		player_market += 0.25
 	_tick_enemy_ops()
 	_tick_consolidation()
@@ -1314,6 +1322,8 @@ func perform_due_diligence(company_id: String) -> Dictionary:
 		return {"ok": false, "reason": "max_level"}
 	var cost: int = int(ACQ_DD_COSTS[level])
 	if has_facility("FAC_SCANNER"):
+		cost = maxi(int(cost / 2), 1)
+	if has_facility("FAC_SCANNER_2"):
 		cost = maxi(int(cost / 2), 1)
 	if int(budget.get("funds", 0)) < cost:
 		return {"ok": false, "reason": "insufficient_funds"}
@@ -1540,6 +1550,8 @@ func get_security() -> float:
 	var sec := 20.0
 	if has_facility("FAC_GARRISON"):
 		sec += 30.0
+	if has_facility("FAC_GARRISON_2"):
+		sec += 30.0
 	return sec
 
 func _mil_discount() -> float:
@@ -1566,20 +1578,23 @@ func has_facility(facility_id: String) -> bool:
 	return facility_id in facilities_owned
 
 func buy_facility(facility_id: String) -> Dictionary:
+	var fdef: Dictionary = _facility_def(facility_id)
+	if fdef.is_empty():
+		return {"ok": false, "reason": "no_def"}
 	if has_facility(facility_id):
 		return {"ok": false, "reason": "owned"}
 	if str(facility_id).begins_with("FAC_PRIZE_"):
 		return {"ok": false, "reason": "not_for_sale"}
-	var fdef: Dictionary = _facility_def(facility_id)
-	if fdef.is_empty():
-		return {"ok": false, "reason": "no_def"}
+	var need: String = fdef.get("requires", "")
+	if need != "" and not has_facility(need):
+		return {"ok": false, "reason": "requires_base"}
 	var cost: int = facility_price(facility_id)
 	if int(budget.get("funds", 0)) < cost:
 		return {"ok": false, "reason": "insufficient_funds"}
 	budget["funds"] = int(budget.get("funds", 0)) - cost
 	budget["spent"] = int(budget.get("spent", 0)) + cost
 	facilities_owned.append(facility_id)
-	if facility_id == "FAC_INTEL":
+	if facility_id == "FAC_INTEL" or facility_id == "FAC_INTEL_2":
 		esp_cover = minf(esp_cover + 15.0, 50.0)
 		EventBus.espionage_updated.emit()
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
@@ -1839,7 +1854,7 @@ func _harm_scientist(sci_id: String, dmg: int, cause: String):
 			})
 		return
 
-# --- Phase 6 rival voices: directors taunt at milestones ---
+# --- Phase 6 rival voices: directors taunt at milestones; at 40 they make a move ---
 func _check_rival_taunt(rd: Dictionary):
 	var thresholds := [25.0, 40.0]
 	var hits: Array = rd.get("milestones_hit", [])
@@ -1855,6 +1870,49 @@ func _check_rival_taunt(rd: Dictionary):
 					"day": elapsed_days, "threshold": -3, "text": text,
 					"helios_progress": helios["progress"]
 				})
+			if i == 1:
+				_rival_signature_move(rd)
+
+func _rival_signature_move(rd: Dictionary):
+	var disp: String = rd.get("disposition", "")
+	var rname: String = rd.get("name", "?")
+	var detail := ""
+	if disp == "aggressive":
+		rd["share"] = float(rd.get("share", 0)) + 3.0
+		detail = "%s goes public with a breakthrough: +3 share surge." % rname
+	elif disp == "steady":
+		rd["daily_advance"] = float(rd.get("daily_advance", 0.5)) + 0.1
+		detail = "%s compounds quietly: permanently faster advance." % rname
+	elif disp == "publisher":
+		player_market += 2.0
+		detail = "%s publishes openly; your citations pay +2 market." % rname
+	elif disp == "wildcard":
+		if _rng.randf() < 0.5:
+			rd["share"] = float(rd.get("share", 0)) + 5.0
+			detail = "%s bets it all and wins: +5 share." % rname
+		else:
+			rd["share"] = float(rd.get("share", 0)) * 0.5
+			detail = "%s overextends and collapses: share halved." % rname
+	else:
+		return
+	story_log.append({
+		"day": elapsed_days, "artifact_id": "", "kind": "rival_arc",
+		"title": "Rival move: %s" % rname, "text": detail
+	})
+	intelligence_reports.append({
+		"day": elapsed_days, "threshold": -3, "text": detail,
+		"helios_progress": helios["progress"]
+	})
+
+func artifact_safety(art_id: String) -> Dictionary:
+	var n := 0
+	var hurt := 0
+	for inc in incidents:
+		var rec: Dictionary = inc as Dictionary
+		if rec.get("artifact_id", "") == art_id:
+			n += 1
+			hurt += int(rec.get("casualty", 0))
+	return {"incidents": n, "casualties": hurt}
 
 # --- Phase 6 crises: major incidents demand answers on a clock ---
 func _maybe_spawn_crisis(record: Dictionary, incident: Dictionary):

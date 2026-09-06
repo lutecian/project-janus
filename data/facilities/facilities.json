@@ -43,6 +43,54 @@
       "effect": "+30 security (incidents and enemy ops rarer)"
     },
     {
+      "id": "FAC_LAB_2",
+      "name": "Advanced Laboratory II",
+      "flavor": "Second-generation benches. Requires the base laboratory.",
+      "cost": 7000,
+      "effect": "+1 more knowledge per experiment",
+      "requires": "FAC_LAB"
+    },
+    {
+      "id": "FAC_SHIELD_2",
+      "name": "Aegis Shielding",
+      "flavor": "Military-grade field dampers over the civilian set.",
+      "cost": 6000,
+      "effect": "Incident chance x0.5 again",
+      "requires": "FAC_SHIELD"
+    },
+    {
+      "id": "FAC_DESK_2",
+      "name": "Prime Brokerage Desk",
+      "flavor": "The desk gets a Bloomberg terminal and an attitude.",
+      "cost": 5500,
+      "effect": "+0.25 more market per day",
+      "requires": "FAC_DESK"
+    },
+    {
+      "id": "FAC_INTEL_2",
+      "name": "Black Chamber",
+      "flavor": "A room inside the locked room. Requires the Intel Cell.",
+      "cost": 4500,
+      "effect": "+15 more cover on purchase",
+      "requires": "FAC_INTEL"
+    },
+    {
+      "id": "FAC_SCANNER_2",
+      "name": "Godseye Array",
+      "flavor": "Sees through everything, including the fine print.",
+      "cost": 3500,
+      "effect": "Due diligence x0.5 again",
+      "requires": "FAC_SCANNER"
+    },
+    {
+      "id": "FAC_GARRISON_2",
+      "name": "Praetorian Wing",
+      "flavor": "The garrison gets veterans. Requires the garrison.",
+      "cost": 7500,
+      "effect": "+30 more security",
+      "requires": "FAC_GARRISON"
+    },
+    {
       "id": "FAC_PRIZE_HEL",
       "name": "Helios Assault Doctrine",
       "flavor": "Stolen from inside HELIOS: their aggressive research playbook. +2 knowledge per experiment.",

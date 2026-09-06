@@ -26,8 +26,12 @@ func _refresh():
 		var fid: String = fd.get("id", "")
 		if bool(fd.get("prize", false)) and not GameState.has_facility(fid):
 			continue
+		var need: String = fd.get("requires", "")
+		var locked: bool = need != "" and not GameState.has_facility(need)
 		var line := Label.new()
 		var state := "OWNED" if GameState.has_facility(fid) else "$%d" % GameState.facility_price(fid)
+		if locked:
+			state += " (requires %s)" % need
 		line.text = "%s [%s]\n%s\n%s" % [
 			fd.get("name", "?"), state, fd.get("flavor", ""), fd.get("effect", "")
 		]
@@ -37,6 +41,7 @@ func _refresh():
 		if not GameState.has_facility(fid):
 			var buy_btn := Button.new()
 			buy_btn.text = "Build: %s ($%d)" % [fd.get("name", "?"), GameState.facility_price(fid)]
+			buy_btn.disabled = locked
 			buy_btn.pressed.connect(_on_buy.bind(fid))
 			facilities_container.add_child(buy_btn)
 

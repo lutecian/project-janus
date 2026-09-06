@@ -53,6 +53,8 @@ func _display_artifact():
 	for key in known:
 		var val: Variant = known[key]
 		parts.append("%s: %s" % [key.replace("_", " ").capitalize(), str(val)])
+	var safety: Dictionary = GameState.artifact_safety(GameState.artifact.get("id", ""))
+	parts.append("Safety record: %d incidents, %d casualties" % [int(safety.get("incidents", 0)), int(safety.get("casualties", 0))])
 	known_label.text = "KNOWN PROPERTIES\n" + "\n".join(parts)
 
 	var state: String = GameState.knowledge["state"]

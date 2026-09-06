@@ -480,6 +480,53 @@ func _test_market():
 		push_error("market: steady sabotage should hurt less (%.1f vs %.1f)" % [steady_gain, wild_gain])
 		failures += 1
 
+	# --- M9: Rival signature moves fire at 40 share ---
+	GameState.initialize_new_campaign({"name": "Market Moves"}, "normal")
+	GameState.select_artifact(0)
+	var mover := {}
+	for r in GameState.rivals:
+		var rd4: Dictionary = r as Dictionary
+		if rd4.get("id", "") == "RIV_HELIOS":
+			rd4["share"] = 39.9
+			mover = rd4
+	GameState._rng.seed = 20240
+	GameState._tick_market()
+	if float(mover.get("share", 0)) < 42.0:
+		push_error("market: aggressive 40-share move should surge past 42, got %.1f" % float(mover.get("share", 0)))
+		failures += 1
+	var saw_arc := false
+	for entry in GameState.story_log:
+		if (entry as Dictionary).get("kind", "") == "rival_arc":
+			saw_arc = true
+	if not saw_arc:
+		push_error("market: signature move should log a rival arc")
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Market Moves 2"}, "normal")
+	GameState.select_artifact(0)
+	var steady2 := {}
+	var pub2 := {}
+	var i2 := 0
+	for r in GameState.rivals:
+		var rd5: Dictionary = r as Dictionary
+		if i2 == 0:
+			rd5["disposition"] = "steady"
+			steady2 = rd5
+		elif i2 == 1:
+			rd5["disposition"] = "publisher"
+			pub2 = rd5
+		rd5["share"] = 39.9
+		i2 += 1
+	var adv_before: float = float(steady2.get("daily_advance", 0))
+	var pm_before2: float = GameState.get_player_market()
+	GameState._rng.seed = 20241
+	GameState._tick_market()
+	if absf(float(steady2.get("daily_advance", 0)) - (adv_before + 0.1)) > 0.0001:
+		push_error("market: steady 40-share move should quicken advance")
+		failures += 1
+	if GameState.get_player_market() - pm_before2 < 2.5:
+		push_error("market: publisher 40-share move should pay prestige (delta %.1f)" % (GameState.get_player_market() - pm_before2))
+		failures += 1
+
 	if failures == 0:
 		print("MARKET_OK")
 	else:
@@ -1124,6 +1171,36 @@ func _test_depth():
 	if GameState.player_sabotaged_until <= GameState.elapsed_days:
 		push_error("depth: sabotage should slow research for 3 days")
 		failures += 1
+
+	# --- D1b: Tier-2 gates on tier-1 and stacks ---
+	GameState.initialize_new_campaign({"name": "Depth Tiers"}, "normal")
+	GameState.budget["funds"] = 60000
+	if GameState.buy_facility("FAC_LAB_2").get("reason", "") != "requires_base":
+		push_error("depth: tier-2 without tier-1 should refuse")
+		failures += 1
+	for fid in ["FAC_LAB", "FAC_SHIELD", "FAC_DESK", "FAC_INTEL", "FAC_SCANNER", "FAC_GARRISON",
+			"FAC_LAB_2", "FAC_SHIELD_2", "FAC_DESK_2", "FAC_INTEL_2", "FAC_SCANNER_2", "FAC_GARRISON_2"]:
+		if not GameState.buy_facility(fid).get("ok", false):
+			push_error("depth: buying %s should succeed" % fid)
+			failures += 1
+	if absf(GameState.get_security() - 80.0) > 0.001:
+		push_error("depth: double garrison should reach 80 security, got %.1f" % GameState.get_security())
+		failures += 1
+	if absf(GameState.esp_cover - 30.0) > 0.001:
+		push_error("depth: double intel should grant +30 cover, got %.1f" % GameState.esp_cover)
+		failures += 1
+	var toffer: String = (GameState.company_offers[0] as Dictionary).get("id", "")
+	var tf: int = GameState.budget["funds"]
+	GameState.perform_due_diligence(toffer)
+	if tf - GameState.budget["funds"] != 100:
+		push_error("depth: double scanner should quarter DD to 100, charged %d" % (tf - GameState.budget["funds"]))
+		failures += 1
+	var tpm: float = GameState.get_player_market()
+	GameState._rng.seed = 4242
+	GameState._tick_market()
+	if GameState.get_player_market() - tpm < 1.15:
+		push_error("depth: double desk should add >=1.15 per tick")
+		failures += 1
 	var exps: Array = GameState.load_experiment_definitions()
 	var heat := {}
 	for e in exps:
@@ -1374,6 +1451,10 @@ func _test_action():
 	GameState._apply_incident(major)
 	if GameState.active_crises.size() != 1:
 		push_error("action: major incident should spawn a crisis")
+		failures += 1
+	var saf: Dictionary = GameState.artifact_safety("J001")
+	if int(saf.get("incidents", -1)) != 1 or int(saf.get("casualties", -1)) != 0:
+		push_error("action: safety record should count this incident, got %s" % saf)
 		failures += 1
 	var cid: String = (GameState.active_crises[0] as Dictionary).get("id", "")
 

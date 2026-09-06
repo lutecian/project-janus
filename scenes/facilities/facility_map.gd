@@ -15,6 +15,12 @@ const ROOM_COLORS := {
 	"FAC_INTEL": Color(0.7, 0.5, 1.0),
 	"FAC_SCANNER": Color(0.3, 0.9, 0.9),
 	"FAC_GARRISON": Color(1.0, 0.6, 0.2),
+	"FAC_LAB_2": Color(0.4, 0.95, 1.0),
+	"FAC_SHIELD_2": Color(0.6, 0.75, 1.0),
+	"FAC_DESK_2": Color(0.6, 1.0, 0.75),
+	"FAC_INTEL_2": Color(0.85, 0.65, 1.0),
+	"FAC_SCANNER_2": Color(0.5, 1.0, 1.0),
+	"FAC_GARRISON_2": Color(1.0, 0.75, 0.35),
 }
 
 var _defs: Array = []
