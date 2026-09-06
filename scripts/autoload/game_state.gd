@@ -549,14 +549,7 @@ func is_experiment_unlocked(experiment_id: String) -> bool:
 	return false
 
 func _has_technology(tech_id: String) -> bool:
-	match tech_id:
-		"TECH_THERMAL_CONTAINMENT":
-			return unlocked_technologies.has("TECH_THERMAL_CONTAINMENT")
-		"TECH_GRAVITY_SENSOR":
-			return unlocked_technologies.has("TECH_GRAVITY_SENSOR")
-		"TECH_FIELD_STABILIZER":
-			return unlocked_technologies.has("TECH_FIELD_STABILIZER")
-	return false
+	return unlocked_technologies.has(tech_id)
 
 func load_experiment_definitions() -> Array:
 	var data := _load_json("res://data/experiments/experiments.json")
@@ -640,13 +633,20 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 		if (s as Dictionary).get("id", "") == scientist.get("id", ""):
 			sci_state = s as Dictionary
 	if not sci_state.is_empty():
-		sci_state["stress"] = mini(int(sci_state.get("stress", 0)) + 4, 100)
+		var resist := 0.0
+		var drive := 0.0
+		for trait_name in (sci_state.get("traits", []) as Array):
+			var te: Dictionary = TRAIT_EFFECTS.get(trait_name, {})
+			resist += float(te.get("stress_resistance", 0.0))
+			drive += float(te.get("stress_increase", 0.0))
+		var s_gain: int = int(round(4.0 * (1.0 - minf(resist, 0.9)) * (1.0 + drive)))
+		sci_state["stress"] = mini(int(sci_state.get("stress", 0)) + s_gain, 100)
 		sci_state["experience"] = int(sci_state.get("experience", 0)) + 1
 	if in_recovery:
 		influence = clampf(influence + 2.0, 0.0, 100.0)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 
-	_check_incidents()
+	_check_incidents(scientist)
 	_check_dangerous_experiment(exp_id)
 	_advance_helios()
 	_tick_lab_work()
@@ -704,11 +704,14 @@ func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dicti
 	var traits: Array = scientist.get("traits", [])
 	var trait_quality_bonus := 0.0
 	var critical_chance := 0.05
+	var consistency := 0.0
 	for trait_name in traits:
 		var effect: Dictionary = TRAIT_EFFECTS.get(trait_name, {})
 		trait_quality_bonus += effect.get("quality_bonus", 0.0)
 		critical_chance += effect.get("critical_bonus", 0.0)
+		consistency += effect.get("consistency", 0.0)
 	quality += trait_quality_bonus
+	critical_chance += (float(skills.get("risk_tolerance", 50)) - 50.0) * 0.001
 
 	var roll: float = _rng.randf()
 
@@ -719,12 +722,16 @@ func _calculate_observation_quality(experiment_def: Dictionary, scientist: Dicti
 	elif roll < critical_chance + 0.10:
 		quality *= 1.2
 	else:
-		quality += _rng.randf_range(-0.15, 0.15)
+		quality += _rng.randf_range(-0.15, 0.15) * (1.0 - minf(consistency, 0.9))
 
 	if technology_unlocked or unlocked_technologies.has("TECH_EXPERIMENTAL_FIELD_SENSOR"):
 		quality *= 1.2
 	if unlocked_technologies.has("TECH_GRAVITY_SENSOR"):
 		quality *= 1.1
+	if unlocked_technologies.has("TECH_DEEP_FIELD_PROBE"):
+		quality *= 1.1
+	if unlocked_technologies.has("TECH_RESONANCE_AMPLIFIER") and experiment_def.get("id", "") in ["EXP_ACOUSTIC", "EXP_VIBRATION"]:
+		quality *= 1.15
 	if scientist.get("status", "ACTIVE") == "INJURED":
 		quality *= 0.7
 	if int(scientist.get("stress", 0)) > 70:
@@ -808,9 +815,15 @@ func _get_technology_definition(tech_id: String) -> Dictionary:
 			return t_dict
 	return {}
 
-func _check_secondary_discoveries(exp_id: String):
+func _check_secondary_discoveries(exp_id: String, scientist: Dictionary = {}):
 	# Evidence-driven (simulation-authoritative): secondary discoveries are promoted by
 	# tallying the discovery_hint tags on observations accumulated during experiments.
+	# Insightful scientists connect dots faster (+1 effective evidence); skeptics need more.
+	var insight := 0
+	for trait_name in (scientist.get("traits", []) as Array):
+		var te: Dictionary = TRAIT_EFFECTS.get(trait_name, {})
+		insight += int(round(float(te.get("discovery_bonus", 0.0)) * 10.0))
+		insight -= int(round(float(te.get("discovery_reduction", 0.0)) * 10.0))
 	for d in discoveries:
 		var d_dict: Dictionary = d as Dictionary
 		if d_dict["state"] == "confirmed":
@@ -831,12 +844,13 @@ func _check_secondary_discoveries(exp_id: String):
 			if o.get("confidence", "low") == "high":
 				high_confidence_count += 1
 
-		if d_dict["state"] == "unknown" and evidence_count >= 2:
+		var effective: int = evidence_count + insight
+		if d_dict["state"] == "unknown" and effective >= 2:
 			d_dict["state"] = "suspected"
 			EventBus.discovery_suspected.emit(did)
 		elif d_dict["state"] == "suspected":
-			var confirmed := evidence_count >= 4
-			if not confirmed and evidence_count >= 2 and distinct_types.size() >= 2 and high_confidence_count >= 1:
+			var confirmed := effective >= 4
+			if not confirmed and effective >= 2 and distinct_types.size() >= 2 and high_confidence_count >= 1:
 				confirmed = true
 			if confirmed:
 				d_dict["state"] = "confirmed"
@@ -871,6 +885,8 @@ func _get_experiment_cost(experiment_id: String) -> int:
 	var costs: Dictionary = data.get("experiment_costs", {})
 	var cost: int = int(costs.get(experiment_id, 300))
 	if has_facility("FAC_PRIZE_BER"):
+		cost = maxi(int(cost * 0.75), 1)
+	if experiment_id == "EXP_COOLING" and unlocked_technologies.has("TECH_CRYO_LATTICE"):
 		cost = maxi(int(cost * 0.75), 1)
 	return cost
 
@@ -923,10 +939,13 @@ func _check_budget_events():
 func can_afford_experiment(experiment_id: String) -> bool:
 	return budget["funds"] >= _get_experiment_cost(experiment_id)
 
-func _check_incidents():
+func _check_incidents(scientist: Dictionary = {}):
 	if incident_cooldown > 0:
 		incident_cooldown -= 1
 		return
+	var malfunction_guard := 0.0
+	for trait_name in (scientist.get("traits", []) as Array):
+		malfunction_guard += float(TRAIT_EFFECTS.get(trait_name, {}).get("malfunction_reduction", 0.0))
 
 	var data := _load_json("res://data/events/incidents.json")
 	var possible: Array = data.get("incidents", [])
@@ -946,6 +965,7 @@ func _check_incidents():
 		if has_facility("FAC_SHIELD"):
 			chance *= 0.5
 		chance *= 1.0 - get_security() / 200.0
+		chance *= 1.0 - minf(malfunction_guard, 0.9)
 		if _rng.randf() < chance:
 			_apply_incident(inc_dict)
 			break

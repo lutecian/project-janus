@@ -172,6 +172,7 @@ func _test_next():
 		_test_tutorial()
 		_test_med()
 		_test_map()
+		_test_ability()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -2245,6 +2246,92 @@ func _test_map():
 		print("MAP_OK")
 	else:
 		print("%d MAP FAILURES" % failures)
+
+func _test_ability():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Ability Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	var exps: Array = GameState.load_experiment_definitions()
+	var heat := {}
+	var acoustic := {}
+	for e in exps:
+		if (e as Dictionary).get("id", "") == "EXP_HEATING":
+			heat = e as Dictionary
+		if (e as Dictionary).get("id", "") == "EXP_ACOUSTIC":
+			acoustic = e as Dictionary
+
+	# --- B1: Stress traits change fatigue; idlers rest (Chen +4, loyal Lund +3) ---
+	GameState.hire_scientist("SCIENTIST_LUND")
+	var chen0: Dictionary = GameState.scientists[0]
+	var lund0: Dictionary = GameState.scientists[3]
+	GameState.run_experiment(heat, chen0)
+	if int(chen0.get("stress", -1)) != 4:
+		push_error("ability: unmodified stress gain should be 4, got %d" % chen0.get("stress", -1))
+		failures += 1
+	GameState.run_experiment(heat, lund0)
+	if int(lund0.get("stress", -1)) != 3:
+		push_error("ability: loyal stress gain should be 3, got %d" % lund0.get("stress", -1))
+		failures += 1
+	if int(chen0.get("stress", -1)) != 0:
+		push_error("ability: idle scientists should rest back to 0, got %d" % chen0.get("stress", -1))
+		failures += 1
+
+	# --- B2: Insightful scientists confirm secondaries one evidence early ---
+	GameState.initialize_new_campaign({"name": "Ability Evidence"}, "normal")
+	GameState.select_artifact(0)
+	var chen1: Dictionary = GameState.scientists[0]
+	var ea := {}
+	for d in GameState.discoveries:
+		if (d as Dictionary).get("discovery_id", "") == "DISC_ENERGY_ABSORPTION":
+			ea = d as Dictionary
+	GameState.knowledge["observations"] = [
+		{"content": "a", "type": "passive", "confidence": "low", "discovery_hint": "energy_absorption"},
+		{"content": "b", "type": "passive", "confidence": "low", "discovery_hint": "energy_absorption"},
+		{"content": "c", "type": "passive", "confidence": "low", "discovery_hint": "energy_absorption"}
+	]
+	GameState._check_secondary_discoveries("EXP_HEATING")
+	if ea.get("state", "") != "suspected":
+		push_error("ability: 3 evidence without insight should only suspect, got '%s'" % ea.get("state", ""))
+		failures += 1
+	GameState._check_secondary_discoveries("EXP_HEATING", chen1)
+	if ea.get("state", "") != "confirmed":
+		push_error("ability: brilliant insight should confirm on 3 evidence, got '%s'" % ea.get("state", ""))
+		failures += 1
+
+	# --- B3: New tech effects are real multipliers ---
+	GameState._rng.seed = 424242
+	var q_plain: float = GameState._calculate_observation_quality(acoustic, chen1)
+	GameState.unlocked_technologies.append("TECH_RESONANCE_AMPLIFIER")
+	GameState._rng.seed = 424242
+	var q_res: float = GameState._calculate_observation_quality(acoustic, chen1)
+	if absf(q_res - q_plain * 1.15) > 0.001:
+		push_error("ability: resonance should be exactly 1.15x on acoustic (%.4f vs %.4f)" % [q_res, q_plain])
+		failures += 1
+	GameState._rng.seed = 424242
+	var q_plain2: float = GameState._calculate_observation_quality(heat, chen1)
+	GameState.unlocked_technologies.append("TECH_DEEP_FIELD_PROBE")
+	GameState._rng.seed = 424242
+	var q_deep: float = GameState._calculate_observation_quality(heat, chen1)
+	if absf(q_deep - q_plain2 * 1.1) > 0.001:
+		push_error("ability: deep field probe should be exactly 1.1x (%.4f vs %.4f)" % [q_deep, q_plain2])
+		failures += 1
+	if GameState._get_experiment_cost("EXP_COOLING") != 400:
+		push_error("ability: cooling should cost 400 without cryo lattice")
+		failures += 1
+	GameState.unlocked_technologies.append("TECH_CRYO_LATTICE")
+	if GameState._get_experiment_cost("EXP_COOLING") != 300:
+		push_error("ability: cryo lattice should cut cooling to 300")
+		failures += 1
+	if not GameState._has_technology("TECH_CRYO_LATTICE") or GameState._has_technology("TECH_NOPE"):
+		push_error("ability: generalized tech check broken")
+		failures += 1
+
+	if failures == 0:
+		print("ABILITY_OK")
+	else:
+		print("%d ABILITY FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0
