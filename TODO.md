@@ -45,17 +45,17 @@
 - [ ] Measure completion rate
 - [ ] Analyze experimentation patterns
 
-## Phase 3 — JANUS 0.1 (in progress)
-- [x] Multiple artifacts for player (3 artifacts, artifact selector)
-- [x] Multiple discoveries (4 discoveries, per-artifact multi-discovery tracking)
-- [x] Research budget (budget screen, funding schedule)
-- [x] Basic incidents (incident reports screen, log)
-- [ ] Limited facility layout
-- [ ] Scientist experience system
-- [ ] Scientist injuries
-- [ ] More HELIOS behavior
-- [ ] Artifact interactions
-- [x] Technology progression (4-tech tree, unlock conditions)
+## Phase 3 — JANUS 0.1 (done; superseded by 0.3–0.14 roadmap in CHANGELOG.md)
+- [x] Multiple artifacts for player (now 6, act-gated selector)
+- [x] Multiple discoveries (now 10, per-artifact multi-discovery tracking)
+- [x] Research budget (budget screen, funding schedule to day 40)
+- [x] Basic incidents (incident reports screen, log, crises, graphic variants)
+- [x] Limited facility layout (facilities screen + visual floorplan)
+- [ ] Scientist experience system (fields exist/displayed; no mechanical effect yet)
+- [x] Scientist injuries (INJURED/DECEASED/DEFECTED states, infirmary, memorial)
+- [x] More HELIOS behavior (full rival field: 6 rivals, buyouts, ops, taunts, consolidation)
+- [x] Artifact interactions (12 experiments incl. dangerous track)
+- [x] Technology progression (7-tech tree, unlock conditions)
 - [x] Expanded experiment set (acoustic, laser, vibration, radioactive)
 
 ## Phase 4 — Vertical Slice

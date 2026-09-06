@@ -159,7 +159,6 @@ var budget: Dictionary = {
 }
 var incidents: Array = []
 var incident_cooldown: int = 0
-var active_incidents: Array = []
 var selected_scientist_index: int = 0
 
 const SEVERITY_ORDER := ["minor", "moderate", "severe", "critical"]
@@ -290,7 +289,6 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	last_intel_threshold = 0
 	unlocked_technologies = []
 	incidents = []
-	active_incidents = []
 	_load_budget_data()
 	budget["funds"] = int(difficulty.get("player_start_budget", budget["funds"]))
 	if use_ng:
@@ -987,13 +985,6 @@ func _apply_incident(incident: Dictionary):
 		knowledge["progress"] = mini(knowledge["progress"] + int(discovery_bonus * 100), CONFIRMED_THRESHOLD)
 	incident_cooldown = 5
 	EventBus.incident_occurred.emit(record)
-
-func resolve_incident(incident_id: String):
-	for i in range(active_incidents.size()):
-		if active_incidents[i].get("id", "") == incident_id:
-			active_incidents.remove_at(i)
-			EventBus.incident_resolved.emit(incident_id)
-			break
 
 func _advance_helios():
 	if knowledge["state"] == "confirmed":
@@ -1903,7 +1894,7 @@ func _check_act_advance():
 # --- Phase 10 challenges + NG+ ---
 func _mutator_def(mut_id: String) -> Dictionary:
 	var data: Dictionary = _load_json("res://data/challenges/mutators.json")
-	for mdef in data.get("muts", data.get("mutators", [])):
+	for mdef in data.get("mutators", []):
 		var md: Dictionary = mdef as Dictionary
 		if md.get("id", "") == mut_id:
 			return md
@@ -2997,17 +2988,3 @@ func _generate_id() -> String:
 		_rng.randi(), _rng.randi() % 0xFFFF, _rng.randi() % 0xFFFF,
 		_rng.randi() % 0xFFFF, _rng.randi() % 0xFFFFFFFFFFFF
 	]
-
-func get_scientist_display(scientist: Dictionary) -> String:
-	return "%s %s (%s)" % [
-		scientist.get("first_name", "?"),
-		scientist.get("last_name", "?"),
-		scientist.get("primary_specialty", "unknown").replace("_", " ").capitalize()
-	]
-
-func get_skills_display(scientist: Dictionary) -> String:
-	var skills: Dictionary = scientist.get("skills", {})
-	var parts: PackedStringArray = []
-	for key in ["physics", "engineering", "observation", "curiosity"]:
-		parts.append("%s: %d" % [key.capitalize(), skills.get(key, 0)])
-	return " | ".join(parts)

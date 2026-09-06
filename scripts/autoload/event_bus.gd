@@ -1,7 +1,6 @@
 extends Node
 
-signal experiment_completed(experiment_id: String, scientist_id: String, observations: Array, knowledge_gain: int)
-signal observation_created(artifact_id: String, observation: Dictionary)
+
 signal discovery_suspected(discovery_id: String)
 signal discovery_confirmed(discovery_id: String)
 signal discovery_named(discovery_id: String, player_name: String)
@@ -12,7 +11,6 @@ signal campaign_saved()
 signal campaign_loaded()
 signal budget_updated(funds: int, spent: int)
 signal incident_occurred(incident: Dictionary)
-signal incident_resolved(incident_id: String)
 signal game_over(result: Dictionary)
 signal market_updated(player_market: float, rivals: Array)
 signal company_acquired(company_id: String, outcome: String)

@@ -10,6 +10,7 @@ extends Control
 @onready var legacy_label: Label = $Card/VBox/legacy_label
 
 var _confirm_dialog: ConfirmationDialog
+var _pending_daily := false
 
 func _ready():
 	btn_new.pressed.connect(_on_new_pressed)
@@ -36,6 +37,10 @@ func _on_new_pressed():
 
 func _on_new_confirmed():
 	SaveManager.delete_save()
+	if _pending_daily:
+		_pending_daily = false
+		_start_daily()
+		return
 	get_tree().change_scene_to_file("res://scenes/campaign/campaign_creation.tscn")
 
 func _on_load_pressed():
@@ -51,6 +56,13 @@ func _on_quit_pressed():
 	get_tree().quit()
 
 func _on_daily_pressed():
+	if SaveManager.has_save():
+		_pending_daily = true
+		_confirm_dialog.popup_centered(Vector2i(400, 150))
+		return
+	_start_daily()
+
+func _start_daily():
 	var org := {
 		"name": "Daily Task Force",
 		"abbreviation": "DTF",
