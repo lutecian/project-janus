@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.12.0"
+const GAME_VERSION := "0.13.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -1974,6 +1974,55 @@ func apply_scenario(scenario_id: String) -> Dictionary:
 			kept.append(s)
 	scientists = kept
 	return {"ok": true, "name": sdef.get("name", "?")}
+
+# --- Infirmary + memorial (uses existing health/stress/story state) ---
+func treat_scientist(sci_id: String) -> Dictionary:
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("id", "") != sci_id:
+			continue
+		if sd.get("status", "ACTIVE") != "INJURED":
+			return {"ok": false, "reason": "not_injured"}
+		if int(budget.get("funds", 0)) < 1500:
+			return {"ok": false, "reason": "insufficient_funds"}
+		budget["funds"] = int(budget.get("funds", 0)) - 1500
+		budget["spent"] = int(budget.get("spent", 0)) + 1500
+		sd["status"] = "ACTIVE"
+		sd["health"] = maxi(int(sd.get("health", 0)), 50)
+		sd["stress"] = 30
+		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+		return {"ok": true, "cost": 1500}
+	return {"ok": false, "reason": "no_scientist"}
+
+func order_rest() -> Dictionary:
+	if int(budget.get("funds", 0)) < 500:
+		return {"ok": false, "reason": "insufficient_funds"}
+	budget["funds"] = int(budget.get("funds", 0)) - 500
+	budget["spent"] = int(budget.get("spent", 0)) + 500
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("status", "ACTIVE") == "DECEASED":
+			continue
+		sd["stress"] = maxi(int(sd.get("stress", 0)) - 20, 0)
+	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+	return {"ok": true, "cost": 500}
+
+func get_memorial() -> Array:
+	var out: Array = []
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("status", "") != "DECEASED":
+			continue
+		var found := false
+		for entry in story_log:
+			var en: Dictionary = entry as Dictionary
+			if en.get("kind", "") == "death" and en.get("title", "").contains(_scientist_name(sd.get("id", ""))):
+				out.append({"name": en.get("title", "?"), "day": int(en.get("day", 0)), "text": en.get("text", "")})
+				found = true
+				break
+		if not found:
+			out.append({"name": "KIA: " + _scientist_name(sd.get("id", "")), "day": -1, "text": "They gave everything to the work."})
+	return out
 
 # --- Phase 8 roster: hireable replacements, living cap ---
 const ROSTER_CAP := 5

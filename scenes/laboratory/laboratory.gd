@@ -18,6 +18,7 @@ extends Control
 @onready var btn_contracts: Button = $MarginContainer/VBox/nav_row2/btn_contracts
 @onready var btn_espionage: Button = $MarginContainer/VBox/nav_row2/btn_espionage
 @onready var btn_facilities: Button = $MarginContainer/VBox/nav_row2/btn_facilities
+@onready var btn_infirmary: Button = $MarginContainer/VBox/nav_row2/btn_infirmary
 @onready var btn_main_menu: Button = $MarginContainer/VBox/footer_row/btn_main_menu
 @onready var btn_save: Button = $MarginContainer/VBox/footer_row/btn_save
 @onready var btn_help: Button = $MarginContainer/VBox/footer_row/btn_help
@@ -51,6 +52,7 @@ func _ready():
 	btn_contracts.pressed.connect(_go.bind("res://scenes/contracts/contracts.tscn"))
 	btn_espionage.pressed.connect(_go.bind("res://scenes/espionage/espionage.tscn"))
 	btn_facilities.pressed.connect(_go.bind("res://scenes/facilities/facilities.tscn"))
+	btn_infirmary.pressed.connect(_go.bind("res://scenes/infirmary/infirmary.tscn"))
 	btn_main_menu.pressed.connect(_on_main_menu)
 	btn_save.pressed.connect(_on_save)
 	btn_help.pressed.connect(_go.bind("res://scenes/help/codex.tscn"))

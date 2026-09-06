@@ -25,7 +25,8 @@ func _ready():
 		"res://scenes/contracts/contracts.tscn",
 		"res://scenes/espionage/espionage.tscn",
 		"res://scenes/facilities/facilities.tscn",
-		"res://scenes/help/codex.tscn"
+		"res://scenes/help/codex.tscn",
+		"res://scenes/infirmary/infirmary.tscn"
 	]
 	_test_next()
 
@@ -169,6 +170,7 @@ func _test_next():
 		_test_chal()
 		_test_recovery()
 		_test_tutorial()
+		_test_med()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -2108,6 +2110,67 @@ func _test_tutorial():
 		print("TUT_OK")
 	else:
 		print("%d TUT FAILURES" % failures)
+
+func _test_med():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Med Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 30000
+
+	# --- D1: Treatment heals the injured, refuses others ---
+	GameState._harm_scientist("SCIENTIST_CHEN", 70, "in testing")
+	var funds_before: int = GameState.budget["funds"]
+	var tr: Dictionary = GameState.treat_scientist("SCIENTIST_CHEN")
+	if not tr.get("ok", false):
+		push_error("med: treating the injured should work, got %s" % tr)
+		failures += 1
+	var chen := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == "SCIENTIST_CHEN":
+			chen = s as Dictionary
+	if chen.get("status", "") != "ACTIVE" or int(chen.get("health", 0)) < 50:
+		push_error("med: treatment should restore to active/50hp, got %s/%s" % [chen.get("status", "?"), chen.get("health", "?")])
+		failures += 1
+	if GameState.budget["funds"] != funds_before - 1500:
+		push_error("med: treatment should cost 1500")
+		failures += 1
+	if GameState.treat_scientist("SCIENTIST_REED").get("ok", true):
+		push_error("med: treating the healthy should fail")
+		failures += 1
+	GameState.budget["funds"] = 100
+	GameState._harm_scientist("SCIENTIST_REED", 70, "in testing")
+	if GameState.treat_scientist("SCIENTIST_REED").get("reason", "") != "insufficient_funds":
+		push_error("med: broke treatment should fail on funds")
+		failures += 1
+
+	# --- D2: Ordered rest relieves the whole roster ---
+	GameState.budget["funds"] = 30000
+	for s in GameState.scientists:
+		(s as Dictionary)["stress"] = 60
+	var rr: Dictionary = GameState.order_rest()
+	if not rr.get("ok", false):
+		push_error("med: rest order should succeed, got %s" % rr)
+		failures += 1
+	for s in GameState.scientists:
+		if int((s as Dictionary).get("stress", 99)) != 40:
+			push_error("med: rest should cut stress 60->40")
+			failures += 1
+			break
+
+	# --- D3: The wall remembers ---
+	GameState._harm_scientist("SCIENTIST_VASQUEZ", 200, "in testing")
+	var wall: Array = GameState.get_memorial()
+	if wall.size() != 1:
+		push_error("med: memorial should hold one name, got %d" % wall.size())
+		failures += 1
+	elif "VASQUEZ" not in (wall[0] as Dictionary).get("name", "").to_upper():
+		push_error("med: memorial names the wrong dead: %s" % (wall[0] as Dictionary).get("name", "?"))
+		failures += 1
+
+	if failures == 0:
+		print("MED_OK")
+	else:
+		print("%d MED FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0
