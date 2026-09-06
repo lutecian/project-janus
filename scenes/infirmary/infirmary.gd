@@ -26,10 +26,10 @@ func _refresh():
 		for i in range(10):
 			bar += "#" if i < hp2 / 10 else "-"
 		bar += "]"
-		line.text = "%s %s — %s | %s %d | Stress %d" % [
+		line.text = "%s %s — %s | %s %d | Stress %d | Loyalty %d" % [
 			sd.get("first_name", "?"), sd.get("last_name", "?"),
 			sd.get("status", "ACTIVE"),
-			bar, hp2, int(sd.get("stress", 0))
+			bar, hp2, int(sd.get("stress", 0)), int(sd.get("loyalty", 100))
 		]
 		line.add_theme_font_size_override("font_size", 14)
 		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL

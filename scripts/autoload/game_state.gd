@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.16.0"
+const GAME_VERSION := "0.17.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -1004,6 +1004,7 @@ func _apply_incident(incident: Dictionary):
 			var sd0: Dictionary = s as Dictionary
 			if sd0.get("id", "") == involved:
 				sd0["stress"] = mini(int(sd0.get("stress", 0)) + 10, 100)
+				sd0["loyalty"] = maxi(int(sd0.get("loyalty", 100)) - 5, 0)
 	var casualty: int = int(round(float(incident.get("casualty", 0)) * _mut_mult("casualty_mult", 1.0)))
 	if casualty > 0 and not involved.is_empty():
 		_harm_scientist(involved, casualty, "in %s" % record.get("name", "the incident"))
@@ -1073,7 +1074,7 @@ func _tick_new_day(worker_ids: Array):
 			continue
 		var adv: float = float(rd.get("daily_advance", 0.5))
 		if float(rd.get("sabotaged_until", 0.0)) > elapsed_days:
-			adv *= 0.5
+			adv *= 0.75 if rd.get("disposition", "") == "steady" else 0.5
 		adv *= _event_rival_mult()
 		adv *= _act_rival_mult()
 		var variation: float = _rng.randf_range(-0.3, 0.5)
@@ -1108,6 +1109,17 @@ func _tick_new_day(worker_ids: Array):
 		if sd.get("id", "") in worker_ids:
 			continue
 		sd["stress"] = maxi(int(sd.get("stress", 0)) - 8, 0)
+	for s in scientists:
+		var sd2: Dictionary = s as Dictionary
+		if sd2.get("status", "ACTIVE") != "ACTIVE":
+			continue
+		if int(sd2.get("loyalty", 100)) <= 0:
+			sd2["status"] = "RESIGNED"
+			story_log.append({
+				"day": elapsed_days, "artifact_id": "", "kind": "resignation",
+				"title": "Resignation: %s" % _scientist_name(sd2.get("id", "")),
+				"text": "%s has resigned. No note, no forwarding address — just an empty bench and a security badge left on the director's desk." % _scientist_name(sd2.get("id", ""))
+			})
 	_tick_insolvency()
 	_tick_recovery()
 
@@ -1145,6 +1157,10 @@ func _helios_market_from_lead(lead_share: float) -> void:
 func _award_discovery_market():
 	var gain: float = float(difficulty.get("player_discovery_gain", 11.0))
 	player_market += gain
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("disposition", "") == "publisher" and not rd.get("acquired_by_player", false) and rd.get("status", "active") == "active":
+			player_market += 1.0
 	if in_recovery:
 		influence = clampf(influence + 10.0, 0.0, 100.0)
 
@@ -1379,7 +1395,7 @@ func _tick_company_offers():
 		if elapsed_days < float(od.get("expires_day", 0.0)):
 			continue
 		if _rng.randf() < 0.5:
-			var grabber: Dictionary = _lowest_active_rival()
+			var grabber: Dictionary = _pick_grabber()
 			if not grabber.is_empty():
 				grabber["share"] = float(grabber.get("share", 0)) + ACQ_GRAB_BUMP
 				od["status"] = "grabbed"
@@ -1389,17 +1405,30 @@ func _tick_company_offers():
 		od["status"] = "expired"
 		EventBus.offer_closed.emit(od.get("id", ""), "expired")
 
-func _lowest_active_rival() -> Dictionary:
+# Aggressive rivals and wildcards pounce on expiring offers first; the meek inherit.
+func _pick_grabber() -> Dictionary:
 	var best := {}
 	var best_share := 1e9
 	for r in rivals:
 		var rd: Dictionary = r as Dictionary
 		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
 			continue
+		if not rd.get("disposition", "") in ["aggressive", "wildcard"]:
+			continue
 		var share: float = float(rd.get("share", 0))
 		if share < best_share:
 			best_share = share
 			best = rd
+	if not best.is_empty():
+		return best
+	for r in rivals:
+		var rd2: Dictionary = r as Dictionary
+		if rd2.get("acquired_by_player", false) or rd2.get("status", "active") != "active":
+			continue
+		var share2: float = float(rd2.get("share", 0))
+		if share2 < best_share:
+			best_share = share2
+			best = rd2
 	return best
 
 func _tick_rival_instability():
@@ -1752,6 +1781,10 @@ func _harm_scientist(sci_id: String, dmg: int, cause: String):
 		if int(sd["health"]) <= 0 and sd.get("status", "ACTIVE") != "DECEASED":
 			sd["status"] = "DECEASED"
 			pending_memorial = sci_id
+			for teammate in scientists:
+				var tm: Dictionary = teammate as Dictionary
+				if tm.get("id", "") != sci_id and _is_available(tm):
+					tm["loyalty"] = maxi(int(tm.get("loyalty", 100)) - 15, 0)
 			EventBus.scientist_died.emit(_scientist_name(sci_id))
 			story_log.append({
 				"day": elapsed_days, "artifact_id": artifact.get("id", ""), "kind": "death",
@@ -1860,7 +1893,8 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 	return {"ok": false, "reason": "no_crisis"}
 
 func _is_available(sci: Dictionary) -> bool:
-	return sci.get("status", "ACTIVE") != "DECEASED" and sci.get("status", "ACTIVE") != "DEFECTED"
+	var st: String = sci.get("status", "ACTIVE")
+	return st != "DECEASED" and st != "DEFECTED" and st != "RESIGNED"
 
 func _living_scientists() -> Array:
 	var out := []
@@ -2025,6 +2059,7 @@ func order_rest() -> Dictionary:
 		if sd.get("status", "ACTIVE") == "DECEASED":
 			continue
 		sd["stress"] = maxi(int(sd.get("stress", 0)) - 20, 0)
+		sd["loyalty"] = mini(int(sd.get("loyalty", 100)) + 5, 100)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	return {"ok": true, "cost": 500}
 
@@ -2058,7 +2093,7 @@ func _hireable_def(sci_id: String) -> Dictionary:
 func _living_count() -> int:
 	var n := 0
 	for s in scientists:
-		if (s as Dictionary).get("status", "ACTIVE") != "DECEASED":
+		if _is_available(s as Dictionary):
 			n += 1
 	return n
 
@@ -2409,6 +2444,10 @@ func _record_legacy():
 		var legacy0: Dictionary = _load_legacy()
 		legacy0["ng_wins"] = int(legacy0.get("ng_wins", 0)) + 1
 		_persist_legacy(legacy0)
+		for s in scientists:
+			var sdw: Dictionary = s as Dictionary
+			if _is_available(sdw):
+				sdw["loyalty"] = mini(int(sdw.get("loyalty", 100)) + 10, 100)
 		if elapsed_days < 30.0:
 			award_badge("speed_demon")
 		if continued:

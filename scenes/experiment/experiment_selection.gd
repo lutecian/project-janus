@@ -160,6 +160,9 @@ func _populate_scientists():
 		elif s.get("status", "ACTIVE") == "DEFECTED":
 			stag = " (DEFECTED)"
 			btn.disabled = true
+		elif s.get("status", "ACTIVE") == "RESIGNED":
+			stag = " (RESIGNED)"
+			btn.disabled = true
 		elif s.get("status", "ACTIVE") == "INJURED":
 			stag = " (INJURED)"
 		btn.text = "%s %s — %s%s" % [

@@ -410,6 +410,76 @@ func _test_market():
 		push_error("market: hard majority target not 58 after load, got %f" % GameState.get_majority_target())
 		failures += 1
 
+	# --- M6: Aggressive rivals pounce on expiring offers first ---
+	GameState.initialize_new_campaign({"name": "Market Grab"}, "normal")
+	GameState.select_artifact(0)
+	for r in GameState.rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("id", "") == "RIV_HELIOS":
+			rd["share"] = 20.0
+			rd["disposition"] = "aggressive"
+		else:
+			rd["share"] = 3.0
+			rd["disposition"] = "steady"
+	var grabber: Dictionary = GameState._pick_grabber()
+	if grabber.get("id", "") != "RIV_HELIOS":
+		push_error("market: aggressive HELIOS should grab first, got '%s'" % grabber.get("id", "?"))
+		failures += 1
+	for r in GameState.rivals:
+		(r as Dictionary)["disposition"] = "steady"
+	grabber = GameState._pick_grabber()
+	if absf(float(grabber.get("share", -1.0)) - 3.0) > 0.001:
+		push_error("market: with no aggressors, lowest share should grab")
+		failures += 1
+
+	# --- M7: Publisher citations pay prestige on confirmation ---
+	GameState.initialize_new_campaign({"name": "Market Applause"}, "normal")
+	GameState.select_artifact(0)
+	var pubs := 0
+	for r in GameState.rivals:
+		var rd2: Dictionary = r as Dictionary
+		if rd2.get("disposition", "") == "publisher" and rd2.get("status", "active") == "active":
+			pubs += 1
+	var pm0: float = GameState.get_player_market()
+	GameState._award_discovery_market()
+	var award_gain: float = float(GameState.difficulty.get("player_discovery_gain", 12.0))
+	if absf(GameState.get_player_market() - (pm0 + award_gain + pubs * 1.0)) > 0.001:
+		push_error("market: publishers should add +1 each on confirm (pubs=%d)" % pubs)
+		failures += 1
+
+	# --- M8: Steady rivals shrug off sabotage faster ---
+	GameState.initialize_new_campaign({"name": "Market Steady"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 999999
+	GameState.company_offers = []
+	var steady_r := {}
+	var wild_r := {}
+	var grab_i := 0
+	for r in GameState.rivals:
+		var rd3: Dictionary = r as Dictionary
+		if grab_i == 0:
+			rd3["disposition"] = "steady"
+			steady_r = rd3
+		elif grab_i == 1:
+			rd3["disposition"] = "aggressive"
+			wild_r = rd3
+		rd3["share"] = 10.0
+		rd3["daily_advance"] = 2.0
+		rd3["sabotaged_until"] = 1000.0
+		grab_i += 1
+	GameState._rng.seed = 777
+	var steady_gain := 0.0
+	var wild_gain := 0.0
+	for i in range(60):
+		var s0: float = float(steady_r.get("share", 0))
+		var w0: float = float(wild_r.get("share", 0))
+		GameState._tick_new_day([])
+		steady_gain += float(steady_r.get("share", 0)) - s0
+		wild_gain += float(wild_r.get("share", 0)) - w0
+	if steady_gain <= wild_gain:
+		push_error("market: steady sabotage should hurt less (%.1f vs %.1f)" % [steady_gain, wild_gain])
+		failures += 1
+
 	if failures == 0:
 		print("MARKET_OK")
 	else:
@@ -1681,6 +1751,73 @@ func _test_roster():
 		push_error("roster: slot 2 should select")
 		failures += 1
 	SaveManager.set_slot(1)
+
+	# --- R6: Loyalty has teeth ---
+	GameState.initialize_new_campaign({"name": "Roster Loyalty"}, "normal")
+	GameState.select_artifact(0)
+	var loyal_base := {}
+	for s in GameState.scientists:
+		loyal_base[(s as Dictionary).get("id", "")] = int((s as Dictionary).get("loyalty", 100))
+	GameState._harm_scientist("SCIENTIST_CHEN", 200, "in testing")
+	for s in GameState.scientists:
+		var sid: String = (s as Dictionary).get("id", "")
+		if sid == "SCIENTIST_REED" or sid == "SCIENTIST_VASQUEZ":
+			if int((s as Dictionary).get("loyalty", -1)) != int(loyal_base.get(sid, 0)) - 15:
+				push_error("roster: teammate death should cost 15 loyalty (%s)" % sid)
+				failures += 1
+	var reed0 := {}
+	var vasq0 := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == "SCIENTIST_REED":
+			reed0 = s as Dictionary
+		if (s as Dictionary).get("id", "") == "SCIENTIST_VASQUEZ":
+			vasq0 = s as Dictionary
+	GameState._harm_scientist("SCIENTIST_REED", 200, "in testing")
+	vasq0["loyalty"] = 60
+	var mild := {
+		"id": "INC_TEST_MILD", "name": "Test", "description": "d",
+		"severity": "minor", "effects": {"budget_cost": 0, "days_lost": 0}
+	}
+	GameState._apply_incident(mild)
+	if int(vasq0.get("loyalty", -1)) != 55:
+		push_error("roster: incident involvement should cost 5 loyalty, vasquez at %d" % vasq0.get("loyalty", -1))
+		failures += 1
+	vasq0["loyalty"] = 0
+	GameState._tick_new_day([])
+	if vasq0.get("status", "") != "RESIGNED":
+		push_error("roster: zero loyalty should resign, got '%s'" % vasq0.get("status", "?"))
+		failures += 1
+	var resigned_quit := false
+	for entry in GameState.story_log:
+		if (entry as Dictionary).get("kind", "") == "resignation":
+			resigned_quit = true
+	if not resigned_quit:
+		push_error("roster: resignation should be logged")
+		failures += 1
+	GameState.budget["funds"] = 50000
+	if not GameState.hire_scientist("SCIENTIST_LUND").get("ok", false):
+		push_error("roster: resignation should free a hiring slot")
+		failures += 1
+	if not GameState.run_experiment(heat, vasq0).is_empty():
+		push_error("roster: resigned scientist must be refused experiments")
+		failures += 1
+	var lund1 := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == "SCIENTIST_LUND":
+			(s as Dictionary)["loyalty"] = 80
+			lund1 = s as Dictionary
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	for r in GameState.rivals:
+		var rdx: Dictionary = r as Dictionary
+		if rdx.get("id", "") == "RIV_HELIOS":
+			rdx["share"] = GameState.get_majority_target() - 6.0
+	GameState._check_market_end()
+	if GameState.game_over.get("type", "") != "market_leader":
+		push_error("roster: setup should win first")
+		failures += 1
+	elif int(lund1.get("loyalty", -1)) != 90:
+		push_error("roster: wins should grant +10 loyalty, lund at %d" % lund1.get("loyalty", -1))
+		failures += 1
 
 	if failures == 0:
 		print("ROSTER_OK")

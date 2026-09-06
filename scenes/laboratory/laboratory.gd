@@ -189,6 +189,8 @@ func _populate_scientists():
 			condition = " [DECEASED]"
 		elif sci.get("status", "ACTIVE") == "DEFECTED":
 			condition = " [DEFECTED]"
+		elif sci.get("status", "ACTIVE") == "RESIGNED":
+			condition = " [RESIGNED]"
 		elif sci.get("status", "ACTIVE") == "INJURED":
 			condition = " [INJURED %s %d]" % [hpbar, hp]
 		else:
