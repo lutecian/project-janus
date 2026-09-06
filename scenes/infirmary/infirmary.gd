@@ -21,10 +21,15 @@ func _refresh():
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		var line := Label.new()
-		line.text = "%s %s — %s | HP %d | Stress %d" % [
+		var hp2: int = int(sd.get("health", 100))
+		var bar := "["
+		for i in range(10):
+			bar += "#" if i < hp2 / 10 else "-"
+		bar += "]"
+		line.text = "%s %s — %s | %s %d | Stress %d" % [
 			sd.get("first_name", "?"), sd.get("last_name", "?"),
 			sd.get("status", "ACTIVE"),
-			int(sd.get("health", 100)), int(sd.get("stress", 0))
+			bar, hp2, int(sd.get("stress", 0))
 		]
 		line.add_theme_font_size_override("font_size", 14)
 		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL

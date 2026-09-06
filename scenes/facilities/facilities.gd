@@ -1,12 +1,14 @@
 extends Control
 
 @onready var funds_label: Label = $ScrollContainer/VBox/funds_label
+@onready var facility_map: Control = $ScrollContainer/VBox/facility_map
 @onready var facilities_container: VBoxContainer = $ScrollContainer/VBox/facilities_container
 @onready var status_label: Label = $ScrollContainer/VBox/status_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
 
 func _ready():
 	btn_back.pressed.connect(_on_back)
+	facility_map.room_clicked.connect(_on_buy)
 	_refresh()
 
 func _refresh():
@@ -15,9 +17,10 @@ func _refresh():
 		int(GameState.get_security()),
 		int(GameState.military_ties)
 	]
+	var data: Dictionary = GameState._load_json("res://data/facilities/facilities.json")
+	facility_map.set_facilities(data.get("facilities", []), GameState.facilities_owned)
 	for child in facilities_container.get_children():
 		child.queue_free()
-	var data: Dictionary = GameState._load_json("res://data/facilities/facilities.json")
 	for fdef in data.get("facilities", []):
 		var fd: Dictionary = fdef as Dictionary
 		var fid: String = fd.get("id", "")

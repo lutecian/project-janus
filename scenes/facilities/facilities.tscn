@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://fac00001"]
+[gd_scene load_steps=3 format=3 uid="uid://fac00001"]
 
 [ext_resource type="Script" path="res://scenes/facilities/facilities.gd" id="1_script"]
+[ext_resource type="Script" path="res://scenes/facilities/facility_map.gd" id="2_map"]
 
 [node name="Facilities" type="Control"]
 layout_mode = 3
@@ -42,6 +43,20 @@ theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
 text = "Funds"
 
 [node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="map_header" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
+text = "FACILITY MAP — CLICK A ROOM TO BUILD"
+horizontal_alignment = 1
+
+[node name="facility_map" type="Control" parent="ScrollContainer/VBox"]
+layout_mode = 2
+script = ExtResource("2_map")
+
+[node name="SepMap" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
 
 [node name="facilities_container" type="VBoxContainer" parent="ScrollContainer/VBox"]

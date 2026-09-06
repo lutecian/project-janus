@@ -171,6 +171,7 @@ func _test_next():
 		_test_recovery()
 		_test_tutorial()
 		_test_med()
+		_test_map()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -2171,6 +2172,48 @@ func _test_med():
 		print("MED_OK")
 	else:
 		print("%d MED FAILURES" % failures)
+
+func _test_map():
+	var failures: int = 0
+	var map_script := load("res://scenes/facilities/facility_map.gd")
+	var fmap: Control = map_script.new()
+	var defs: Array = [
+		{"id": "FAC_LAB", "name": "Lab", "cost": 4000},
+		{"id": "FAC_SHIELD", "name": "Shield", "cost": 3500},
+		{"id": "FAC_PRIZE_HEL", "name": "Prize", "cost": 0, "prize": true}
+	]
+	add_child(fmap)
+	fmap.set_facilities(defs, ["FAC_LAB"])
+	if fmap.room_for("FAC_LAB") == Rect2():
+		push_error("map: owned room should have a rect")
+		failures += 1
+	if fmap.room_for("NOPE") != Rect2():
+		push_error("map: unknown room should be empty rect")
+		failures += 1
+	var seen: Array = []
+	for d in defs:
+		var r: Rect2 = fmap.room_for((d as Dictionary).get("id", ""))
+		for other in seen:
+			if r.intersects(other as Rect2):
+				push_error("map: rooms must not overlap")
+				failures += 1
+		seen.append(r)
+	if fmap._room_state("FAC_LAB", false) != "owned":
+		push_error("map: owned state wrong")
+		failures += 1
+	if fmap._room_state("FAC_SHIELD", false) != "available":
+		push_error("map: available state wrong")
+		failures += 1
+	if fmap._room_state("FAC_PRIZE_HEL", true) != "classified":
+		push_error("map: prize state wrong")
+		failures += 1
+	remove_child(fmap)
+	fmap.free()
+
+	if failures == 0:
+		print("MAP_OK")
+	else:
+		print("%d MAP FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

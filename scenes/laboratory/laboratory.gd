@@ -30,6 +30,8 @@ extends Control
 @onready var memorial_text: Label = $MemorialOverlay/MemorialVBox/memorial_text
 @onready var btn_memorial_continue: Button = $MemorialOverlay/MemorialVBox/btn_memorial_continue
 @onready var bg_rect: ColorRect = $BgRect
+@onready var alert_rect: ColorRect = $AlertRect
+var _alert_pulse := 0.0
 
 func _apply_bg():
 	var shader := load("res://assets/shaders/lab_bg.gdshader") as Shader
@@ -64,9 +66,15 @@ func _ready():
 	_refresh_ui()
 	_maybe_memorial()
 
-func _process(_delta):
+func _process(delta):
 	var dread: bool = not GameState.active_crises.is_empty() or GameState.esp_risk >= 50.0
 	AudioManager.set_tension(dread)
+	var alert: bool = dread or not GameState.pending_memorial.is_empty()
+	alert_rect.visible = alert
+	if alert:
+		_alert_pulse += delta
+		var a: float = 0.12 + 0.13 * (0.5 + 0.5 * sin(_alert_pulse * 3.0))
+		alert_rect.color = Color(0.5, 0.02, 0.03, a)
 
 func _maybe_memorial():
 	if GameState.pending_memorial.is_empty():
@@ -120,6 +128,12 @@ func _refresh_ui():
 	_populate_artifacts()
 	_populate_scientists()
 	_populate_candidates()
+	if GameState.active_crises.is_empty():
+		btn_incidents.text = "Incidents"
+		btn_incidents.remove_theme_color_override("font_color")
+	else:
+		btn_incidents.text = "Incidents (%d!)" % GameState.active_crises.size()
+		btn_incidents.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	goal_label.text = "GOAL: " + GameState.get_current_goal()
 	var pending: Array = GameState.check_tutorial()
 	if pending.is_empty():
@@ -165,12 +179,20 @@ func _populate_scientists():
 		var label := Label.new()
 		var skills: Dictionary = sci.get("skills", {})
 		var condition := ""
+		var hp: int = int(sci.get("health", 100))
+		var filled: int = hp / 10
+		var hpbar := "["
+		for i in range(10):
+			hpbar += "#" if i < filled else "-"
+		hpbar += "]"
 		if sci.get("status", "ACTIVE") == "DECEASED":
 			condition = " [DECEASED]"
 		elif sci.get("status", "ACTIVE") == "DEFECTED":
 			condition = " [DEFECTED]"
 		elif sci.get("status", "ACTIVE") == "INJURED":
-			condition = " [INJURED, HP %d]" % int(sci.get("health", 0))
+			condition = " [INJURED %s %d]" % [hpbar, hp]
+		else:
+			condition = " [%s]" % hpbar
 		label.text = "%s %s — %s | '%s' [P:%s O:%s C:%s]%s" % [
 			sci.get("first_name", "?"),
 			sci.get("last_name", "?"),
