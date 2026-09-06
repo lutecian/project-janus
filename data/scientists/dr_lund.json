@@ -12,6 +12,7 @@
     "risk_tolerance": 45
   },
   "traits": ["careful", "loyal"],
+  "background": "ex-Northwind institute staff. Publishes openly, bills honestly.",
   "status": "ACTIVE",
   "stress": 0,
   "health": 100,

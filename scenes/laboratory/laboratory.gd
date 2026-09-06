@@ -224,10 +224,11 @@ func _populate_candidates():
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		var line := Label.new()
-		line.text = "%s %s (%s, bonus $%d)" % [
+		line.text = "%s %s (%s, bonus $%d)\n%s" % [
 			cdef.get("first_name", "?"), cdef.get("last_name", "?"),
 			cdef.get("primary_specialty", "?").replace("_", " ").capitalize(),
-			int(cdef.get("signing_bonus", 0))
+			int(cdef.get("signing_bonus", 0)),
+			cdef.get("background", "")
 		]
 		line.add_theme_font_size_override("font_size", 13)
 		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL

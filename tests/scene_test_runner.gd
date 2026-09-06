@@ -1826,6 +1826,9 @@ func _test_roster():
 	if GameState.hire_pool.size() != 3 or GameState.scientists.size() != 3:
 		push_error("roster: should start 3 rostered + 3 candidates")
 		failures += 1
+	if GameState._hireable_def("SCIENTIST_OSEI").get("background", "") == "":
+		push_error("roster: hireables should carry poach-flavored backgrounds")
+		failures += 1
 	var h1: Dictionary = GameState.hire_scientist("SCIENTIST_LUND")
 	if not h1.get("ok", false) or GameState.scientists.size() != 4:
 		push_error("roster: hiring Lund should work, got %s" % h1)
