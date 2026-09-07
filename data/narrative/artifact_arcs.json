@@ -251,6 +251,69 @@
           "text": "The dangerous run provoked a flare event — a sheet of cold fire licking the chamber walls, beautiful beyond description and utterly silent. Nobody was hurt. Everybody understands, now, that this was courtesy. Courtesy can be withdrawn."
         }
       }
+    },
+    {
+      "artifact_id": "J013",
+      "beats": {
+        "dormant": {
+          "title": "The Understudy",
+          "text": "There is a person-shaped absence in Lab 6 that moves like yesterday's shift. New staff are told not to stand where it is standing. It is always standing where someone stood."
+        },
+        "suspected": {
+          "title": "Twenty-Four Hours Late",
+          "text": "Frame-by-frame comparison is exact: every gesture the void makes was made by a staff member one day earlier. It rehearses us the way understudies rehearse leads. Nobody has asked what performance it is preparing for. Some questions are load-bearing."
+        },
+        "confirmed": {
+          "title": "Negative Two Kilos",
+          "text": "The void weighs minus two kilos in the shape of a person. Accounting has opened a ledger line for missing mass and assigned it a badge number. The void has not collected its badge. It is, technically, trespassing."
+        },
+        "danger": {
+          "title": "Opening Night",
+          "text": "The dangerous run tried to make the void improvise - a gesture no one had ever made. The void stopped moving entirely for eleven minutes, and every staff member in the building forgot what their hands were for. Then it resumed yesterday. The experiment is sealed. Improvisation is prohibited."
+        }
+      }
+    },
+    {
+      "artifact_id": "J014",
+      "beats": {
+        "dormant": {
+          "title": "Pale Engine",
+          "text": "It runs cold and delivers work, which the thermodynamics shelf of the library finds personally insulting. The engine does not care. It has never read the library."
+        },
+        "suspected": {
+          "title": "The Rebate",
+          "text": "Waste heat flows backward into the engine while shaft work flows out. Somewhere there is an entropy account in overdraft, and the engine is spending it. The auditors have been informed. They declined to audit physics."
+        },
+        "confirmed": {
+          "title": "Coldest Runs Best",
+          "text": "Peak torque at four degrees. The mechanics now ice the engine before load tests the way athletes ice knees. The engine has the best-maintained cooling jacket in the building and the worst-understood warranty."
+        },
+        "danger": {
+          "title": "Overdraft",
+          "text": "The dangerous run drew full load for an hour and the room temperature fell eleven degrees while the lights across the whole site brightened. Then every thermometer in the building read the same number for six seconds: 4.0. A single temperature, everywhere, like a held breath. The engine was throttled back. The universe has not sent a bill. Yet."
+        }
+      }
+    },
+    {
+      "artifact_id": "J015",
+      "beats": {
+        "dormant": {
+          "title": "Museum of Unbuilt Rooms",
+          "text": "Seven doors, seven rooms, none of them on any blueprint. The architecture is excellent and the rent is denominated in a currency nobody mints. Facilities has stopped asking who cleans in there."
+        },
+        "suspected": {
+          "title": "Four Hundred Square Meters",
+          "text": "Survey says the museum exceeds the building footprint by 400 square meters, and the extra space is load-bearing - remove it and the east wing has nothing to stand on. The east wing predates the museum by forty years. Nobody can explain the order of operations. The building stands. That is the whole of the explanation."
+        },
+        "confirmed": {
+          "title": "The Rejected Future",
+          "text": "One room is a future the architects formally rejected in 1974, preserved in full detail down to the ashtrays. Visiting it feels like reading someone else's diary entry about a day that never happened. Staff come out quiet. Two have changed careers. The room keeps their old business cards."
+        },
+        "danger": {
+          "title": "Eviction Notice",
+          "text": "The dangerous run tried to close a door from the inside, and for nine minutes the museum had eight rooms - the eighth being Lab 6, unbuilt, pristine, waiting. The crew got out before it finished furnishing. The eighth door is now bricked up from our side. From the museum's side, the brick is a door."
+        }
+      }
     }
   ]
 }

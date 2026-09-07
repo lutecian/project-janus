@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.22.0"
+const GAME_VERSION := "0.23.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -417,7 +417,10 @@ func _load_artifact_data():
 		"res://data/artifacts/j009.json",
 		"res://data/artifacts/j010.json",
 		"res://data/artifacts/j011.json",
-		"res://data/artifacts/j012.json"
+		"res://data/artifacts/j012.json",
+		"res://data/artifacts/j013.json",
+		"res://data/artifacts/j014.json",
+		"res://data/artifacts/j015.json"
 	]
 	for path in paths:
 		var data := _load_json(path)
@@ -603,6 +606,8 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 	if has_facility("FAC_LAB"):
 		knowledge_gain += 1
 	if has_facility("FAC_LAB_2"):
+		knowledge_gain += 1
+	if has_facility("FAC_LAB_3"):
 		knowledge_gain += 1
 	if has_facility("FAC_PRIZE_HEL"):
 		knowledge_gain += 2
@@ -984,6 +989,8 @@ func _check_incidents(scientist: Dictionary = {}):
 			chance *= 0.5
 		if has_facility("FAC_SHIELD_2"):
 			chance *= 0.5
+		if has_facility("FAC_SHIELD_3"):
+			chance *= 0.5
 		chance *= 1.0 - get_security() / 200.0
 		chance *= 1.0 - minf(malfunction_guard, 0.9)
 		if _rng.randf() < chance:
@@ -1123,10 +1130,13 @@ func _tick_new_day(worker_ids: Array):
 		player_market += 0.25
 	if has_facility("FAC_DESK_2"):
 		player_market += 0.25
+	if has_facility("FAC_DESK_3"):
+		player_market += 0.25
 	_tick_enemy_ops()
 	_tick_consolidation()
 	_maybe_hostile_bid()
 	_tick_crises()
+	_maybe_walkout()
 	for s in scientists:
 		var sd: Dictionary = s as Dictionary
 		if sd.get("status", "ACTIVE") == "DECEASED":
@@ -1337,6 +1347,8 @@ func perform_due_diligence(company_id: String) -> Dictionary:
 	if has_facility("FAC_SCANNER"):
 		cost = maxi(int(cost / 2), 1)
 	if has_facility("FAC_SCANNER_2"):
+		cost = maxi(int(cost / 2), 1)
+	if has_facility("FAC_SCANNER_3"):
 		cost = maxi(int(cost / 2), 1)
 	if int(budget.get("funds", 0)) < cost:
 		return {"ok": false, "reason": "insufficient_funds"}
@@ -1565,6 +1577,8 @@ func get_security() -> float:
 		sec += 30.0
 	if has_facility("FAC_GARRISON_2"):
 		sec += 30.0
+	if has_facility("FAC_GARRISON_3"):
+		sec += 30.0
 	return sec
 
 func _mil_discount() -> float:
@@ -1607,7 +1621,7 @@ func buy_facility(facility_id: String) -> Dictionary:
 	budget["funds"] = int(budget.get("funds", 0)) - cost
 	budget["spent"] = int(budget.get("spent", 0)) + cost
 	facilities_owned.append(facility_id)
-	if facility_id == "FAC_INTEL" or facility_id == "FAC_INTEL_2":
+	if facility_id == "FAC_INTEL" or facility_id == "FAC_INTEL_2" or facility_id == "FAC_INTEL_3":
 		esp_cover = minf(esp_cover + 15.0, 50.0)
 		EventBus.espionage_updated.emit()
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
@@ -1939,6 +1953,12 @@ func _maybe_spawn_crisis(record: Dictionary, incident: Dictionary):
 		cname = "Contamination: %s" % record.get("name", "Unknown")
 	elif kind == "rupture":
 		cname = "Rupture: %s" % record.get("name", "Unknown")
+	elif kind == "walkout":
+		cname = "Walkout: %s" % record.get("name", "Unknown")
+	elif kind == "blackout":
+		cname = "Blackout: %s" % record.get("name", "Unknown")
+	elif kind == "audit":
+		cname = "Audit: %s" % record.get("name", "Unknown")
 	active_crises.append({
 		"id": "%s-d%d" % [record.get("id", "CRI"), int(elapsed_days)],
 		"name": cname,
@@ -1963,6 +1983,17 @@ func _tick_crises():
 					_harm_scientist(sd.get("id", ""), 20, "in the uncontained contamination")
 		elif kind == "rupture":
 			budget["funds"] = int(budget.get("funds", 0)) - 5000
+		elif kind == "walkout":
+			for s in scientists:
+				var sdw: Dictionary = s as Dictionary
+				if _is_available(sdw):
+					sdw["loyalty"] = maxi(int(sdw.get("loyalty", 100)) - 15, 0)
+		elif kind == "blackout":
+			budget["funds"] = int(budget.get("funds", 0)) - 1500
+			knowledge["progress"] = maxi(int(knowledge.get("progress", 0)) - 5, 0)
+		elif kind == "audit":
+			budget["funds"] = int(budget.get("funds", 0)) - 2500
+			helios["progress"] = float(helios.get("progress", 0.0)) + 1.0
 		else:
 			budget["funds"] = int(budget.get("funds", 0)) - 3000
 			var victim: String = _pick_involved_scientist()
@@ -1974,6 +2005,29 @@ func _tick_crises():
 			"helios_progress": helios["progress"]
 		})
 		EventBus.budget_updated.emit(budget["funds"], budget["spent"])
+
+func _maybe_walkout():
+	for c in active_crises:
+		if (c as Dictionary).get("kind", "") == "walkout":
+			return
+	var living := 0
+	var total_loyalty := 0
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if _is_available(sd):
+			living += 1
+			total_loyalty += int(sd.get("loyalty", 100))
+	if living == 0:
+		return
+	if float(total_loyalty) / float(living) < 30.0 and _rng.randf() < 0.35:
+		active_crises.append({
+			"id": "WALKOUT-d%d" % int(elapsed_days),
+			"name": "Walkout: staff refuse the benches",
+			"kind": "walkout",
+			"days_left": 4.0,
+			"resolve_cost": 2500,
+			"incident_id": ""
+		})
 
 func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 	for c in active_crises:
@@ -2005,6 +2059,12 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 			var victim2: String = _pick_involved_scientist()
 			if not victim2.is_empty():
 				_harm_scientist(victim2, hurt, "on the response team")
+			if cd.get("kind", "") == "walkout":
+				for s in scientists:
+					var sdt: Dictionary = s as Dictionary
+					if _is_available(sdt):
+						sdt["loyalty"] = mini(int(sdt.get("loyalty", 100)) + 10, 100)
+				detail += " Concessions granted: loyalty up across the lab."
 			if in_recovery:
 				influence = clampf(influence + 8.0, 0.0, 100.0)
 			active_crises.erase(cd)
@@ -2048,7 +2108,7 @@ func _act_def(act_id: int) -> Dictionary:
 		var ad: Dictionary = adef as Dictionary
 		if int(ad.get("id", 1)) == act_id:
 			return ad
-	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009", "J010", "J011", "J012"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
+	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009", "J010", "J011", "J012", "J013", "J014", "J015"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
 
 func get_act_name() -> String:
 	return _act_def(act).get("name", "Containment")

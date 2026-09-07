@@ -1,0 +1,124 @@
+{
+ "_note": "Steamworks mirror. API names are UPPER_SNAKE. Wire to ISteamUserStats when the Steam SDK lands (see RELEASE_CHECKLIST.md). Hidden flags match in-game hidden badges; descriptions for hidden ones stay vague on the store page until unlocked.",
+ "achievements": [
+  {
+   "api_name": "FIRST_DOUBT",
+   "badge_id": "first_doubt",
+   "name": "First Doubt",
+   "description": "Reach suspected on a discovery.",
+   "hidden": false
+  },
+  {
+   "api_name": "BARGAIN_HUNTER",
+   "badge_id": "bargain_hunter",
+   "name": "Bargain Hunter",
+   "description": "Close an acquisition as a steal.",
+   "hidden": false
+  },
+  {
+   "api_name": "DD_PRO",
+   "badge_id": "dd_pro",
+   "name": "Due-Diligence Pro",
+   "description": "Do full diligence, then buy fair or better.",
+   "hidden": false
+  },
+  {
+   "api_name": "WAR_CONTRACTOR",
+   "badge_id": "war_contractor",
+   "name": "War Contractor",
+   "description": "Complete a military research contract.",
+   "hidden": false
+  },
+  {
+   "api_name": "MARKET_LEADER",
+   "badge_id": "market_leader",
+   "name": "Market Leader",
+   "description": "Win by market majority.",
+   "hidden": false
+  },
+  {
+   "api_name": "DISTINGUISHED",
+   "badge_id": "distinguished",
+   "name": "Distinguished Researcher",
+   "description": "Win the scientific path.",
+   "hidden": false
+  },
+  {
+   "api_name": "MONOPOLY",
+   "badge_id": "monopoly",
+   "name": "The Monopoly",
+   "description": "Win by domination.",
+   "hidden": false
+  },
+  {
+   "api_name": "OVERNIGHT_MONOPOLY",
+   "badge_id": "overnight_monopoly",
+   "name": "Overnight Monopoly",
+   "description": "Dominate in under 40 days.",
+   "hidden": false
+  },
+  {
+   "api_name": "FIRST_BLOOD",
+   "badge_id": "first_blood",
+   "name": "First Blood",
+   "description": "Lose a scientist to the work.",
+   "hidden": false
+  },
+  {
+   "api_name": "REBORN",
+   "badge_id": "reborn",
+   "name": "JANUS, REBORN",
+   "description": "Classified.",
+   "hidden": true
+  },
+  {
+   "api_name": "HOSTILE",
+   "badge_id": "hostile",
+   "name": "HOSTILE WORK ENVIRONMENT",
+   "description": "Classified.",
+   "hidden": true
+  },
+  {
+   "api_name": "KNOW_YOUR_ENEMY",
+   "badge_id": "know_your_enemy",
+   "name": "KNOW YOUR ENEMY",
+   "description": "Classified.",
+   "hidden": true
+  },
+  {
+   "api_name": "SPEED_DEMON",
+   "badge_id": "speed_demon",
+   "name": "Speed Demon",
+   "description": "Win in under 30 days.",
+   "hidden": false
+  },
+  {
+   "api_name": "SURVIVOR",
+   "badge_id": "survivor",
+   "name": "Survivor",
+   "description": "Win after continuing past a victory.",
+   "hidden": false
+  },
+  {
+   "api_name": "TYCOON",
+   "badge_id": "tycoon",
+   "name": "Tycoon",
+   "description": "Own 3 subsidiaries at once.",
+   "hidden": false
+  },
+  {
+   "api_name": "SPYMASTER",
+   "badge_id": "spymaster",
+   "name": "Spymaster",
+   "description": "Succeed at 5 espionage operations in one campaign.",
+   "hidden": false
+  },
+  {
+   "api_name": "TURNCOAT",
+   "badge_id": "turncoat",
+   "name": "Turncoat Season",
+   "description": "Lose a scientist to a rival poach.",
+   "hidden": false
+  }
+ ]
+}

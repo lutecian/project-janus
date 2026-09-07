@@ -56,12 +56,21 @@ func _probe(tag: String, difficulty_id: String, seed: int, use_contracts: bool, 
 		if use_contracts and not GameState.pending_offer.is_empty() and GameState.active_contract.is_empty():
 			GameState.accept_contract()
 		if use_acq:
-			_try_buy_cheapest()
+			_dd_and_buy()
 		if use_esp:
 			if GameState.esp_risk < 40.0:
 				var res: Dictionary = GameState.perform_espionage_op("OP_SABOTAGE", "RIV_HELIOS")
 				if res.get("ok", false) and res.get("success", false):
 					sabotages += 1
+		# Sane-player crisis handling: pay to resolve when affordable.
+		for c in GameState.active_crises.duplicate():
+			var cd: Dictionary = c as Dictionary
+			var rc: int = int(cd.get("resolve_cost", 1500))
+			if int(GameState.budget.get("funds", 0)) >= rc + 1000:
+				GameState.resolve_crisis(cd.get("id", ""), "pay")
+		# Distress bridge: players take loans before they starve. Same here.
+		if int(GameState.budget.get("funds", 0)) < 1000 and GameState.debts.size() < 3:
+			GameState.request_loan(2000)
 		if int(GameState.budget.get("funds", 0)) < cost:
 			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
 			bailouts += 1
@@ -112,6 +121,13 @@ func _probe_skilled(tag: String, difficulty_id: String, seed: int):
 			var sb: Dictionary = GameState.perform_espionage_op("OP_SABOTAGE", "RIV_HELIOS")
 			if sb.get("ok", false):
 				ops += 1
+		for c in GameState.active_crises.duplicate():
+			var cd: Dictionary = c as Dictionary
+			var rc: int = int(cd.get("resolve_cost", 1500))
+			if int(GameState.budget.get("funds", 0)) >= rc + 1000:
+				GameState.resolve_crisis(cd.get("id", ""), "pay")
+		if int(GameState.budget.get("funds", 0)) < 1000 and GameState.debts.size() < 3:
+			GameState.request_loan(2000)
 		if int(GameState.budget.get("funds", 0)) < cost:
 			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
 			bailouts += 1
@@ -187,7 +203,14 @@ func _probe_batch(tag: String, difficulty_id: String, seed: int, use_systems: bo
 		if use_systems:
 			if not GameState.pending_offer.is_empty() and GameState.active_contract.is_empty():
 				GameState.accept_contract()
-			_try_buy_cheapest()
+			_dd_and_buy()
+		for c in GameState.active_crises.duplicate():
+			var cd: Dictionary = c as Dictionary
+			var rc: int = int(cd.get("resolve_cost", 1500))
+			if int(GameState.budget.get("funds", 0)) >= rc + 1000:
+				GameState.resolve_crisis(cd.get("id", ""), "pay")
+		if int(GameState.budget.get("funds", 0)) < 1000 and GameState.debts.size() < 3:
+			GameState.request_loan(2000)
 		if int(GameState.budget.get("funds", 0)) < cost * 2:
 			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 400
 			bailouts += 1

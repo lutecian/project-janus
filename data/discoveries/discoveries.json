@@ -219,6 +219,66 @@
       "player_namable": true,
       "technology_unlock": "gravity_sensor",
       "effect": {"type": "flat_star", "dimensions": 2}
+    },
+    {
+      "discovery_id": "DISC_DELAYED_MIMICRY",
+      "artifact_id": "J013",
+      "internal_name": "Delayed Mimicry",
+      "display_name_before_naming": "Unclassified Rehearsal Effect",
+      "description": "The void reproduces yesterday's staff movements with perfect fidelity and a 24-hour delay. It has never once improvised.",
+      "player_namable": true,
+      "technology_unlock": "experimental_field_sensor",
+      "effect": {"type": "delayed_mimicry", "delay_h": 24.0}
+    },
+    {
+      "discovery_id": "DISC_NEGATIVE_MASS_CAST",
+      "artifact_id": "J013",
+      "internal_name": "Negative Mass Cast",
+      "display_name_before_naming": "Unclassified Weight Deficit",
+      "description": "The void weighs negative two kilos in the shape of a person. Something is missing exactly one human.",
+      "player_namable": true,
+      "technology_unlock": "gravity_sensor",
+      "effect": {"type": "negative_mass_cast", "mass_kg": -2.1}
+    },
+    {
+      "discovery_id": "DISC_ENTROPY_REBATE",
+      "artifact_id": "J014",
+      "internal_name": "Entropy Rebate",
+      "display_name_before_naming": "Unclassified Cooling Work",
+      "description": "The engine's waste heat account runs in reverse: it cools its room while delivering shaft work. The universe has been notified. It has not responded.",
+      "player_namable": true,
+      "technology_unlock": "thermal_containment",
+      "effect": {"type": "entropy_rebate", "efficiency": 1.12}
+    },
+    {
+      "discovery_id": "DISC_PALE_TORQUE",
+      "artifact_id": "J014",
+      "internal_name": "Pale Torque",
+      "display_name_before_naming": "Unclassified Cold Rotation",
+      "description": "Torque output peaks when the engine is coldest. Mechanics have stopped suggesting warm-ups and started suggesting sweaters.",
+      "player_namable": true,
+      "technology_unlock": "resonance_amplifier",
+      "effect": {"type": "pale_torque", "peak_temp_c": 4.0}
+    },
+    {
+      "discovery_id": "DISC_UNBUILT_FLOORPLAN",
+      "artifact_id": "J015",
+      "internal_name": "Unbuilt Floorplan",
+      "display_name_before_naming": "Unclassified Phantom Architecture",
+      "description": "Survey maps seven rooms behind seven doors with total area exceeding the building footprint by 400 square meters. The extra space is load-bearing.",
+      "player_namable": true,
+      "technology_unlock": "deep_field_probe",
+      "effect": {"type": "unbuilt_floorplan", "extra_m2": 400.0}
+    },
+    {
+      "discovery_id": "DISC_DOOR_TAXONOMY",
+      "artifact_id": "J015",
+      "internal_name": "Door Taxonomy",
+      "display_name_before_naming": "Unclassified Portal Census",
+      "description": "Each door opens onto a room in a distinct unrealized architectural style. One of them is a future the architects formally rejected in 1974.",
+      "player_namable": true,
+      "technology_unlock": "field_stabilizer",
+      "effect": {"type": "door_taxonomy", "styles": 7}
     }
   ]
 }

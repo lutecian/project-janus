@@ -1,0 +1,27 @@
+{
+  "id": "J014",
+  "display_name": "Pale Engine",
+  "visible_description": "A small engine that outputs work while cooling its room. It pays out energy and charges no entropy.",
+  "known_initial_data": {
+    "mass_kg": 34.8,
+    "diameter_cm": 52.4,
+    "surface_temperature_c": 4.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "entropy_rebate_cycle",
+    "trigger": "mechanical_load",
+    "peak_resonance_ghz": 0.0042,
+    "absorbs_applied_energy": true,
+    "temperature_stable_equilibrium_c": 4.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

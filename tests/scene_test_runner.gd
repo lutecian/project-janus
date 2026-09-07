@@ -1103,6 +1103,22 @@ func _test_endings():
 			push_error("end: legacy best should record the normal-difficulty run")
 			failures += 1
 
+	# --- N8: Steam mirror covers every badge 1:1 ---
+	var badges_data: Dictionary = GameState._load_json("res://data/meta/badges.json")
+	var mirror_data: Dictionary = GameState._load_json("res://data/meta/steam_achievements.json")
+	var mirrored := {}
+	for a in mirror_data.get("achievements", []):
+		mirrored[(a as Dictionary).get("badge_id", "")] = a as Dictionary
+	for b in badges_data.get("badges", []):
+		var bd: Dictionary = b as Dictionary
+		var m: Dictionary = mirrored.get(bd.get("id", ""), {})
+		if m.is_empty():
+			push_error("end: badge %s missing from steam mirror" % bd.get("id", "?"))
+			failures += 1
+		elif bool(m.get("hidden", false)) != bool(bd.get("hidden", false)):
+			push_error("end: badge %s hidden flag drifted from mirror" % bd.get("id", "?"))
+			failures += 1
+
 	if failures == 0:
 		print("END_OK")
 	else:
@@ -1201,6 +1217,57 @@ func _test_depth():
 	GameState._tick_market()
 	if GameState.get_player_market() - tpm < 1.15:
 		push_error("depth: double desk should add >=1.15 per tick")
+		failures += 1
+
+	# --- D1c: Tier-3 gates on tier-2 and stacks a third time ---
+	GameState.initialize_new_campaign({"name": "Depth Tier3"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 200000
+	if GameState.buy_facility("FAC_LAB_3").get("reason", "") != "requires_base":
+		push_error("depth: tier-3 without tier-2 should refuse")
+		failures += 1
+	for fid3 in ["FAC_LAB", "FAC_LAB_2", "FAC_LAB_3", "FAC_SHIELD", "FAC_SHIELD_2", "FAC_SHIELD_3",
+			"FAC_DESK", "FAC_DESK_2", "FAC_DESK_3", "FAC_INTEL", "FAC_INTEL_2", "FAC_INTEL_3",
+			"FAC_SCANNER", "FAC_SCANNER_2", "FAC_SCANNER_3",
+			"FAC_GARRISON", "FAC_GARRISON_2", "FAC_GARRISON_3"]:
+		if not GameState.buy_facility(fid3).get("ok", false):
+			push_error("depth: buying %s should succeed" % fid3)
+			failures += 1
+	if absf(GameState.get_security() - 110.0) > 0.001:
+		push_error("depth: triple garrison should reach 110 security, got %.1f" % GameState.get_security())
+		failures += 1
+	if absf(GameState.esp_cover - 45.0) > 0.001:
+		push_error("depth: triple intel should grant +45 cover, got %.1f" % GameState.esp_cover)
+		failures += 1
+	var toffer3: String = (GameState.company_offers[0] as Dictionary).get("id", "")
+	var tf3: int = GameState.budget["funds"]
+	GameState.perform_due_diligence(toffer3)
+	if tf3 - GameState.budget["funds"] != 50:
+		push_error("depth: triple scanner should cut DD to 50, charged %d" % (tf3 - GameState.budget["funds"]))
+		failures += 1
+	var lab_exps: Array = GameState.load_experiment_definitions()
+	var heat3 := {}
+	for e3 in lab_exps:
+		if (e3 as Dictionary).get("id", "") == "EXP_HEATING":
+			heat3 = e3 as Dictionary
+	GameState.initialize_new_campaign({"name": "Depth Plain"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	GameState._rng.seed = 818
+	GameState.run_experiment(heat3, GameState.scientists[0])
+	var p0: int = int(GameState.knowledge.get("progress", 0))
+	GameState.initialize_new_campaign({"name": "Depth Triple Lab"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	GameState.buy_facility("FAC_LAB")
+	GameState.buy_facility("FAC_LAB_2")
+	GameState.buy_facility("FAC_LAB_3")
+	GameState._rng.seed = 818
+	GameState.run_experiment(heat3, GameState.scientists[0])
+	if int(GameState.knowledge.get("progress", 0)) - p0 != 3:
+		push_error("depth: triple lab should add exactly +3 knowledge per run")
 		failures += 1
 	var exps: Array = GameState.load_experiment_definitions()
 	var heat := {}
@@ -1411,8 +1478,8 @@ func _test_story():
 
 	# --- T6: Content integrity — registry, arcs, scenarios cover the field ---
 	GameState.initialize_new_campaign({"name": "Story Integrity"}, "normal")
-	if GameState.available_artifacts.size() != 12:
-		push_error("story: expected 12 artifacts registered, got %d" % GameState.available_artifacts.size())
+	if GameState.available_artifacts.size() != 15:
+		push_error("story: expected 15 artifacts registered, got %d" % GameState.available_artifacts.size())
 		failures += 1
 	var arcs: Dictionary = GameState._load_json("res://data/narrative/artifact_arcs.json")
 	var arc_ids := {}
@@ -1541,6 +1608,75 @@ func _test_action():
 		hp_after += int((s as Dictionary).get("health", 0))
 	if hp_after >= hp_before:
 		push_error("action: contamination expiry should injure staff")
+		failures += 1
+
+	# --- C8: New crisis kinds bite differently, walkout spawns on despair ---
+	GameState.initialize_new_campaign({"name": "Action New Kinds"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	for s in GameState.scientists:
+		(s as Dictionary)["loyalty"] = 80
+	var walk := {
+		"id": "INC_TEST_WO", "name": "Test Walkout", "description": "d",
+		"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+		"crisis": {"days": 4, "resolve_cost": 2500, "kind": "walkout"}
+	}
+	GameState._apply_incident(walk)
+	if (GameState.active_crises[GameState.active_crises.size() - 1] as Dictionary).get("kind", "") != "walkout":
+		push_error("action: walkout crisis should register its kind")
+		failures += 1
+	var widx: int = GameState.active_crises.size() - 1
+	(GameState.active_crises[widx] as Dictionary)["days_left"] = 1.0
+	GameState._tick_crises()
+	var low_loyal := false
+	for s in GameState.scientists:
+		if int((s as Dictionary).get("loyalty", 100)) < 80:
+			low_loyal = true
+	if not low_loyal:
+		push_error("action: walkout expiry should cut loyalty")
+		failures += 1
+	var black := {
+		"id": "INC_TEST_BL", "name": "Test Blackout", "description": "d",
+		"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+		"crisis": {"days": 4, "resolve_cost": 2000, "kind": "blackout"}
+	}
+	GameState.knowledge["progress"] = 50
+	GameState._apply_incident(black)
+	var bidx: int = GameState.active_crises.size() - 1
+	(GameState.active_crises[bidx] as Dictionary)["days_left"] = 1.0
+	GameState._tick_crises()
+	if int(GameState.knowledge.get("progress", 0)) != 45:
+		push_error("action: blackout expiry should erase 5 knowledge, got %d" % int(GameState.knowledge.get("progress", 0)))
+		failures += 1
+	var aud := {
+		"id": "INC_TEST_AU", "name": "Test Audit", "description": "d",
+		"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+		"crisis": {"days": 5, "resolve_cost": 3000, "kind": "audit"}
+	}
+	var helios0: float = float(GameState.helios.get("progress", 0.0))
+	GameState._apply_incident(aud)
+	var aidx: int = GameState.active_crises.size() - 1
+	(GameState.active_crises[aidx] as Dictionary)["days_left"] = 1.0
+	var af: int = GameState.budget["funds"]
+	GameState._tick_crises()
+	if GameState.budget["funds"] != af - 2500:
+		push_error("action: audit expiry should cost 2500")
+		failures += 1
+	if float(GameState.helios.get("progress", 0.0)) <= helios0:
+		push_error("action: audit expiry should advance helios")
+		failures += 1
+	for s in GameState.scientists:
+		(s as Dictionary)["loyalty"] = 10
+	GameState.active_crises = []
+	GameState._rng.seed = 7
+	var spawned := false
+	for i in range(30):
+		GameState._maybe_walkout()
+		for c in GameState.active_crises:
+			if (c as Dictionary).get("kind", "") == "walkout":
+				spawned = true
+	if not spawned:
+		push_error("action: despairing lab should walk out within 30 days")
 		failures += 1
 
 	# --- C7: Poaching steals the disloyal, warns the loyal ---

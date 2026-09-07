@@ -66,9 +66,10 @@
       "description": "A power surge affected the laboratory. Several instruments need recalibration.",
       "graphic_description": "The surge welded a probe to the bench and blew its display into the operator's cheek — glass beads embedded in skin. They picked the pieces out with tweezers under a lamp. He kept the largest shard in a vial.",
       "casualty": 15,
-      "severity": "minor",
+      "severity": "major",
       "trigger_chance": 0.03,
       "knowledge_state_required": "unknown",
+      "crisis": {"days": 4, "resolve_cost": 1200, "kind": "blackout"},
       "effects": {
         "observation_quality_reduction": 0.05,
         "budget_cost": 300,
@@ -86,9 +87,10 @@
       "description": "One of the researchers reported unusual symptoms after prolonged exposure to the artifact.",
       "graphic_description": "Chen woke screaming with a nosebleed that would not stop, convinced the artifact was humming her name in her dead grandmother's voice. Ruptured vessels, exhaustion. She was back at the bench in two days. That is the part that worries everyone.",
       "casualty": 10,
-      "severity": "moderate",
+      "severity": "major",
       "trigger_chance": 0.02,
       "knowledge_state_required": "suspected",
+      "crisis": {"days": 4, "resolve_cost": 1800, "kind": "walkout"},
       "effects": {
         "observation_quality_reduction": 0.2,
         "budget_cost": 0,
@@ -166,9 +168,10 @@
       "description": "An intruder was caught copying observation logs. Some files may have left the building.",
       "graphic_description": "The intruder left a junior analyst zip-tied to a chair with a bag over his head and a note: 'Stay out of the deep files.' Physically unharmed. He has not slept since. Security calls it a message. It was received.",
       "casualty": 0,
-      "severity": "moderate",
+      "severity": "major",
       "trigger_chance": 0.015,
       "knowledge_state_required": "suspected",
+      "crisis": {"days": 5, "resolve_cost": 2000, "kind": "audit"},
       "effects": {
         "observation_quality_reduction": 0.0,
         "budget_cost": 1200,
@@ -522,6 +525,66 @@
    "Personnel shadows anomalously fixed toward artifact."
   ],
   "discovery_chance_increase": 0.1
+ },
+ {
+  "id": "INC_OPENING_NIGHT",
+  "name": "Opening Night",
+  "description": "The Understudy stopped rehearsing and the whole building forgot what hands are for.",
+  "graphic_description": "For eleven minutes the void stood perfectly still, and every person in the building lost the concept of hands - staring at the things on the ends of their arms like foreign objects, unable to grip, type, or point. Dr. Osei wept trying to pick up a pen. Then the void resumed yesterday's shift and hands made sense again. The minutes are missing from every clock. Nobody has tried to make it improvise since.",
+  "casualty": 20,
+  "severity": "major",
+  "trigger_chance": 0.015,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.2,
+   "budget_cost": 1500,
+   "days_lost": 2
+  },
+  "observations": [
+   "Artifact ceased mimetic activity for eleven minutes.",
+   "All personnel experienced transient apraxia. Clocks lost eleven minutes."
+  ],
+  "discovery_chance_increase": 0.12
+ },
+ {
+  "id": "INC_OVERDRAFT",
+  "name": "Overdraft",
+  "description": "The Pale Engine drew full load and every thermometer in the building read 4.0.",
+  "graphic_description": "Full load for one hour: the room fell eleven degrees, the site lights brightened, and then every thermometer in the building - labs, kitchens, the director's office - read exactly 4.0 degrees for six seconds. One temperature, everywhere, like a held breath. The engine was throttled back by hand, by a mechanic who says the housing felt grateful. The universe has not sent a bill. Yet.",
+  "casualty": 10,
+  "severity": "major",
+  "trigger_chance": 0.015,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.1,
+   "budget_cost": 1200,
+   "research_speed_reduction": 0.05
+  },
+  "observations": [
+   "Artifact synchronized all site thermometers to 4.0C for six seconds.",
+   "No equipment damage. Room temperature recovered within the hour."
+  ],
+  "discovery_chance_increase": 0.1
+ },
+ {
+  "id": "INC_EIGHTH_ROOM",
+  "name": "Eighth Room",
+  "description": "Someone closed a museum door from the inside and the museum grew an eighth room.",
+  "graphic_description": "Nine minutes with eight rooms, the eighth being Lab 6 - unbuilt, pristine, smelling of fresh paint and possibility. The crew got out before it finished furnishing, dragging Dr. Lund back through a doorway that was already narrowing. She left her wedding ring on the unbuilt bench. It is still there, in a room that does not exist, and she has stopped wearing its replacement. The eighth door is bricked up from our side. From the museum's side, the brick is a door.",
+  "casualty": 30,
+  "severity": "critical",
+  "trigger_chance": 0.015,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.2,
+   "budget_cost": 2000,
+   "days_lost": 2
+  },
+  "observations": [
+   "Artifact generated an eighth room replicating Lab 6 in unbuilt state.",
+   "Personnel recovered. One personal effect retained by artifact."
+  ],
+  "discovery_chance_increase": 0.12
 }
   ],
   "incident_cooldown_days": 5,

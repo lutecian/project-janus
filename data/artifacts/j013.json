@@ -1,0 +1,27 @@
+{
+  "id": "J013",
+  "display_name": "The Understudy",
+  "visible_description": "A human-shaped void that rehearses staff movements exactly one day late. It is always practicing yesterday.",
+  "known_initial_data": {
+    "mass_kg": -2.1,
+    "diameter_cm": 172.0,
+    "surface_temperature_c": 19.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "delayed_mimetic_absence",
+    "trigger": "human_proximity",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 19.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

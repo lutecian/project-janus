@@ -1,0 +1,27 @@
+{
+  "id": "J015",
+  "display_name": "Museum of Unbuilt Rooms",
+  "visible_description": "Seven doors that open onto rooms which were never built. The architecture is excellent. The rent is due in a currency nobody mints.",
+  "known_initial_data": {
+    "mass_kg": 210.0,
+    "diameter_cm": 640.0,
+    "surface_temperature_c": 20.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "unrealized_spatial_persistence",
+    "trigger": "threshold_crossing",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 20.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

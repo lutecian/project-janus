@@ -137,6 +137,54 @@
       "cost": 0,
       "effect": "Sabotage lasts 9 days",
       "prize": true
+    },
+    {
+      "id": "FAC_LAB_3",
+      "name": "Origin Laboratory",
+      "flavor": "Third-generation benches, built around the artifacts themselves. Requires Advanced Laboratory II.",
+      "cost": 11000,
+      "effect": "+1 more knowledge per experiment",
+      "requires": "FAC_LAB_2"
+    },
+    {
+      "id": "FAC_SHIELD_3",
+      "name": "Aegis Prime",
+      "flavor": "Containment that has survived everything twice. Requires Aegis Shielding.",
+      "cost": 9500,
+      "effect": "Incident chance x0.5 again",
+      "requires": "FAC_SHIELD_2"
+    },
+    {
+      "id": "FAC_DESK_3",
+      "name": "Corner Office Desk",
+      "flavor": "The market desk is now the market. Requires Prime Brokerage Desk.",
+      "cost": 9000,
+      "effect": "+0.25 more market per day",
+      "requires": "FAC_DESK_2"
+    },
+    {
+      "id": "FAC_INTEL_3",
+      "name": "Silent Archive",
+      "flavor": "A room nobody admits exists. Requires the Black Chamber.",
+      "cost": 7500,
+      "effect": "+15 more cover on purchase",
+      "requires": "FAC_INTEL_2"
+    },
+    {
+      "id": "FAC_SCANNER_3",
+      "name": "Panopticon Lens",
+      "flavor": "Sees through every book ever cooked. Requires the Godseye Array.",
+      "cost": 6000,
+      "effect": "Due diligence x0.5 again",
+      "requires": "FAC_SCANNER_2"
+    },
+    {
+      "id": "FAC_GARRISON_3",
+      "name": "Janus Guard",
+      "flavor": "Your own praetorians, loyal to the work. Requires the Praetorian Wing.",
+      "cost": 12000,
+      "effect": "+30 more security",
+      "requires": "FAC_GARRISON_2"
     }
   ]
 }
