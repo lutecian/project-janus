@@ -12,6 +12,8 @@
       "recovery_entry_risk": 15.0,
       "recovery_sabotage_bonus": 2.0,
       "prize_facility": "FAC_PRIZE_HEL",
+      "recovery_memo": "HELIOS does not acquire liabilities. It acquires assets that have stopped arguing. You will be quiet, you will be productive, and you will be grateful - in that order.",
+      "recovery_orders": "HELIOS demands weekly progress. Work fast and do not attract a second review.",
       "taunts": [
         "Rennick (HELIOS): 'Cute prototype. We bought three companies before breakfast.'",
         "Rennick (HELIOS): 'Your lead amuses our board. Briefly.'"
@@ -28,6 +30,8 @@
       "recovery_entry_risk": 5.0,
       "recovery_sabotage_bonus": 0.0,
       "prize_facility": "FAC_PRIZE_BER",
+      "recovery_memo": "Bermant keeps what it buys. Your division is now a line item with a pulse. Perform steadily and nobody needs to have a second conversation.",
+      "recovery_orders": "Bermant audits on schedule. Steady output keeps them incurious.",
       "taunts": [
         "Bermant: 'Slow and funded beats fast and broke, friend.'",
         "Bermant: 'We publish. You posture. The field notices.'"
@@ -44,6 +48,8 @@
       "recovery_entry_risk": 5.0,
       "recovery_sabotage_bonus": 0.0,
       "prize_facility": "FAC_PRIZE_NOR",
+      "recovery_memo": "Northwind believes sunlight disinfects. Your work will be published, your methods reviewed, your failures cited. Independence is earned in public.",
+      "recovery_orders": "Northwind publishes everything - including, eventually, your reinstatement case.",
       "taunts": [
         "Okafor (Northwind): 'Our preprint is already cited. Where is yours?'",
         "Okafor (Northwind): 'Open science always wins. Ask anyone. We did.'"
@@ -60,6 +66,8 @@
       "recovery_entry_risk": 10.0,
       "recovery_sabotage_bonus": 0.0,
       "prize_facility": "FAC_PRIZE_VAN",
+      "recovery_memo": "Vantage bought you on a hunch and will sell you on one. Nineteen days? Twenty. Whatever. Impress us before the mood changes.",
+      "recovery_orders": "Vantage attention is short. Big swings, fast.",
       "taunts": [
         "Marsh (Vantage): 'Bet it all! Bet it all! (It worked. It always works.)'",
         "Marsh (Vantage): 'Volatility is just victory, annualized.'"
@@ -76,6 +84,8 @@
       "recovery_entry_risk": 5.0,
       "recovery_sabotage_bonus": 0.0,
       "prize_facility": "FAC_PRIZE_SOL",
+      "recovery_memo": "The Foundation preserves what matters. Prove you matter. Endure the review with grace and the endowment follows.",
+      "recovery_orders": "Solenne reviews with patience and remembers everything.",
       "taunts": [
         "Solenne: 'We endowed three chairs this quarter. What did you endow?'",
         "Solenne: 'Patience compounds. So does our share price.'"
@@ -92,6 +102,8 @@
       "recovery_entry_risk": 10.0,
       "recovery_sabotage_bonus": 0.0,
       "prize_facility": "FAC_PRIZE_KIT",
+      "recovery_memo": "Kitezh does not own you. Kitezh is simply watching very closely from inside the building. Do good work. We will know.",
+      "recovery_orders": "Kitezh watches from inside. Cover is life.",
       "taunts": [
         "Moroz (Kitezh): 'The state provides. The state collects.'",
         "Moroz (Kitezh): 'Your market is a rounding error in our five-year plan.'"

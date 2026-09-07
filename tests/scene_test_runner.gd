@@ -1952,6 +1952,34 @@ func _test_acts():
 		push_error("acts: act 3 rival mult should be 1.5")
 		failures += 1
 
+	# --- A5: Act 3 triggers one endgame move per active rival ---
+	var moved := 0
+	for r in GameState.rivals:
+		if bool((r as Dictionary).get("endgame_move", false)):
+			moved += 1
+	if moved < 4:
+		push_error("acts: act 3 should trigger endgame moves, got %d" % moved)
+		failures += 1
+	if GameState.player_sabotaged_until <= GameState.elapsed_days:
+		push_error("acts: aggressive endgame should sabotage research")
+		failures += 1
+	var endgame_notes := 0
+	for entry in GameState.story_log:
+		if str((entry as Dictionary).get("title", "")).begins_with("Endgame move"):
+			endgame_notes += 1
+	if endgame_notes < 4:
+		push_error("acts: endgame moves should be logged, got %d" % endgame_notes)
+		failures += 1
+	var shares_before := {}
+	for r in GameState.rivals:
+		shares_before[(r as Dictionary).get("id", "")] = float((r as Dictionary).get("share", 0.0))
+	GameState._rival_endgame_moves()
+	for r in GameState.rivals:
+		var rid: String = (r as Dictionary).get("id", "")
+		if absf(float((r as Dictionary).get("share", 0.0)) - float(shares_before.get(rid, 0.0))) > 0.001:
+			push_error("acts: endgame moves should fire once (%s moved twice)" % rid)
+			failures += 1
+
 	# --- A4: Save/load preserves the act ---
 	var save := GameState.get_save_data()
 	GameState.load_save_data(save)
@@ -2411,6 +2439,24 @@ func _test_chal():
 		push_error("chal: storm should schedule war")
 		failures += 1
 
+	# --- H8: Debt and strike scenarios apply ---
+	GameState.initialize_new_campaign({"name": "Scn Debt"}, "normal", 5150)
+	GameState.apply_scenario("SCN_DEBT")
+	if GameState.debts.size() != 1:
+		push_error("chal: debt colony should open one loan, got %d" % GameState.debts.size())
+		failures += 1
+	if int(GameState.budget.get("funds", 0)) != 15000:
+		push_error("chal: debt colony funds should total 15000, got %d" % int(GameState.budget.get("funds", 0)))
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Scn Strike"}, "hard", 2525)
+	GameState.apply_scenario("SCN_STRIKE")
+	var max_loyal := 0
+	for s in GameState.scientists:
+		max_loyal = maxi(max_loyal, int((s as Dictionary).get("loyalty", 100)))
+	if max_loyal != 25:
+		push_error("chal: strike season should cap loyalty at 25, got %d" % max_loyal)
+		failures += 1
+
 	# --- H6: Save/load preserves challenge + NG state ---
 	GameState.active_mutators = ["MUT_GLASS"]
 	GameState.challenge_date = "20260903"
@@ -2494,6 +2540,17 @@ func _test_recovery():
 			failures += 1
 		if GameState.is_game_over():
 			push_error("recovery: reporting should clear the defeat for play")
+			failures += 1
+		var memo_found := false
+		for entry in GameState.story_log:
+			var ed: Dictionary = entry as Dictionary
+			if ed.get("kind", "") == "memo" and "Personal note from the parent board" in str(ed.get("text", "")):
+				memo_found = true
+		if not memo_found:
+			push_error("recovery: memo should carry the acquirer's personal note")
+			failures += 1
+		if "Parent orders" not in GameState.get_current_goal():
+			push_error("recovery: goal should surface parent orders, got '%s'" % GameState.get_current_goal())
 			failures += 1
 
 	# --- Q4: Influence rises through work, falls nowhere cheap ---

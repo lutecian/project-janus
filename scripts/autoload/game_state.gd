@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.23.0"
+const GAME_VERSION := "0.24.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -356,7 +356,9 @@ func _spawn_rivals():
 			"milestones_hit": [],
 			"recovery_entry_risk": float(rd.get("recovery_entry_risk", 5.0)),
 			"recovery_sabotage_bonus": float(rd.get("recovery_sabotage_bonus", 0.0)),
-			"prize_facility": rd.get("prize_facility", "")
+			"prize_facility": rd.get("prize_facility", ""),
+			"recovery_memo": rd.get("recovery_memo", ""),
+			"recovery_orders": rd.get("recovery_orders", "")
 		})
 		idx += 1
 	_sync_helios_rival()
@@ -2139,6 +2141,48 @@ func _check_act_advance():
 		"helios_progress": helios["progress"]
 	})
 	EventBus.act_advanced.emit(act)
+	if act == 3:
+		_rival_endgame_moves()
+
+func _rival_endgame_moves():
+	for r in rivals:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		if bool(rd.get("endgame_move", false)):
+			continue
+		rd["endgame_move"] = true
+		var disp: String = rd.get("disposition", "")
+		var rname: String = rd.get("name", "?")
+		var detail := ""
+		if disp == "aggressive":
+			rd["share"] = float(rd.get("share", 0)) + 5.0
+			player_sabotaged_until = maxf(player_sabotaged_until, elapsed_days + 3.0)
+			detail = "%s declares endgame: +5 share surge and your research sabotaged for 3 days." % rname
+		elif disp == "steady":
+			rd["daily_advance"] = float(rd.get("daily_advance", 0.5)) + 0.15
+			detail = "%s shifts to wartime footing: permanently faster advance." % rname
+		elif disp == "publisher":
+			player_market += 3.0
+			helios["progress"] = float(helios.get("progress", 0.0)) + 3.0
+			detail = "%s open-sources everything: +3 market for you, +3 progress for HELIOS." % rname
+		elif disp == "wildcard":
+			if _rng.randf() < 0.5:
+				rd["share"] = float(rd.get("share", 0)) + 8.0
+				detail = "%s goes all-in and wins: +8 share." % rname
+			else:
+				rd["share"] = float(rd.get("share", 0)) * 0.25
+				detail = "%s overreaches in the endgame: share quartered." % rname
+		else:
+			continue
+		story_log.append({
+			"day": elapsed_days, "artifact_id": "", "kind": "rival_arc",
+			"title": "Endgame move: %s" % rname, "text": detail
+		})
+		intelligence_reports.append({
+			"day": elapsed_days, "threshold": -3, "text": detail,
+			"helios_progress": helios["progress"]
+		})
 
 # --- Phase 10 challenges + NG+ ---
 func _mutator_def(mut_id: String) -> Dictionary:
@@ -2213,6 +2257,13 @@ func apply_scenario(scenario_id: String) -> Dictionary:
 				select_artifact(i)
 				break
 	budget["funds"] = int(budget.get("funds", 0)) + int(sdef.get("funds_bonus", 0))
+	var start_debt: int = int(sdef.get("start_debt", 0))
+	if start_debt > 0:
+		request_loan(start_debt)
+	var loyalty_set: int = int(sdef.get("loyalty_set", -1))
+	if loyalty_set >= 0:
+		for s in scientists:
+			(s as Dictionary)["loyalty"] = clampi(loyalty_set, 0, 100)
 	var rb: float = float(sdef.get("rival_bonus", 0.0))
 	if rb != 0.0:
 		for r in rivals:
@@ -2379,7 +2430,11 @@ func hire_scientist(sci_id: String) -> Dictionary:
 # --- Onboarding: goals + tutorial checklist ---
 func get_current_goal() -> String:
 	if in_recovery:
-		return "Regain independence: %d/80 influence, %d days left." % [int(influence), int(ceil(recovery_days_left))]
+		var goal := "Regain independence: %d/80 influence, %d days left." % [int(influence), int(ceil(recovery_days_left))]
+		var orders: String = _acquirer_def().get("recovery_orders", "")
+		if orders != "":
+			goal += " Parent orders: %s" % orders
+		return goal
 	if discovery.get("state", "") != "confirmed":
 		return "Confirm %s on %s (knowledge %d%% — 30 suspects, 70 confirms)." % [
 			discovery.get("discovery_id", "?"), artifact.get("id", "?"), int(knowledge.get("progress", 0))
@@ -2590,13 +2645,18 @@ func report_for_work() -> Dictionary:
 	esp_risk = minf(esp_risk + _acquirer_entry_risk(), 100.0)
 	game_over = {}
 	var aname := "Unknown"
+	var amemo := ""
 	for r in rivals:
 		if (r as Dictionary).get("id", "") == acquirer_id:
 			aname = (r as Dictionary).get("name", "Unknown")
+			amemo = (r as Dictionary).get("recovery_memo", "")
+	var base_text := "Your tenure as an independent Director has ended. Your termination has been rescinded. Effective immediately, you are appointed Director, Janus Research Division. You now report to %s Executive Management. Your division has 20 days to prove its worth. Do not disappoint us twice." % aname
+	if amemo != "":
+		base_text += " Personal note from the parent board: \"%s\"" % amemo
 	story_log.append({
 		"day": elapsed_days, "artifact_id": "", "kind": "memo",
 		"title": "INTERNAL MEMORANDUM — " + aname,
-		"text": "Your tenure as an independent Director has ended. Your termination has been rescinded. Effective immediately, you are appointed Director, Janus Research Division. You now report to %s Executive Management. Your division has 20 days to prove its worth. Do not disappoint us twice." % aname
+		"text": base_text
 	})
 	log_telemetry("reported", {"acquirer": acquirer_id})
 	return {"ok": true, "acquirer": acquirer_id}

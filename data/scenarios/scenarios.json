@@ -99,6 +99,32 @@
       "funds_bonus": 1000,
       "rival_bonus": 0.0,
       "remove_scientists": ["SCIENTIST_REED"]
+    },
+    {
+      "id": "SCN_DEBT",
+      "name": "Debt Colony",
+      "flavor": "Backers fronted $5,000 against future results. The future charges 2% daily.",
+      "start_act": 1,
+      "seed": 5150,
+      "difficulty": "normal",
+      "start_artifact": "J001",
+      "funds_bonus": 0,
+      "rival_bonus": 0.0,
+      "remove_scientists": [],
+      "start_debt": 5000
+    },
+    {
+      "id": "SCN_STRIKE",
+      "name": "Strike Season",
+      "flavor": "The staff arrived already angry. Loyalty starts at 25. Hazard pay attached.",
+      "start_act": 1,
+      "seed": 2525,
+      "difficulty": "hard",
+      "start_artifact": "J001",
+      "funds_bonus": 2000,
+      "rival_bonus": 0.0,
+      "remove_scientists": [],
+      "loyalty_set": 25
     }
   ]
 }
