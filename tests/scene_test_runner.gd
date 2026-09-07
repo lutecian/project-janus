@@ -173,6 +173,7 @@ func _test_next():
 		_test_med()
 		_test_map()
 		_test_ability()
+		_test_loans()
 		_test_pacing()
 		get_tree().quit()
 		return
@@ -759,8 +760,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 20:
-		push_error("ctr: expected 20-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 22:
+		push_error("ctr: expected 22-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -851,7 +852,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 19:
+	if GameState.contract_deck.size() != 21:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -1410,8 +1411,8 @@ func _test_story():
 
 	# --- T6: Content integrity — registry, arcs, scenarios cover the field ---
 	GameState.initialize_new_campaign({"name": "Story Integrity"}, "normal")
-	if GameState.available_artifacts.size() != 9:
-		push_error("story: expected 9 artifacts registered, got %d" % GameState.available_artifacts.size())
+	if GameState.available_artifacts.size() != 12:
+		push_error("story: expected 12 artifacts registered, got %d" % GameState.available_artifacts.size())
 		failures += 1
 	var arcs: Dictionary = GameState._load_json("res://data/narrative/artifact_arcs.json")
 	var arc_ids := {}
@@ -2567,6 +2568,42 @@ func _test_tutorial():
 		push_error("tutorial: completed steps lost after save/load")
 		failures += 1
 
+	# --- U5: Guided tour card tracks the current step, rewards, dismisses ---
+	GameState.initialize_new_campaign({"name": "Tour Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.tour_active = true
+	GameState.tour_rewarded = false
+	var card: Dictionary = GameState.get_tour_card()
+	if card.get("title", "") != "Run an experiment":
+		push_error("tutorial: tour should start on experiments, got '%s'" % card.get("title", "?"))
+		failures += 1
+	if int(card.get("remaining", 0)) != 5:
+		push_error("tutorial: tour should show 5 remaining, got %d" % int(card.get("remaining", 0)))
+		failures += 1
+	GameState.dismiss_tour()
+	if not GameState.get_tour_card().is_empty():
+		push_error("tutorial: dismissed tour should return no card")
+		failures += 1
+	GameState.tour_active = true
+	GameState.tutorial_done = ["first_experiment", "first_suspected", "first_confirmed", "first_tech", "first_deal"]
+	var funds_before: int = int(GameState.budget.get("funds", 0))
+	card = GameState.get_tour_card()
+	if not bool(card.get("finished", false)):
+		push_error("tutorial: completed tour should return finished card")
+		failures += 1
+	if int(GameState.budget.get("funds", 0)) != funds_before + 500:
+		push_error("tutorial: tour completion should grant $500")
+		failures += 1
+	if GameState.tour_active:
+		push_error("tutorial: completed tour should deactivate")
+		failures += 1
+	var save2 := GameState.get_save_data()
+	GameState.tour_active = true
+	GameState.load_save_data(save2)
+	if GameState.tour_active or not GameState.tour_rewarded:
+		push_error("tutorial: tour flags lost after save/load")
+		failures += 1
+
 	if failures == 0:
 		print("TUT_OK")
 	else:
@@ -2760,6 +2797,85 @@ func _test_ability():
 		print("ABILITY_OK")
 	else:
 		print("%d ABILITY FAILURES" % failures)
+
+func _test_loans():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "Loan Test"}, "normal")
+	GameState.select_artifact(0)
+
+	# --- L1: Borrow adds funds and books the debt ---
+	var funds0: int = int(GameState.budget.get("funds", 0))
+	var r: Dictionary = GameState.request_loan(5000)
+	if not bool(r.get("ok", false)):
+		push_error("loan: 5k tier should be granted")
+		failures += 1
+	if int(GameState.budget.get("funds", 0)) != funds0 + 5000:
+		push_error("loan: funds should rise by principal")
+		failures += 1
+	if GameState.debts.size() != 1:
+		push_error("loan: one debt should be booked")
+		failures += 1
+	if GameState.request_loan(3000).get("ok", true):
+		push_error("loan: off-tier amount should be refused")
+		failures += 1
+
+	# --- L2: Interest accrues on tick ---
+	var owed0: float = float((GameState.debts[0] as Dictionary).get("owed", 0.0))
+	GameState._tick_debts()
+	var owed1: float = float((GameState.debts[0] as Dictionary).get("owed", 0.0))
+	if owed1 <= owed0:
+		push_error("loan: interest should grow the balance")
+		failures += 1
+
+	# --- L3: Cap at three concurrent debts ---
+	GameState.request_loan(2000)
+	GameState.request_loan(10000)
+	if GameState.debts.size() != 3:
+		push_error("loan: should hold 3 debts, got %d" % GameState.debts.size())
+		failures += 1
+	if GameState.request_loan(2000).get("ok", true):
+		push_error("loan: fourth concurrent debt should be refused")
+		failures += 1
+
+	# --- L4: Repay oldest in full or not at all ---
+	GameState.budget["funds"] = 0
+	var short: Dictionary = GameState.repay_debt(0)
+	if bool(short.get("ok", true)) or short.get("reason", "") != "short":
+		push_error("loan: broke lab should not be able to repay")
+		failures += 1
+	GameState.budget["funds"] = 100000
+	var paid: Dictionary = GameState.repay_debt(0)
+	if not bool(paid.get("ok", false)) or GameState.debts.size() != 2:
+		push_error("loan: funded lab should clear oldest debt")
+		failures += 1
+	if GameState.repay_debt(9).get("ok", true):
+		push_error("loan: out-of-range repay should fail")
+		failures += 1
+
+	# --- L5: Overdue debts bleed $150/day and flag ---
+	(GameState.debts[0] as Dictionary)["due_day"] = GameState.elapsed_days - 1.0
+	if not GameState.debt_overdue():
+		push_error("loan: past-due debt should flag overdue")
+		failures += 1
+	var funds1: int = int(GameState.budget.get("funds", 0))
+	GameState._tick_debts()
+	if int(GameState.budget.get("funds", 0)) != funds1 - 150:
+		push_error("loan: collectors should take $150/day, funds %d -> %d" % [funds1, int(GameState.budget.get("funds", 0))])
+		failures += 1
+
+	# --- L6: Save/load preserves debts ---
+	var save := GameState.get_save_data()
+	var n: int = GameState.debts.size()
+	GameState.debts = []
+	GameState.load_save_data(save)
+	if GameState.debts.size() != n:
+		push_error("loan: debts lost after save/load")
+		failures += 1
+
+	if failures == 0:
+		print("LOAN_OK")
+	else:
+		print("%d LOAN FAILURES" % failures)
 
 func _test_pacing():
 	var failures: int = 0

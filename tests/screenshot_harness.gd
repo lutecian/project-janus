@@ -78,6 +78,10 @@ func _seed_realistic():
 	GameState.unlocked_technologies = ["TECH_THERMAL_CONTAINMENT"]
 	GameState.confirmed_discoveries = []
 	GameState.player_market = 34.2
+	GameState.tutorial_done = []
+	GameState.tour_active = true
+	GameState.tour_rewarded = false
+	GameState.debts = [{"principal": 5000, "owed": 5400.0, "due_day": 30.0}]
 	GameState._spawn_rivals()
 	for r in GameState.rivals:
 		if (r as Dictionary).get("id", "") == "RIV_HELIOS":

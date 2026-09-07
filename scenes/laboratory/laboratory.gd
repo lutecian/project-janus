@@ -1,30 +1,31 @@
 extends Control
 
-@onready var org_label: Label = $MarginContainer/VBox/header_row/org_label
-@onready var day_budget_label: Label = $MarginContainer/VBox/header_row/day_budget_label
-@onready var artifact_container: VBoxContainer = $MarginContainer/VBox/artifacts_panel/artifacts_vbox/artifact_container
-@onready var scientist_container: VBoxContainer = $MarginContainer/VBox/scientists_panel/scientists_vbox/scientist_container
-@onready var candidates_container: VBoxContainer = $MarginContainer/VBox/scientists_panel/scientists_vbox/candidates_container
-@onready var status_label: Label = $MarginContainer/VBox/status_label
+@onready var org_label: Label = $MarginContainer/Scroll/VBox/header_row/org_label
+@onready var day_budget_label: Label = $MarginContainer/Scroll/VBox/header_row/day_budget_label
+@onready var artifact_container: VBoxContainer = $MarginContainer/Scroll/VBox/artifacts_panel/artifacts_vbox/artifact_container
+@onready var scientist_container: VBoxContainer = $MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox/scientist_container
+@onready var candidates_container: VBoxContainer = $MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox/candidates_container
+@onready var status_label: Label = $MarginContainer/Scroll/VBox/status_label
 
-@onready var btn_artifact: Button = $MarginContainer/VBox/nav_row/btn_artifact
-@onready var btn_scientists: Button = $MarginContainer/VBox/nav_row/btn_scientists
-@onready var btn_experiments: Button = $MarginContainer/VBox/nav_row/btn_experiments
-@onready var btn_helios: Button = $MarginContainer/VBox/nav_row/btn_helios
-@onready var btn_budget: Button = $MarginContainer/VBox/nav_row/btn_budget
-@onready var btn_technology: Button = $MarginContainer/VBox/nav_row/btn_technology
-@onready var btn_incidents: Button = $MarginContainer/VBox/nav_row/btn_incidents
-@onready var btn_acquisitions: Button = $MarginContainer/VBox/nav_row2/btn_acquisitions
-@onready var btn_contracts: Button = $MarginContainer/VBox/nav_row2/btn_contracts
-@onready var btn_espionage: Button = $MarginContainer/VBox/nav_row2/btn_espionage
-@onready var btn_facilities: Button = $MarginContainer/VBox/nav_row2/btn_facilities
-@onready var btn_infirmary: Button = $MarginContainer/VBox/nav_row2/btn_infirmary
-@onready var btn_main_menu: Button = $MarginContainer/VBox/footer_row/btn_main_menu
-@onready var btn_save: Button = $MarginContainer/VBox/footer_row/btn_save
-@onready var btn_help: Button = $MarginContainer/VBox/footer_row/btn_help
-@onready var guide_panel: PanelContainer = $MarginContainer/VBox/guide_panel
-@onready var goal_label: Label = $MarginContainer/VBox/guide_panel/guide_vbox/goal_label
-@onready var tutorial_label: Label = $MarginContainer/VBox/guide_panel/guide_vbox/tutorial_label
+@onready var btn_artifact: Button = $MarginContainer/Scroll/VBox/nav_row/btn_artifact
+@onready var btn_scientists: Button = $MarginContainer/Scroll/VBox/nav_row/btn_scientists
+@onready var btn_experiments: Button = $MarginContainer/Scroll/VBox/nav_row/btn_experiments
+@onready var btn_helios: Button = $MarginContainer/Scroll/VBox/nav_row/btn_helios
+@onready var btn_budget: Button = $MarginContainer/Scroll/VBox/nav_row/btn_budget
+@onready var btn_technology: Button = $MarginContainer/Scroll/VBox/nav_row/btn_technology
+@onready var btn_incidents: Button = $MarginContainer/Scroll/VBox/nav_row/btn_incidents
+@onready var btn_acquisitions: Button = $MarginContainer/Scroll/VBox/nav_row2/btn_acquisitions
+@onready var btn_contracts: Button = $MarginContainer/Scroll/VBox/nav_row2/btn_contracts
+@onready var btn_espionage: Button = $MarginContainer/Scroll/VBox/nav_row2/btn_espionage
+@onready var btn_facilities: Button = $MarginContainer/Scroll/VBox/nav_row2/btn_facilities
+@onready var btn_infirmary: Button = $MarginContainer/Scroll/VBox/nav_row2/btn_infirmary
+@onready var btn_main_menu: Button = $MarginContainer/Scroll/VBox/footer_row/btn_main_menu
+@onready var btn_save: Button = $MarginContainer/Scroll/VBox/footer_row/btn_save
+@onready var btn_help: Button = $MarginContainer/Scroll/VBox/footer_row/btn_help
+@onready var guide_panel: PanelContainer = $MarginContainer/Scroll/VBox/guide_panel
+@onready var goal_label: Label = $MarginContainer/Scroll/VBox/guide_panel/guide_vbox/goal_label
+@onready var tutorial_label: Label = $MarginContainer/Scroll/VBox/guide_panel/guide_vbox/tutorial_label
+@onready var btn_tour_skip: Button = $MarginContainer/Scroll/VBox/guide_panel/guide_vbox/btn_tour_skip
 @onready var memorial_overlay: PanelContainer = $MemorialOverlay
 @onready var memorial_title: Label = $MemorialOverlay/MemorialVBox/memorial_title
 @onready var memorial_text: Label = $MemorialOverlay/MemorialVBox/memorial_text
@@ -58,6 +59,7 @@ func _ready():
 	btn_main_menu.pressed.connect(_on_main_menu)
 	btn_save.pressed.connect(_on_save)
 	btn_help.pressed.connect(_go.bind("res://scenes/help/codex.tscn"))
+	btn_tour_skip.pressed.connect(_on_tour_skip)
 	btn_memorial_continue.pressed.connect(_on_memorial_continue)
 	EventBus.game_over.connect(_on_game_over)
 	EventBus.market_updated.connect(_on_market_updated)
@@ -111,6 +113,8 @@ func _refresh_ui():
 		event_text = " | EVENT: %s" % GameState.active_event.get("name", "?")
 	if GameState.insolvent_streak > 0 and not GameState.in_recovery:
 		event_text += " | INSOLVENT x%d — fund the lab or lose it" % GameState.insolvent_streak
+	if GameState.debt_overdue():
+		event_text += " | DEBT OVERDUE — collectors take $150/day"
 	if GameState.in_recovery:
 		var aname := "Unknown"
 		for r in GameState.rivals:
@@ -135,17 +139,36 @@ func _refresh_ui():
 		btn_incidents.text = "Incidents (%d!)" % GameState.active_crises.size()
 		btn_incidents.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 	goal_label.text = "GOAL: " + GameState.get_current_goal()
-	var pending: Array = GameState.check_tutorial()
-	if pending.is_empty():
+	var card: Dictionary = GameState.get_tour_card()
+	if card.is_empty():
+		btn_tour_skip.visible = false
+		var pending: Array = GameState.check_tutorial()
+		if pending.is_empty():
+			guide_panel.visible = true
+			tutorial_label.visible = false
+		else:
+			guide_panel.visible = true
+			tutorial_label.visible = true
+			var lines: PackedStringArray = []
+			for i in range(mini(pending.size(), 2)):
+				lines.append("• " + pending[i])
+			tutorial_label.text = "Next: " + "  ".join(lines)
+	elif card.get("finished", false):
+		btn_tour_skip.visible = false
 		guide_panel.visible = true
-		tutorial_label.visible = false
+		tutorial_label.visible = true
+		tutorial_label.text = "Tour complete — $500 training grant received. The lab is yours."
 	else:
 		guide_panel.visible = true
 		tutorial_label.visible = true
-		var lines: PackedStringArray = []
-		for i in range(mini(pending.size(), 2)):
-			lines.append("• " + pending[i])
-		tutorial_label.text = "Next: " + "  ".join(lines)
+		btn_tour_skip.visible = true
+		tutorial_label.text = "GUIDED TOUR (%d left): %s — %s" % [
+			int(card.get("remaining", 0)), card.get("title", "?"), card.get("detail", "")
+		]
+
+func _on_tour_skip():
+	GameState.dismiss_tour()
+	_refresh_ui()
 
 func _on_market_updated(_player_market: float, _rivals: Array):
 	_populate_artifacts()

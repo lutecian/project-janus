@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.21.0"
+const GAME_VERSION := "0.22.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -73,6 +73,9 @@ var use_ng: bool = false
 
 # --- Phase 11 (0.11): post-absorption recovery branch ---
 var tutorial_done: Array = []
+var tour_active: bool = false
+var tour_rewarded: bool = false
+var debts: Array = []
 
 var last_buyout_day: float = -99.0
 var insolvent_streak: int = 0
@@ -261,6 +264,11 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	active_mutators = []
 	challenge_date = ""
 	tutorial_done = []
+	tour_active = false
+	tour_rewarded = false
+	var legacy_now: Dictionary = _load_legacy()
+	if (legacy_now.get("best", {}) as Dictionary).is_empty():
+		tour_active = true
 	last_buyout_day = -99.0
 	insolvent_streak = 0
 	in_recovery = false
@@ -272,6 +280,7 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	parent_sabotage_ok = false
 	parent_expose_ok = false
 	telemetry = []
+	debts = []
 	company_roster = ["CMP_QVANTIC", "CMP_FERROUS", "CMP_HOLLOW", "CMP_MERIDIAN"]
 	var late := ["CMP_DREDGE", "CMP_KILN", "CMP_VESPER", "CMP_ABYSSAL"]
 	for i in range(late.size() - 1, 0, -1):
@@ -405,7 +414,10 @@ func _load_artifact_data():
 		"res://data/artifacts/j006.json",
 		"res://data/artifacts/j007.json",
 		"res://data/artifacts/j008.json",
-		"res://data/artifacts/j009.json"
+		"res://data/artifacts/j009.json",
+		"res://data/artifacts/j010.json",
+		"res://data/artifacts/j011.json",
+		"res://data/artifacts/j012.json"
 	]
 	for path in paths:
 		var data := _load_json(path)
@@ -1134,6 +1146,7 @@ func _tick_new_day(worker_ids: Array):
 				"text": "%s has resigned. No note, no forwarding address — just an empty bench and a security badge left on the director's desk." % _scientist_name(sd2.get("id", ""))
 			})
 	_tick_insolvency()
+	_tick_debts()
 	_tick_recovery()
 
 func run_day_batch(pairs: Array) -> Array:
@@ -2035,7 +2048,7 @@ func _act_def(act_id: int) -> Dictionary:
 		var ad: Dictionary = adef as Dictionary
 		if int(ad.get("id", 1)) == act_id:
 			return ad
-	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
+	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009", "J010", "J011", "J012"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
 
 func get_act_name() -> String:
 	return _act_def(act).get("name", "Containment")
@@ -2351,6 +2364,40 @@ func check_tutorial() -> Array:
 			pending.append(sd.get("text", sid))
 	return pending
 
+# --- Guided tour: sequential first-timer onboarding over the checklist ---
+func get_tour_card() -> Dictionary:
+	if not tour_active:
+		return {}
+	var pending: Array = check_tutorial()
+	if pending.is_empty():
+		if not tour_rewarded:
+			tour_rewarded = true
+			budget["funds"] = int(budget.get("funds", 0)) + 500
+			telemetry.append({"day": elapsed_days, "event": "tour_complete"})
+		tour_active = false
+		return {"finished": true}
+	var data: Dictionary = _load_json("res://data/meta/tutorial.json")
+	var tour: Array = data.get("tour", [])
+	var steps: Array = data.get("steps", [])
+	var current_text: String = str(pending[0])
+	var step_id := ""
+	for sdef in steps:
+		var sd: Dictionary = sdef as Dictionary
+		if sd.get("text", "") == current_text:
+			step_id = sd.get("id", "")
+			break
+	var card := {"title": current_text, "detail": "", "remaining": pending.size()}
+	for tdef in tour:
+		var td: Dictionary = tdef as Dictionary
+		if td.get("id", "") == step_id:
+			card["title"] = td.get("title", current_text)
+			card["detail"] = td.get("detail", "")
+			break
+	return card
+
+func dismiss_tour():
+	tour_active = false
+
 # --- Phase 11 recovery: post-absorption second chance (hidden branch) ---
 func log_telemetry(event: String, detail: Dictionary = {}):
 	var entry := {"day": elapsed_days, "event": event}
@@ -2401,6 +2448,50 @@ func _tick_insolvency():
 		insolvent_streak = 0
 	if insolvent_streak >= 3:
 		_trigger_absorption()
+
+const LOAN_TIERS := [2000, 5000, 10000]
+const LOAN_RATE := 0.02
+const LOAN_TERM_DAYS := 30.0
+const LOAN_MAX_OPEN := 3
+const LOAN_OVERDUE_FEE := 150
+
+func request_loan(principal: int) -> Dictionary:
+	if principal not in LOAN_TIERS:
+		return {"ok": false, "reason": "no_such_tier"}
+	if debts.size() >= LOAN_MAX_OPEN:
+		return {"ok": false, "reason": "max_out"}
+	budget["funds"] = int(budget.get("funds", 0)) + principal
+	debts.append({"principal": principal, "owed": float(principal), "due_day": elapsed_days + LOAN_TERM_DAYS})
+	budget["funding_received"] = int(budget.get("funding_received", 0)) + principal
+	log_telemetry("loan_taken", {"principal": principal})
+	return {"ok": true, "owed": float(principal)}
+
+func repay_debt(index: int = 0) -> Dictionary:
+	if index < 0 or index >= debts.size():
+		return {"ok": false, "reason": "no_such_debt"}
+	var d: Dictionary = debts[index] as Dictionary
+	var owed: int = int(ceil(float(d.get("owed", 0.0))))
+	if int(budget.get("funds", 0)) < owed:
+		return {"ok": false, "reason": "short", "owed": owed}
+	budget["funds"] = int(budget.get("funds", 0)) - owed
+	budget["spent"] = int(budget.get("spent", 0)) + owed
+	debts.remove_at(index)
+	log_telemetry("loan_repaid", {"owed": owed})
+	return {"ok": true, "paid": owed}
+
+func debt_overdue() -> bool:
+	for d in debts:
+		if elapsed_days > float((d as Dictionary).get("due_day", 0.0)):
+			return true
+	return false
+
+func _tick_debts():
+	for d in debts:
+		var dd: Dictionary = d as Dictionary
+		dd["owed"] = float(dd.get("owed", 0.0)) * (1.0 + LOAN_RATE)
+		if elapsed_days > float(dd.get("due_day", 0.0)):
+			budget["funds"] = int(budget.get("funds", 0)) - LOAN_OVERDUE_FEE
+			budget["spent"] = int(budget.get("spent", 0)) + LOAN_OVERDUE_FEE
 
 func _trigger_absorption():
 	var leader: Dictionary = _leading_rival()
@@ -3129,6 +3220,9 @@ func get_save_data() -> Dictionary:
 		"use_ng": use_ng,
 		"last_buyout_day": last_buyout_day,
 		"tutorial_done": tutorial_done,
+		"tour_active": tour_active,
+		"tour_rewarded": tour_rewarded,
+		"debts": debts,
 		"insolvent_streak": insolvent_streak,
 		"in_recovery": in_recovery,
 		"acquirer_id": acquirer_id,
@@ -3235,6 +3329,9 @@ func load_save_data(data: Dictionary):
 	use_ng = data.get("use_ng", false)
 	last_buyout_day = data.get("last_buyout_day", -99.0)
 	tutorial_done = data.get("tutorial_done", [])
+	tour_active = data.get("tour_active", false)
+	tour_rewarded = data.get("tour_rewarded", false)
+	debts = data.get("debts", [])
 	insolvent_streak = data.get("insolvent_streak", 0)
 	in_recovery = data.get("in_recovery", false)
 	acquirer_id = data.get("acquirer_id", "")

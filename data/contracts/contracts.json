@@ -260,6 +260,32 @@
       "market_bonus": 2.5,
       "military": false,
       "event_tag": "EVT_GOLD"
+    },
+    {
+      "id": "CTR_ORCHARD",
+      "issuer": "Panoramic Institute",
+      "title": "Attention Farming Study",
+      "flavor": "They want to rent the Orchard's gaze by the hour. The Orchard has opinions about the rate.",
+      "days_required": 5,
+      "upfront": 1500,
+      "completion_pay": 2200,
+      "tech_key": "deep_field_probe",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_PAPERSUN",
+      "issuer": "Municipal Grid Authority",
+      "title": "Cold Light Pilot",
+      "flavor": "Streetlights that burn nothing and bill no one. The Authority is suspicious of the economics and desperate for the optics.",
+      "days_required": 5,
+      "upfront": 1400,
+      "completion_pay": 2100,
+      "tech_key": "thermal_containment",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "id": "J010",
+  "display_name": "Glass Orchard",
+  "visible_description": "Trees of fiber-optic glass growing toward the observation cameras. Prune a branch and two grow toward the pruner.",
+  "known_initial_data": {
+    "mass_kg": 12.6,
+    "diameter_cm": 88.3,
+    "surface_temperature_c": 17.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "observer_seeking_growth",
+    "trigger": "active_observation",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 17.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

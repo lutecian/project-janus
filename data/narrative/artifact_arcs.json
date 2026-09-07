@@ -188,6 +188,69 @@
           "text": "The dangerous run failed on purpose — a deliberate null result to test the lantern's appetite. It flared brighter than ever recorded and stayed lit for three days. The lesson, entered formally into the record: do not feed it on purpose. It notices intention."
         }
       }
+    },
+    {
+      "artifact_id": "J010",
+      "beats": {
+        "dormant": {
+          "title": "Glass Orchard",
+          "text": "The trees lean toward the cameras overnight, every night, a few millimeters. The day shift straightens the record; the night shift has stopped correcting it. Both shifts are right."
+        },
+        "suspected": {
+          "title": "Phototropism of Attention",
+          "text": "It is not light the orchard wants. Covered lenses still draw growth; blind cameras do not. It wants to be seen, specifically, by something that understands seeing. The ethics board has asked us to stop using the word 'wants.' We have not stopped."
+        },
+        "confirmed": {
+          "title": "Fruiting Bodies",
+          "text": "A minute of direct observation fruits coherent light, which means the orchard converts attention into energy with 97% efficiency. Somewhere in the budget there is now a line item for 'watching.' It is the most cost-effective experiment ever run."
+        },
+        "danger": {
+          "title": "Clearcut",
+          "text": "The dangerous run pruned the orchard back to stumps, and by morning it had regrown — all of it — facing the pruner. Branch tips pressed against the observation glass like faces at a window. Pruning is now prohibited. The orchard has tenure."
+        }
+      }
+    },
+    {
+      "artifact_id": "J011",
+      "beats": {
+        "dormant": {
+          "title": "Drowned Bell",
+          "text": "It rings with eleven kilometers of ocean behind every tone, and it has never been wet. Divers on staff refuse to enter its room. They will not explain why, except to say that it sounds like down there."
+        },
+        "suspected": {
+          "title": "The Trench Connection",
+          "text": "Spectral match to hadal recordings is exact down to shrimp noise. Either the bell has been to the bottom of the sea, or the bottom of the sea has been to the bell. Both readings are on the table. Neither is discussed at lunch."
+        },
+        "confirmed": {
+          "title": "The Quiet",
+          "text": "An arm's length of perfect silence around the bell, confirmed and measured. Staff take turns standing in it. They describe the quiet the way other people describe cathedrals. Two have asked to be married in it. Request pending."
+        },
+        "danger": {
+          "title": "Full Fathom",
+          "text": "The dangerous run rang the bell at full amplitude and for six seconds the lab was eleven kilometers down: pressure, cold, dark, the works. Three burst eardrums, one crushed instrument rack, and a smell of brine that has not fully left. The bell has not been struck since."
+        }
+      }
+    },
+    {
+      "artifact_id": "J012",
+      "beats": {
+        "dormant": {
+          "title": "Paper Sun",
+          "text": "One millimeter thick, burning for eleven months, consuming nothing. It violates thermodynamics the way a smile violates a ledger — completely, and without apology. The physicists have started bringing it problems. It has solved none of them. It burns on."
+        },
+        "suspected": {
+          "title": "Cold Fire",
+          "text": "Combustion lines, no heat. The spectroscopists checked three times and then sat very quietly for a while. If fire does not need fuel or heat, the question going around the lab is: what else have we been wrong about that also burns?"
+        },
+        "confirmed": {
+          "title": "A Flat Star",
+          "text": "Two-dimensional stellar photosphere, confirmed six ways. We keep a star in a drawer now. It outranks everyone in the building and demands nothing. Morale has never been higher. Existential dread has never been higher. Both readings are correct."
+        },
+        "danger": {
+          "title": "Solar Weather",
+          "text": "The dangerous run provoked a flare event — a sheet of cold fire licking the chamber walls, beautiful beyond description and utterly silent. Nobody was hurt. Everybody understands, now, that this was courtesy. Courtesy can be withdrawn."
+        }
+      }
     }
   ]
 }

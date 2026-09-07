@@ -397,12 +397,132 @@
         "budget_cost": 500,
         "days_lost": 1
       },
-      "observations": [
-        "Compulsive counting in three staff. One self-injury, minor.",
-        "Stone tally count rose during the episode."
-      ],
-      "discovery_chance_increase": 0.1
-    }
+  "observations": [
+   "Compulsive counting in three staff. One self-injury, minor.",
+   "Stone tally count rose during the episode."
+  ],
+  "discovery_chance_increase": 0.1
+ },
+ {
+  "id": "INC_SALT_COMMUNION",
+  "name": "Salt Communion",
+  "description": "A technician tasted salt from the Choir's chamber and claims it sang back.",
+  "graphic_description": "Technician Reyes licked salt off her glove on a dare and went rigid, eyes white, humming a four-part harmony alone for ninety seconds. When she came back she was weeping and could not hear for a day. The salt on her glove had arranged itself into a miniature choir loft. She keeps it in a vial now. She will not say why.",
+  "casualty": 20,
+  "severity": "major",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.15,
+   "budget_cost": 1200,
+   "days_lost": 1
+  },
+  "observations": [
+   "Personnel reported harmonic auditory phenomena after salt contact.",
+   "Temporary deafness resolved within 24 hours. Salt formations retained."
+  ],
+  "discovery_chance_increase": 0.1
+ },
+ {
+  "id": "INC_LEDGER_AUDIT",
+  "name": "Ledger Audit",
+  "description": "The Ledger Stone displayed a staff casualty tally one day before the accident.",
+  "graphic_description": "The morning tally read one more than headcount, and the crew laughed about it until the afternoon crane failure crushed Dr. Ilves's leg. The stone had already added the cast, the surgery, the six-week recovery - itemized, costed, correct to the dollar. Nobody laughs near the stone anymore. The morning tally is now read aloud like weather.",
+  "casualty": 45,
+  "severity": "critical",
+  "trigger_chance": 0.015,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.2,
+   "budget_cost": 3000,
+   "days_lost": 3
+  },
+  "observations": [
+   "Artifact displayed predictive casualty accounting.",
+   "Predictions matched subsequent incident costs exactly."
+  ],
+  "discovery_chance_increase": 0.12
+ },
+ {
+  "id": "INC_LANTERN_DIM",
+  "name": "Lantern Dim",
+  "description": "The Hollow Lantern dimmed toward extinction and had to be fed a failed run.",
+  "graphic_description": "The lantern guttered like a candle in a draft, and every light in the building leaned toward it - fluorescents visibly bending their glow sideways. The crew fed it a dead experiment, a whole failed week's work, and it drank the failure and burned blue-white for an hour. The failed week's data was gone from the servers. Eaten. Backups too. It eats failure the way fire eats paper.",
+  "casualty": 10,
+  "severity": "major",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.2,
+   "budget_cost": 800,
+   "research_speed_reduction": 0.1
+  },
+  "observations": [
+   "Artifact consumed failed experimental data across all storage.",
+   "Ambient lighting distorted toward artifact during event."
+  ],
+  "discovery_chance_increase": 0.1
+ },
+ {
+  "id": "INC_ORCHARD_PRUNE",
+  "name": "Orchard Prune",
+  "description": "Pruning the Glass Orchard provoked overnight regrowth aimed at the pruner.",
+  "graphic_description": "Gardener Okafor trimmed three branches and woke to find forty new ones pressed against his quarters' window, tips flattened on the glass in the night, dripping condensation in the shape of a face with no features. The new growth spells nothing in any language, but everyone who sees it reads their own name. Pruning is now done by remote arm. Nobody volunteers to drive it.",
+  "casualty": 15,
+  "severity": "major",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.1,
+   "budget_cost": 1000,
+   "days_lost": 1
+  },
+  "observations": [
+   "Severed growth regenerated overnight, oriented on pruning personnel.",
+   "Regrowth exhibited pareidolic patterning."
+  ],
+  "discovery_chance_increase": 0.1
+ },
+ {
+  "id": "INC_BELL_TOLL",
+  "name": "Bell Toll",
+  "description": "The Drowned Bell tolled unstruck, and the lab spent six seconds eleven kilometers down.",
+  "graphic_description": "The bell rang itself at 03:14 and the night shift felt the building sink - ears popping, blood welling from noses, a cold black pressure laying hands on every chest. Six seconds, then air again, and the smell of brine that has not fully left three weeks later. The barometer logged a depth of 10,900 meters. Indoors. In winter. The night shift gets hazard pay now. They earned it in six seconds.",
+  "casualty": 40,
+  "severity": "critical",
+  "trigger_chance": 0.015,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.2,
+   "budget_cost": 2500,
+   "days_lost": 2
+  },
+  "observations": [
+   "Artifact self-excited at 03:14. Barometric log consistent with hadal depth.",
+   "Six personnel treated for barotrauma. No fatalities."
+  ],
+  "discovery_chance_increase": 0.12
+ },
+ {
+  "id": "INC_COLD_FLARE",
+  "name": "Cold Flare",
+  "description": "The Paper Sun threw a sheet of cold fire across its chamber.",
+  "graphic_description": "A flare of silent white-gold fire licked the chamber walls for eleven seconds and left every surface unmarked and every thermometer unchanged - except the crew's shadows, which were burned onto the floor where they stood, darker than dark, and have not faded. The shadows point at the sun regardless of lighting. The crew step carefully around each other's shadows now. It feels like stepping on graves.",
+  "casualty": 25,
+  "severity": "major",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.15,
+   "budget_cost": 1500,
+   "research_speed_reduction": 0.05
+  },
+  "observations": [
+   "Artifact emitted non-thermal flare event. No equipment damage recorded.",
+   "Personnel shadows anomalously fixed toward artifact."
+  ],
+  "discovery_chance_increase": 0.1
+}
   ],
   "incident_cooldown_days": 5,
   "max_incidents_per_campaign": 8

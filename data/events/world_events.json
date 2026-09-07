@@ -143,6 +143,24 @@
       "player_bonus": 0.0,
       "funds_grant": -800,
       "duration_days": 8
+    },
+    {
+      "id": "EVT_SILENCE",
+      "name": "Year of Silence",
+      "flavor": "A cultural movement venerates quiet. The Bell's silence pockets become pilgrimage sites; contemplative labs thrive.",
+      "rival_mult": 0.9,
+      "player_bonus": 1.5,
+      "funds_grant": 600,
+      "duration_days": 8
+    },
+    {
+      "id": "EVT_BLACKOUT",
+      "name": "Grid Blackout",
+      "flavor": "Burning nothing suddenly looks like infrastructure. Cold-light research pays double while the grid is down.",
+      "rival_mult": 1.0,
+      "player_bonus": 0.0,
+      "funds_grant": 0,
+      "duration_days": 6
     }
   ]
 }

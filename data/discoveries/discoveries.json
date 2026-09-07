@@ -159,6 +159,66 @@
       "player_namable": true,
       "technology_unlock": "cryo_lattice",
       "effect": {"type": "lantern_frost", "resolution_runs": 400}
+    },
+    {
+      "discovery_id": "DISC_LUMEN_BLOOM",
+      "artifact_id": "J010",
+      "internal_name": "Lumen Bloom",
+      "display_name_before_naming": "Unclassified Light Growth",
+      "description": "The glass trees fruit orbs of coherent light whenever observed directly for more than a minute.",
+      "player_namable": true,
+      "technology_unlock": "deep_field_probe",
+      "effect": {"type": "lumen_bloom", "coherence": 0.97}
+    },
+    {
+      "discovery_id": "DISC_WATCHER_GEOMETRY",
+      "artifact_id": "J010",
+      "internal_name": "Watcher Geometry",
+      "display_name_before_naming": "Unclassified Growth Pattern",
+      "description": "Growth vectors converge on camera positions with millimeter precision. The orchard grows toward being seen.",
+      "player_namable": true,
+      "technology_unlock": "experimental_field_sensor",
+      "effect": {"type": "watcher_geometry", "precision_mm": 1.0}
+    },
+    {
+      "discovery_id": "DISC_ABYSSAL_TONE",
+      "artifact_id": "J011",
+      "internal_name": "Abyssal Tone",
+      "display_name_before_naming": "Unclassified Wet Acoustics",
+      "description": "The bell's tone matches deep-trench recordings note for note, though it has never been underwater.",
+      "player_namable": true,
+      "technology_unlock": "resonance_amplifier",
+      "effect": {"type": "abyssal_tone", "depth_m": 10900.0}
+    },
+    {
+      "discovery_id": "DISC_SILENCE_POCKET",
+      "artifact_id": "J011",
+      "internal_name": "Silence Pocket",
+      "display_name_before_naming": "Unclassified Quiet Zone",
+      "description": "Within arm's reach of the bell, all sound ceases — including heartbeat-monitoring equipment tones.",
+      "player_namable": true,
+      "technology_unlock": "field_stabilizer",
+      "effect": {"type": "silence_pocket", "radius_m": 0.7}
+    },
+    {
+      "discovery_id": "DISC_COLD_FLARE",
+      "artifact_id": "J012",
+      "internal_name": "Cold Flare",
+      "display_name_before_naming": "Unclassified Flameless Burn",
+      "description": "Spectroscopy shows combustion emission lines with no corresponding heat release. Fire without thermodynamics.",
+      "player_namable": true,
+      "technology_unlock": "thermal_containment",
+      "effect": {"type": "cold_flare", "heat_deficit": 1.0}
+    },
+    {
+      "discovery_id": "DISC_FLAT_STAR",
+      "artifact_id": "J012",
+      "internal_name": "Flat Star Model",
+      "display_name_before_naming": "Unclassified Planar Fusion",
+      "description": "The sheet's emission matches a two-dimensional stellar photosphere. It is, by every measurement that matters, a flat star.",
+      "player_namable": true,
+      "technology_unlock": "gravity_sensor",
+      "effect": {"type": "flat_star", "dimensions": 2}
     }
   ]
 }

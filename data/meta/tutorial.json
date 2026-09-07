@@ -5,5 +5,12 @@
     {"id": "first_confirmed", "text": "CONFIRM a discovery (70% knowledge, or gather evidence)."},
     {"id": "first_tech", "text": "Unlock a technology (confirmations unlock tech)."},
     {"id": "first_deal", "text": "Make your first deal: acquire a lab, sign a contract, build, hire, or run an op."}
+  ],
+  "tour": [
+    {"id": "first_experiment", "title": "Run an experiment", "detail": "Open Experiments, pick OBSERVE (safe, cheap) with any scientist, and run it. Knowledge starts moving and the discovery stirs."},
+    {"id": "first_suspected", "title": "Reach SUSPECTED", "detail": "Keep experimenting on the same artifact until knowledge passes 30%. The artifact's story text changes — that is the narrative noticing you."},
+    {"id": "first_confirmed", "title": "CONFIRM the discovery", "detail": "Push knowledge to 70% or chain evidence events. Confirmation unlocks a technology — pick one that fits how you want to win."},
+    {"id": "first_tech", "title": "Spend the technology", "detail": "Open Technology and unlock. Resonance for market muscle, Cryo for safety, Deep Field for discovery speed."},
+    {"id": "first_deal", "title": "Make a deal", "detail": "Sign a contract, acquire a lab, build, hire, or run an op. Deals are the other half of victory — and a $500 training grant is waiting when this lands."}
   ]
 }

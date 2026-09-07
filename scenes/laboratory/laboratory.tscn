@@ -46,15 +46,21 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="MarginContainer"]
+[node name="Scroll" type="ScrollContainer" parent="MarginContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 14
 
-[node name="header_row" type="HBoxContainer" parent="MarginContainer/VBox"]
+[node name="header_row" type="HBoxContainer" parent="MarginContainer/Scroll/VBox"]
 layout_mode = 2
 
-[node name="org_label" type="Label" parent="MarginContainer/VBox/header_row"]
+[node name="org_label" type="Label" parent="MarginContainer/Scroll/VBox/header_row"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
@@ -62,188 +68,195 @@ theme_override_colors/font_color = Color(0.2, 0.84, 1, 1)
 text = "ORGANIZATION"
 vertical_alignment = 1
 
-[node name="day_budget_label" type="Label" parent="MarginContainer/VBox/header_row"]
+[node name="day_budget_label" type="Label" parent="MarginContainer/Scroll/VBox/header_row"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
 text = "Day 0 | $10,000"
 vertical_alignment = 1
 
-[node name="Sep1" type="HSeparator" parent="MarginContainer/VBox"]
+[node name="Sep1" type="HSeparator" parent="MarginContainer/Scroll/VBox"]
 layout_mode = 2
 
-[node name="nav_row" type="HBoxContainer" parent="MarginContainer/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="btn_artifact" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Artifact"
-
-[node name="btn_scientists" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Scientists"
-
-[node name="btn_experiments" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Experiments"
-
-[node name="btn_helios" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "HELIOS Intel"
-
-[node name="btn_budget" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Budget"
-
-[node name="btn_technology" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Technology"
-
-[node name="btn_incidents" type="Button" parent="MarginContainer/VBox/nav_row"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Incidents"
-
-[node name="nav_row2" type="HBoxContainer" parent="MarginContainer/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="btn_acquisitions" type="Button" parent="MarginContainer/VBox/nav_row2"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Acquisitions"
-
-[node name="btn_contracts" type="Button" parent="MarginContainer/VBox/nav_row2"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Contracts"
-
-[node name="btn_espionage" type="Button" parent="MarginContainer/VBox/nav_row2"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Espionage"
-
-[node name="btn_facilities" type="Button" parent="MarginContainer/VBox/nav_row2"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Facilities"
-
-[node name="btn_infirmary" type="Button" parent="MarginContainer/VBox/nav_row2"]
-layout_mode = 2
-custom_minimum_size = Vector2(110, 30)
-text = "Infirmary"
-
-[node name="Sep2" type="HSeparator" parent="MarginContainer/VBox"]
-layout_mode = 2
-
-[node name="artifacts_panel" type="PanelContainer" parent="MarginContainer/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_type_variation = &"accent_card"
-
-[node name="artifacts_vbox" type="VBoxContainer" parent="MarginContainer/VBox/artifacts_panel"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="artifacts_header" type="Label" parent="MarginContainer/VBox/artifacts_panel/artifacts_vbox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
-text = "ARTIFACTS IN CONTAINMENT"
-horizontal_alignment = 1
-
-[node name="artifact_container" type="VBoxContainer" parent="MarginContainer/VBox/artifacts_panel/artifacts_vbox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Sep3" type="HSeparator" parent="MarginContainer/VBox"]
-layout_mode = 2
-
-[node name="scientists_panel" type="PanelContainer" parent="MarginContainer/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_type_variation = &"accent_card"
-
-[node name="scientists_vbox" type="VBoxContainer" parent="MarginContainer/VBox/scientists_panel"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="scientists_header" type="Label" parent="MarginContainer/VBox/scientists_panel/scientists_vbox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
-text = "RESEARCH STAFF"
-horizontal_alignment = 1
-
-[node name="scientist_container" type="VBoxContainer" parent="MarginContainer/VBox/scientists_panel/scientists_vbox"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="candidates_header" type="Label" parent="MarginContainer/VBox/scientists_panel/scientists_vbox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
-text = "CANDIDATES FOR HIRE"
-horizontal_alignment = 1
-
-[node name="candidates_container" type="VBoxContainer" parent="MarginContainer/VBox/scientists_panel/scientists_vbox"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Sep4" type="HSeparator" parent="MarginContainer/VBox"]
-layout_mode = 2
-
-[node name="status_label" type="Label" parent="MarginContainer/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = ""
-horizontal_alignment = 1
-
-[node name="guide_panel" type="PanelContainer" parent="MarginContainer/VBox"]
+[node name="guide_panel" type="PanelContainer" parent="MarginContainer/Scroll/VBox"]
 layout_mode = 2
 theme_type_variation = &"accent_card"
 
-[node name="guide_vbox" type="VBoxContainer" parent="MarginContainer/VBox/guide_panel"]
+[node name="guide_vbox" type="VBoxContainer" parent="MarginContainer/Scroll/VBox/guide_panel"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="goal_label" type="Label" parent="MarginContainer/VBox/guide_panel/guide_vbox"]
+[node name="goal_label" type="Label" parent="MarginContainer/Scroll/VBox/guide_panel/guide_vbox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
 text = "Goal"
 autowrap_mode = 2
 
-[node name="tutorial_label" type="Label" parent="MarginContainer/VBox/guide_panel/guide_vbox"]
+[node name="tutorial_label" type="Label" parent="MarginContainer/Scroll/VBox/guide_panel/guide_vbox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = ""
 autowrap_mode = 2
 
-[node name="Sep5" type="HSeparator" parent="MarginContainer/VBox"]
+[node name="btn_tour_skip" type="Button" parent="MarginContainer/Scroll/VBox/guide_panel/guide_vbox"]
+layout_mode = 2
+text = "Skip guided tour"
+
+[node name="Sep0" type="HSeparator" parent="MarginContainer/Scroll/VBox"]
 layout_mode = 2
 
-[node name="footer_row" type="HBoxContainer" parent="MarginContainer/VBox"]
+[node name="nav_row" type="HBoxContainer" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btn_artifact" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Artifact"
+
+[node name="btn_scientists" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Scientists"
+
+[node name="btn_experiments" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Experiments"
+
+[node name="btn_helios" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "HELIOS Intel"
+
+[node name="btn_budget" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Budget"
+
+[node name="btn_technology" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Technology"
+
+[node name="btn_incidents" type="Button" parent="MarginContainer/Scroll/VBox/nav_row"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Incidents"
+
+[node name="nav_row2" type="HBoxContainer" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btn_acquisitions" type="Button" parent="MarginContainer/Scroll/VBox/nav_row2"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Acquisitions"
+
+[node name="btn_contracts" type="Button" parent="MarginContainer/Scroll/VBox/nav_row2"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Contracts"
+
+[node name="btn_espionage" type="Button" parent="MarginContainer/Scroll/VBox/nav_row2"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Espionage"
+
+[node name="btn_facilities" type="Button" parent="MarginContainer/Scroll/VBox/nav_row2"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Facilities"
+
+[node name="btn_infirmary" type="Button" parent="MarginContainer/Scroll/VBox/nav_row2"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 30)
+text = "Infirmary"
+
+[node name="Sep2" type="HSeparator" parent="MarginContainer/Scroll/VBox"]
 layout_mode = 2
 
-[node name="btn_main_menu" type="Button" parent="MarginContainer/VBox/footer_row"]
+[node name="artifacts_panel" type="PanelContainer" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"accent_card"
+
+[node name="artifacts_vbox" type="VBoxContainer" parent="MarginContainer/Scroll/VBox/artifacts_panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="artifacts_header" type="Label" parent="MarginContainer/Scroll/VBox/artifacts_panel/artifacts_vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
+text = "ARTIFACTS IN CONTAINMENT"
+horizontal_alignment = 1
+
+[node name="artifact_container" type="VBoxContainer" parent="MarginContainer/Scroll/VBox/artifacts_panel/artifacts_vbox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Sep3" type="HSeparator" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+
+[node name="scientists_panel" type="PanelContainer" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_type_variation = &"accent_card"
+
+[node name="scientists_vbox" type="VBoxContainer" parent="MarginContainer/Scroll/VBox/scientists_panel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="scientists_header" type="Label" parent="MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
+text = "RESEARCH STAFF"
+horizontal_alignment = 1
+
+[node name="scientist_container" type="VBoxContainer" parent="MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="candidates_header" type="Label" parent="MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.46, 0.77, 0.71, 1)
+text = "CANDIDATES FOR HIRE"
+horizontal_alignment = 1
+
+[node name="candidates_container" type="VBoxContainer" parent="MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Sep4" type="HSeparator" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+
+[node name="status_label" type="Label" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1
+
+[node name="Sep5" type="HSeparator" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+
+[node name="footer_row" type="HBoxContainer" parent="MarginContainer/Scroll/VBox"]
+layout_mode = 2
+
+[node name="btn_main_menu" type="Button" parent="MarginContainer/Scroll/VBox/footer_row"]
 layout_mode = 2
 custom_minimum_size = Vector2(120, 40)
 text = "Main Menu"
 
-[node name="btn_save" type="Button" parent="MarginContainer/VBox/footer_row"]
+[node name="btn_save" type="Button" parent="MarginContainer/Scroll/VBox/footer_row"]
 layout_mode = 2
 custom_minimum_size = Vector2(120, 40)
 text = "Save"
 
-[node name="btn_help" type="Button" parent="MarginContainer/VBox/footer_row"]
+[node name="btn_help" type="Button" parent="MarginContainer/Scroll/VBox/footer_row"]
 layout_mode = 2
 custom_minimum_size = Vector2(120, 40)
 text = "Manual"

@@ -1,0 +1,27 @@
+{
+  "id": "J011",
+  "display_name": "Drowned Bell",
+  "visible_description": "A bronze bell that rings with underwater acoustics in dry air. Around it, sound dies within arm's reach.",
+  "known_initial_data": {
+    "mass_kg": 21.3,
+    "diameter_cm": 45.7,
+    "surface_temperature_c": 13.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "acoustic_medium_displacement",
+    "trigger": "mechanical_impulse",
+    "peak_resonance_ghz": 0.0011,
+    "absorbs_applied_energy": true,
+    "temperature_stable_equilibrium_c": 13.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

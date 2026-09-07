@@ -82,6 +82,44 @@ theme_override_font_sizes/normal_font_size = 13
 scroll_active = true
 autowrap_mode = 2
 
+[node name="DebtsHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "DEBTS & LOANS"
+horizontal_alignment = 1
+
+[node name="debts_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+bbcode_enabled = false
+theme_override_font_sizes/normal_font_size = 13
+scroll_active = true
+autowrap_mode = 2
+
+[node name="LoanRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btn_loan_2k" type="Button" parent="ScrollContainer/VBox/LoanRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 36)
+text = "Borrow $2,000"
+
+[node name="btn_loan_5k" type="Button" parent="ScrollContainer/VBox/LoanRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 36)
+text = "Borrow $5,000"
+
+[node name="btn_loan_10k" type="Button" parent="ScrollContainer/VBox/LoanRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 36)
+text = "Borrow $10,000"
+
+[node name="btn_repay" type="Button" parent="ScrollContainer/VBox/LoanRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 36)
+text = "Repay oldest"
+
 [node name="ButtonRow" type="HBoxContainer" parent="ScrollContainer/VBox"]
 layout_mode = 2
 

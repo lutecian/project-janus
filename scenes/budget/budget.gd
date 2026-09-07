@@ -5,9 +5,18 @@ extends Control
 @onready var spending_label: RichTextLabel = $ScrollContainer/VBox/spending_label
 @onready var funding_label: RichTextLabel = $ScrollContainer/VBox/funding_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
+@onready var debts_label: RichTextLabel = $ScrollContainer/VBox/debts_label
+@onready var btn_loan_2k: Button = $ScrollContainer/VBox/LoanRow/btn_loan_2k
+@onready var btn_loan_5k: Button = $ScrollContainer/VBox/LoanRow/btn_loan_5k
+@onready var btn_loan_10k: Button = $ScrollContainer/VBox/LoanRow/btn_loan_10k
+@onready var btn_repay: Button = $ScrollContainer/VBox/LoanRow/btn_repay
 
 func _ready():
 	btn_back.pressed.connect(_on_back)
+	btn_loan_2k.pressed.connect(_on_loan.bind(2000))
+	btn_loan_5k.pressed.connect(_on_loan.bind(5000))
+	btn_loan_10k.pressed.connect(_on_loan.bind(10000))
+	btn_repay.pressed.connect(_on_repay)
 	_refresh()
 
 func _refresh():
@@ -52,6 +61,33 @@ func _refresh():
 			status = "PAID (Day %d)" % day
 		funding_text += "[%s] %s — $%d\n" % [status, label, amount]
 	funding_label.text = funding_text
+	_refresh_debts()
+
+func _refresh_debts():
+	if GameState.debts.is_empty():
+		debts_label.text = "No outstanding debts. Loans come in $2k/$5k/$10k tiers at 2%/day, due in 30 days. Overdue debts cost $150/day in collector fees."
+		btn_repay.disabled = true
+		return
+	var lines := ""
+	for i in range(GameState.debts.size()):
+		var d: Dictionary = GameState.debts[i] as Dictionary
+		var due_in: int = int(ceil(float(d.get("due_day", 0.0)) - GameState.elapsed_days))
+		var tag := "due in %d days" % due_in
+		if due_in < 0:
+			tag = "OVERDUE by %d days (-$150/day)" % (-due_in)
+		lines += "Debt %d: owe $%d (borrowed $%d), %s\n" % [
+			i + 1, int(ceil(float(d.get("owed", 0.0)))), int(d.get("principal", 0)), tag
+		]
+	debts_label.text = lines
+	btn_repay.disabled = false
+
+func _on_loan(amount: int):
+	GameState.request_loan(amount)
+	_refresh()
+
+func _on_repay():
+	GameState.repay_debt(0)
+	_refresh()
 
 func _compute_spending_by_experiment() -> Dictionary:
 	var result := {}
