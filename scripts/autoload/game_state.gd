@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.24.0"
+const GAME_VERSION := "0.25.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -422,7 +422,10 @@ func _load_artifact_data():
 		"res://data/artifacts/j012.json",
 		"res://data/artifacts/j013.json",
 		"res://data/artifacts/j014.json",
-		"res://data/artifacts/j015.json"
+		"res://data/artifacts/j015.json",
+		"res://data/artifacts/j016.json",
+		"res://data/artifacts/j017.json",
+		"res://data/artifacts/j018.json"
 	]
 	for path in paths:
 		var data := _load_json(path)
@@ -1895,6 +1898,10 @@ func _check_rival_taunt(rd: Dictionary):
 			var taunts: Array = rd.get("taunts", [])
 			if not taunts.is_empty():
 				var text: String = taunts[mini(i, taunts.size() - 1)]
+				if taunts.size() >= 4:
+					# Day-parity pick: flavor must never consume sim RNG draws.
+					var alt: int = i + (0 if int(elapsed_days) % 2 == 0 else 2)
+					text = taunts[mini(alt, taunts.size() - 1)]
 				intelligence_reports.append({
 					"day": elapsed_days, "threshold": -3, "text": text,
 					"helios_progress": helios["progress"]
@@ -2110,7 +2117,7 @@ func _act_def(act_id: int) -> Dictionary:
 		var ad: Dictionary = adef as Dictionary
 		if int(ad.get("id", 1)) == act_id:
 			return ad
-	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009", "J010", "J011", "J012", "J013", "J014", "J015"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
+	return {"id": 1, "name": "Containment", "artifacts": ["J001", "J002", "J003", "J004", "J005", "J006", "J007", "J008", "J009", "J010", "J011", "J012", "J013", "J014", "J015", "J016", "J017", "J018"], "advance_needs_confirmed": 1, "rival_mult": 1.0}
 
 func get_act_name() -> String:
 	return _act_def(act).get("name", "Containment")

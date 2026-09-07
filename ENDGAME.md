@@ -204,6 +204,12 @@ All **additive**: the game is winnable via pure research with any system untouch
 - Rivals tick per day, not per experiment (batching would otherwise speed them up too).
 - Recovery branch (0.11): insolvency → acquisition → hidden influence game; not in the original plan.
 - Expert locks science; acts gate artifacts and scale aggression; contracts/companies/events deal from seeded decks.
+- Content scale (0.20–0.25): 18 artifacts / 34 discoveries / 18 arcs / 29 incidents / 22 contracts / 18 events / 10 scenarios. New incidents stopped at 29 to protect the Normal-pure race margin (0.5 pts at last probe).
+- Crisis kinds (0.23): walkout/blackout/audit join breach/contamination/rupture; resolve priced below eating so the choice is real; probes model sane play (DD-first buying, pay-resolve, loan bridges).
+- Rival personality is mechanical (0.21/0.24): expiring-offer pounces, sabotage resistance, 40-share signature moves, act-3 endgame moves, per-acquirer recovery memos.
+- Loans (0.22) are the intended insolvency bridge: $2k/$5k/$10k at 2%/day, 30-day term, $150/day overdue; probes use them.
+- Guided tour (0.22) gates on empty legacy best; lab guide panel moved above the fold with a scrollable lab.
+- Facility tiers run to 3 (0.23); Steam achievement mirror lives in data/meta and is drift-tested (0.23).
 
 ## 13. Testing strategy
 

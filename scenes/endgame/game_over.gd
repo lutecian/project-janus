@@ -80,15 +80,36 @@ func _epilogue_text(won: bool, reason: String) -> String:
 			return "Epilogue: Overnight Monopoly — the field still talks about how fast you swallowed it whole."
 		return "Epilogue: Corporatist Monopoly — patient capital and patient science, and now there is only you."
 	if won and reason == "scientific":
+		if GameState.confirmed_discoveries.size() >= 5:
+			return "Epilogue: Polymath Legacy — five confirmed breakthroughs; textbooks will argue about you for a century."
 		return "Epilogue: Philanthropist Legacy — your published breakthroughs teach a generation."
 	if won:
-		return "Epilogue: Market Leader — the brand outlives the breakthroughs."
+		if GameState.get_player_market() >= GameState.get_majority_target() + 10.0:
+			return "Epilogue: Runaway Leader — nobody else was ever in the race."
+		return "Epilogue: Photo Finish — won by a margin the auditors are still recounting."
 	if reason == "staff_wipe":
 		return "Epilogue: Empty Lab — no living researcher remains to carry the work. The artifacts wait in the dark for whoever comes next."
 	if GameState.discovery.get("state", "") == "confirmed":
 		return "Epilogue: Scientific Martyr — you lost the market but published openly; the science survives you."
 	if GameState.get_player_market() >= GameState.get_majority_target() * 0.7:
 		return "Epilogue: So Close — a few more workdays might have changed everything."
+	return _absorbed_epilogue()
+
+func _absorbed_epilogue() -> String:
+	var acq: String = GameState.game_over.get("acquirer", "")
+	var disp := ""
+	for r in GameState.rivals:
+		if (r as Dictionary).get("id", "") == acq:
+			disp = (r as Dictionary).get("disposition", "")
+			break
+	if disp == "aggressive":
+		return "Epilogue: Swallowed Whole — the parent company digests quickly and without sentiment."
+	if disp == "steady":
+		return "Epilogue: Orderly Annexation — new letterhead, same benches, quieter ambitions."
+	if disp == "publisher":
+		return "Epilogue: Published Postmortem — your failure is open-access and widely cited."
+	if disp == "wildcard":
+		return "Epilogue: Sold on a Hunch — the parent may sell you again by spring."
 	return "Epilogue: Absorbed — your labs now answer to someone else."
 
 func _on_menu():

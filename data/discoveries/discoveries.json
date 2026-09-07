@@ -279,6 +279,66 @@
       "player_namable": true,
       "technology_unlock": "field_stabilizer",
       "effect": {"type": "door_taxonomy", "styles": 7}
+    },
+    {
+      "discovery_id": "DISC_UNBURNING_TALLOW",
+      "artifact_id": "J016",
+      "internal_name": "Unburning Tallow",
+      "display_name_before_naming": "Unclassified Eternal Candle",
+      "description": "The candle has burned for four months without losing a gram. The flame consumes nothing and illuminates everything, including motives.",
+      "player_namable": true,
+      "technology_unlock": "thermal_containment",
+      "effect": {"type": "unburning_tallow", "mass_loss_g": 0.0}
+    },
+    {
+      "discovery_id": "DISC_VERACITY_FLAME",
+      "artifact_id": "J016",
+      "internal_name": "Veracity Flame",
+      "display_name_before_naming": "Unclassified Lean Pattern",
+      "description": "The flame leans toward falsehood with compass precision. Meetings are now held around the candle. Meetings are shorter now.",
+      "player_namable": true,
+      "technology_unlock": "experimental_field_sensor",
+      "effect": {"type": "veracity_flame", "bearing_accuracy_deg": 0.5}
+    },
+    {
+      "discovery_id": "DISC_UNIVERSAL_WARD",
+      "artifact_id": "J017",
+      "internal_name": "Universal Ward",
+      "display_name_before_naming": "Unclassified Master Key",
+      "description": "The key opens every lock tested except, presumably, its own. Two hundred doors and counting, including one that was welded shut.",
+      "player_namable": true,
+      "technology_unlock": "field_stabilizer",
+      "effect": {"type": "universal_ward", "doors_opened": 200}
+    },
+    {
+      "discovery_id": "DISC_MISSING_LOCK",
+      "artifact_id": "J017",
+      "internal_name": "Missing Lock",
+      "display_name_before_naming": "Unclassified Exclusion Proof",
+      "description": "Exhaustive search confirms no door in the building rejects the key. The lock it was made for does not exist here. The key is still looking.",
+      "player_namable": true,
+      "technology_unlock": "deep_field_probe",
+      "effect": {"type": "missing_lock", "rejections": 0}
+    },
+    {
+      "discovery_id": "DISC_UPWARD_SNOW",
+      "artifact_id": "J018",
+      "internal_name": "Upward Snow",
+      "display_name_before_naming": "Unclassified Rising Dust",
+      "description": "Dust around the flake falls upward at three centimeters per second, all year, indifferent to ventilation. The cleaning staff have surrendered the corner.",
+      "player_namable": true,
+      "technology_unlock": "gravity_sensor",
+      "effect": {"type": "upward_snow", "rise_cm_s": 3.0}
+    },
+    {
+      "discovery_id": "DISC_LAST_ICE",
+      "artifact_id": "J018",
+      "internal_name": "Last Ice",
+      "display_name_before_naming": "Unclassified Permanent Flake",
+      "description": "The flake holds 0.0 degrees in a 21-degree room with no energy input. It is the coldest object in the building and the least concerned about it.",
+      "player_namable": true,
+      "technology_unlock": "cryo_lattice",
+      "effect": {"type": "last_ice", "temp_c": 0.0}
     }
   ]
 }

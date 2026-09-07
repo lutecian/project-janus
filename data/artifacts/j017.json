@@ -1,0 +1,27 @@
+{
+  "id": "J017",
+  "display_name": "The Spare Key",
+  "visible_description": "A brass key that opens every door in the building except the one it was made for. That door has never been found.",
+  "known_initial_data": {
+    "mass_kg": 0.05,
+    "diameter_cm": 7.2,
+    "surface_temperature_c": 20.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "universal_ward_exclusion",
+    "trigger": "lock_engagement",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 20.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

@@ -19,7 +19,10 @@ const PORTRAIT_STYLE := {
 	"J012": {"a": Color(1.0, 0.9, 0.6), "b": Color(0.08, 0.05, 0.01), "pattern": 1.0, "scale": 2.0, "speed": 0.5},
 	"J013": {"a": Color(0.1, 0.1, 0.12), "b": Color(0.5, 0.5, 0.6), "pattern": 2.0, "scale": 4.5, "speed": 0.2},
 	"J014": {"a": Color(0.6, 0.9, 1.0), "b": Color(0.0, 0.05, 0.1), "pattern": 0.0, "scale": 2.5, "speed": 0.6},
-	"J015": {"a": Color(0.9, 0.7, 0.4), "b": Color(0.06, 0.03, 0.01), "pattern": 1.0, "scale": 5.0, "speed": 0.1}
+	"J015": {"a": Color(0.9, 0.7, 0.4), "b": Color(0.06, 0.03, 0.01), "pattern": 1.0, "scale": 5.0, "speed": 0.1},
+	"J016": {"a": Color(1.0, 0.6, 0.2), "b": Color(0.05, 0.02, 0.0), "pattern": 2.0, "scale": 2.0, "speed": 0.55},
+	"J017": {"a": Color(0.85, 0.65, 0.25), "b": Color(0.04, 0.03, 0.01), "pattern": 0.0, "scale": 3.0, "speed": 0.35},
+	"J018": {"a": Color(0.9, 0.95, 1.0), "b": Color(0.0, 0.03, 0.08), "pattern": 1.0, "scale": 4.0, "speed": 0.2}
 }
 @onready var known_label: Label = $ScrollContainer/VBox/known_label
 @onready var knowledge_state: Label = $ScrollContainer/VBox/knowledge_state

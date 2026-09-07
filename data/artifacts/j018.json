@@ -1,0 +1,27 @@
+{
+  "id": "J018",
+  "display_name": "The Last Snow",
+  "visible_description": "A single snowflake that does not melt at room temperature. Around it, dust snows gently upward, all year.",
+  "known_initial_data": {
+    "mass_kg": 0.001,
+    "diameter_cm": 1.1,
+    "surface_temperature_c": 0.0
+  },
+  "hidden_physics": {
+    "primary_phenomenon": "inverted_precipitation",
+    "trigger": "none_required",
+    "peak_resonance_ghz": 0.0,
+    "absorbs_applied_energy": false,
+    "temperature_stable_equilibrium_c": 0.0
+  },
+  "initial_knowledge_state": {
+    "mass": "CONFIRMED",
+    "diameter": "CONFIRMED",
+    "surface_temperature": "CONFIRMED",
+    "composition": "UNKNOWN",
+    "origin": "UNKNOWN",
+    "function": "UNKNOWN",
+    "hazard": "UNKNOWN",
+    "phenomenon": "UNKNOWN"
+  }
+}

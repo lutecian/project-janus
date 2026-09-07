@@ -314,6 +314,69 @@
           "text": "The dangerous run tried to close a door from the inside, and for nine minutes the museum had eight rooms - the eighth being Lab 6, unbuilt, pristine, waiting. The crew got out before it finished furnishing. The eighth door is now bricked up from our side. From the museum's side, the brick is a door."
         }
       }
+    },
+    {
+      "artifact_id": "J016",
+      "beats": {
+        "dormant": {
+          "title": "Tallow Saint",
+          "text": "A black candle, lit, never shortening. The flame leans. Nobody has yet said aloud what it leans toward, but meeting seating has rearranged itself twice."
+        },
+        "suspected": {
+          "title": "The Lean",
+          "text": "Controlled tests confirm it: the flame points at falsehood like a compass points north. Grant reviews are now held around the candle. Funding accuracy is up forty percent. Collegiality is down by an amount nobody will quantify on the record."
+        },
+        "confirmed": {
+          "title": "Four Months, Zero Grams",
+          "text": "The candle has burned four months without losing mass. The flame eats nothing and lights everything, including motives. Someone asked whether it could be blown out. Nobody has volunteered to try. The flame leaned toward the person who asked."
+        },
+        "danger": {
+          "title": "Confession",
+          "text": "The dangerous run gathered the whole staff around the candle and asked for one true thing each. The flame stood straight for six minutes - the only recorded calm - and then every lie anyone had ever told in the building arrived at once as heat. Singed eyebrows across three departments. The candle is undisturbed. The staff hold shorter meetings now."
+        }
+      }
+    },
+    {
+      "artifact_id": "J017",
+      "beats": {
+        "dormant": {
+          "title": "The Spare Key",
+          "text": "It opens everything except whatever it was made for. Facilities has stopped labeling doors; the key has opinions about all of them. The welded-shut archive took eleven seconds."
+        },
+        "suspected": {
+          "title": "Two Hundred Doors",
+          "text": "Two hundred locks opened, zero rejected, including safes, cages, and one diplomatic pouch. The key is looking for something. Security has asked, formally, that it not find it during business hours."
+        },
+        "confirmed": {
+          "title": "The Missing Lock",
+          "text": "Exhaustive survey: no door in the building rejects the key, which means its lock is elsewhere. The key spends nights pointed at the eastern wall, humming faintly. There is nothing behind the eastern wall but weather. The key disagrees."
+        },
+        "danger": {
+          "title": "Turned",
+          "text": "The dangerous run let the key choose a door on its own. It chose the museum's bricked eighth door - the one that is a door only from the other side - and turned. For nine seconds both sides were one room. Something looked through. The key has been kept in a locked box since. The box is locked with an ordinary lock. The key could leave any time. It stays."
+        }
+      }
+    },
+    {
+      "artifact_id": "J018",
+      "beats": {
+        "dormant": {
+          "title": "The Last Snow",
+          "text": "One snowflake, unmelted, in a warm room. Dust snows upward around it, unhurried, unbothered by fans or physics. The corner has been surrendered to it. There is a small sign. It reads PLEASE."
+        },
+        "suspected": {
+          "title": "Three Centimeters Per Second",
+          "text": "The upward drift is constant to four decimal places, day and night, through power cuts and fire drills. Gravity has been asked to comment. Gravity declined. The cleaning staff leave offerings of still air."
+        },
+        "confirmed": {
+          "title": "Zero Point Zero",
+          "text": "The flake holds freezing in a warm room for free, forever. It is the coldest object in the building and the least concerned about it. Physicists visit it the way other people visit the sea. They come back quieter."
+        },
+        "danger": {
+          "title": "Whiteout",
+          "text": "The dangerous run warmed the room ten degrees to force a melt. The flake did not melt; instead the whole lab snowed upward for an hour - papers, dust, one stapler - while the flake watched, 0.0 degrees, unhurried. The stapler has not come down. It orbits the flake at ceiling height. It has been named. It is part of the lab now."
+        }
+      }
     }
   ]
 }

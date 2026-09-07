@@ -16,7 +16,9 @@
       "recovery_orders": "HELIOS demands weekly progress. Work fast and do not attract a second review.",
       "taunts": [
         "Rennick (HELIOS): 'Cute prototype. We bought three companies before breakfast.'",
-        "Rennick (HELIOS): 'Your lead amuses our board. Briefly.'"
+        "Rennick (HELIOS): 'Your lead amuses our board. Briefly.'",
+      "Rennick (HELIOS): 'Our interns replicate your results before lunch. Then they improve them.'",
+      "Rennick (HELIOS): 'Forty percent. The board has stopped learning your name and started learning your assets.'"
       ]
     },
     {
@@ -34,7 +36,9 @@
       "recovery_orders": "Bermant audits on schedule. Steady output keeps them incurious.",
       "taunts": [
         "Bermant: 'Slow and funded beats fast and broke, friend.'",
-        "Bermant: 'We publish. You posture. The field notices.'"
+        "Bermant: 'We publish. You posture. The field notices.'",
+      "Bermant: 'We budgeted for your mistakes too, friend. Ours is a generous spreadsheet.'",
+      "Bermant: 'Compounding is quiet until it is deafening. Listen.'"
       ]
     },
     {
@@ -52,7 +56,9 @@
       "recovery_orders": "Northwind publishes everything - including, eventually, your reinstatement case.",
       "taunts": [
         "Okafor (Northwind): 'Our preprint is already cited. Where is yours?'",
-        "Okafor (Northwind): 'Open science always wins. Ask anyone. We did.'"
+        "Okafor (Northwind): 'Open science always wins. Ask anyone. We did.'",
+      "Okafor (Northwind): 'Your data would make a lovely appendix. In our paper.'",
+      "Okafor (Northwind): 'We cited you eleven times today. You are welcome. Enclosed: our market share.'"
       ]
     },
     {
@@ -70,7 +76,9 @@
       "recovery_orders": "Vantage attention is short. Big swings, fast.",
       "taunts": [
         "Marsh (Vantage): 'Bet it all! Bet it all! (It worked. It always works.)'",
-        "Marsh (Vantage): 'Volatility is just victory, annualized.'"
+        "Marsh (Vantage): 'Volatility is just victory, annualized.'",
+      "Marsh (Vantage): 'We shorted caution and went long on destiny!'",
+      "Marsh (Vantage): 'Forty percent on vibes and leverage! Read about it! (You will. We will make sure.)'"
       ]
     },
     {
@@ -88,7 +96,9 @@
       "recovery_orders": "Solenne reviews with patience and remembers everything.",
       "taunts": [
         "Solenne: 'We endowed three chairs this quarter. What did you endow?'",
-        "Solenne: 'Patience compounds. So does our share price.'"
+        "Solenne: 'Patience compounds. So does our share price.'",
+      "Solenne: 'We have funded research since before your director was born. We can wait.'",
+      "Solenne: 'The endowment is patient. The endowment is also forty percent.'"
       ]
     },
     {
@@ -106,7 +116,9 @@
       "recovery_orders": "Kitezh watches from inside. Cover is life.",
       "taunts": [
         "Moroz (Kitezh): 'The state provides. The state collects.'",
-        "Moroz (Kitezh): 'Your market is a rounding error in our five-year plan.'"
+        "Moroz (Kitezh): 'Your market is a rounding error in our five-year plan.'",
+      "Moroz (Kitezh): 'Our scientists work for the state. Yours work for stock options. Observe the difference.'",
+      "Moroz (Kitezh): 'The five-year plan is ahead of schedule. Your share is scheduled for reassignment.'"
       ]
     }
   ]

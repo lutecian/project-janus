@@ -1119,6 +1119,30 @@ func _test_endings():
 			push_error("end: badge %s hidden flag drifted from mirror" % bd.get("id", "?"))
 			failures += 1
 
+	# --- N9: Epilogues vary by margin, depth and devourer ---
+	var go_script: Script = load("res://scenes/endgame/game_over.gd")
+	var go_inst = go_script.new()
+	GameState.initialize_new_campaign({"name": "End Epilogues"}, "normal")
+	GameState.select_artifact(0)
+	GameState.game_over = {"won": false, "reason": "absorption", "type": "acquired", "acquirer": "RIV_HELIOS"}
+	if "Swallowed Whole" not in go_inst._epilogue_text(false, "absorption"):
+		push_error("end: helios absorption should swallow whole")
+		failures += 1
+	GameState.confirmed_discoveries = ["a", "b", "c", "d", "e"]
+	if "Polymath" not in go_inst._epilogue_text(true, "scientific"):
+		push_error("end: five confirmations should earn polymath")
+		failures += 1
+	GameState.confirmed_discoveries = []
+	GameState.player_market = GameState.get_majority_target() + 15.0
+	if "Runaway Leader" not in go_inst._epilogue_text(true, "market_majority"):
+		push_error("end: huge margin should run away")
+		failures += 1
+	GameState.player_market = GameState.get_majority_target() + 1.0
+	if "Photo Finish" not in go_inst._epilogue_text(true, "market_majority"):
+		push_error("end: thin margin should photo-finish")
+		failures += 1
+	go_inst.free()
+
 	if failures == 0:
 		print("END_OK")
 	else:
@@ -1478,8 +1502,8 @@ func _test_story():
 
 	# --- T6: Content integrity — registry, arcs, scenarios cover the field ---
 	GameState.initialize_new_campaign({"name": "Story Integrity"}, "normal")
-	if GameState.available_artifacts.size() != 15:
-		push_error("story: expected 15 artifacts registered, got %d" % GameState.available_artifacts.size())
+	if GameState.available_artifacts.size() != 18:
+		push_error("story: expected 18 artifacts registered, got %d" % GameState.available_artifacts.size())
 		failures += 1
 	var arcs: Dictionary = GameState._load_json("res://data/narrative/artifact_arcs.json")
 	var arc_ids := {}
