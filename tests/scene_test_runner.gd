@@ -3121,6 +3121,47 @@ func _test_ability():
 		push_error("ability: generalized tech check broken")
 		failures += 1
 
+	# --- Training: paid skill points that cost a day ---
+	GameState.initialize_new_campaign({"name": "Ability Train"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 100000
+	var chen_id := "SCIENTIST_CHEN"
+	if GameState.training_cost(chen_id, "physics") != 400 + 85 * 15:
+		push_error("ability: chen physics 85 should cost %d, got %d" % [400 + 85 * 15, GameState.training_cost(chen_id, "physics")])
+		failures += 1
+	if GameState.training_cost(chen_id, "risk_tolerance") != -1:
+		push_error("ability: untrainable skill should price at -1")
+		failures += 1
+	var day0: float = GameState.elapsed_days
+	var tr: Dictionary = GameState.train_scientist(chen_id, "physics")
+	if not bool(tr.get("ok", false)):
+		push_error("ability: funded training should succeed")
+		failures += 1
+	var chen_skills := {}
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == chen_id:
+			chen_skills = (s as Dictionary).get("skills", {})
+	if int(chen_skills.get("physics", 0)) != 86:
+		push_error("ability: training should raise physics to 86")
+		failures += 1
+	if GameState.elapsed_days != day0 + 1.0:
+		push_error("ability: training should consume a day")
+		failures += 1
+	if GameState.train_scientist(chen_id, "astrology").get("ok", true):
+		push_error("ability: unknown skill should be refused")
+		failures += 1
+	GameState.budget["funds"] = 0
+	if GameState.train_scientist(chen_id, "physics").get("reason", "") != "insufficient_funds":
+		push_error("ability: broke lab should not train")
+		failures += 1
+	for s in GameState.scientists:
+		if (s as Dictionary).get("id", "") == chen_id:
+			(s as Dictionary).get("skills", {})["physics"] = 95
+	GameState.budget["funds"] = 100000
+	if GameState.train_scientist(chen_id, "physics").get("reason", "") != "maxed":
+		push_error("ability: capped skill should be refused")
+		failures += 1
+
 	if failures == 0:
 		print("ABILITY_OK")
 	else:

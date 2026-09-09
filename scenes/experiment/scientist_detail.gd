@@ -4,6 +4,8 @@ extends Control
 @onready var specialty_label: Label = $ScrollContainer/VBox/specialty_label
 @onready var skills_label: Label = $ScrollContainer/VBox/skills_label
 @onready var traits_label: Label = $ScrollContainer/VBox/traits_label
+@onready var train_hint: Label = $ScrollContainer/VBox/train_hint
+@onready var train_container: VBoxContainer = $ScrollContainer/VBox/train_container
 @onready var status_label: Label = $ScrollContainer/VBox/status_label
 @onready var history_label: RichTextLabel = $ScrollContainer/VBox/history_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
@@ -69,6 +71,36 @@ func _display_scientist():
 	if history_text.is_empty():
 		history_text = "No experiment history."
 	history_label.text = history_text
+	_refresh_training()
+
+func _refresh_training():
+	for child in train_container.get_children():
+		child.queue_free()
+	if scientist.is_empty() or not GameState._is_available(scientist):
+		train_hint.text = "Training requires an available scientist."
+		return
+	train_hint.text = "Training costs a full day (+8 stress, +2 experience). Skills cap at %d." % GameState.TRAIN_SKILL_CAP
+	var skills: Dictionary = scientist.get("skills", {})
+	for skill in GameState.TRAINABLE_SKILLS:
+		var cur: int = int(skills.get(skill, 0))
+		var cost: int = GameState.training_cost(scientist.get("id", ""), skill)
+		var btn := Button.new()
+		if cur >= GameState.TRAIN_SKILL_CAP:
+			btn.text = "Train %s: MAXED (%d)" % [skill.capitalize(), cur]
+			btn.disabled = true
+		else:
+			btn.text = "Train %s: %d -> %d ($%d)" % [skill.capitalize(), cur, cur + 1, cost]
+			btn.disabled = int(GameState.budget.get("funds", 0)) < cost
+		btn.pressed.connect(_on_train.bind(skill))
+		train_container.add_child(btn)
+
+func _on_train(skill: String):
+	var res: Dictionary = GameState.train_scientist(scientist.get("id", ""), skill)
+	if not res.get("ok", false):
+		train_hint.text = "Training refused (%s)." % res.get("reason", "?")
+		return
+	scientist = GameState.scientists[GameState.selected_scientist_index]
+	_display_scientist()
 
 func _on_back():
 	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.27.0"
+const GAME_VERSION := "0.28.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -711,6 +711,49 @@ func _check_dangerous_experiment(exp_id: String):
 			if inc_dict.get("id", "") == "INC_EQUIPMENT_FAILURE":
 				_apply_incident(inc_dict)
 				break
+
+const TRAINABLE_SKILLS := ["physics", "engineering", "observation", "curiosity"]
+const TRAIN_SKILL_CAP := 95
+
+func training_cost(sci_id: String, skill: String) -> int:
+	if skill not in TRAINABLE_SKILLS:
+		return -1
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("id", "") != sci_id:
+			continue
+		var cur: int = int((sd.get("skills", {}) as Dictionary).get(skill, 0))
+		return 400 + cur * 15
+	return -1
+
+func train_scientist(sci_id: String, skill: String) -> Dictionary:
+	if skill not in TRAINABLE_SKILLS:
+		return {"ok": false, "reason": "not_trainable"}
+	var target := {}
+	for s in scientists:
+		var sd: Dictionary = s as Dictionary
+		if sd.get("id", "") == sci_id:
+			target = sd
+	if target.is_empty():
+		return {"ok": false, "reason": "no_scientist"}
+	if not _is_available(target):
+		return {"ok": false, "reason": "unavailable"}
+	var skills: Dictionary = target.get("skills", {})
+	var cur: int = int(skills.get(skill, 0))
+	if cur >= TRAIN_SKILL_CAP:
+		return {"ok": false, "reason": "maxed"}
+	var cost: int = 400 + cur * 15
+	if int(budget.get("funds", 0)) < cost:
+		return {"ok": false, "reason": "insufficient_funds"}
+	budget["funds"] = int(budget.get("funds", 0)) - cost
+	budget["spent"] = int(budget.get("spent", 0)) + cost
+	skills[skill] = cur + 1
+	target["stress"] = mini(int(target.get("stress", 0)) + 8, 100)
+	target["experience"] = int(target.get("experience", 0)) + 2
+	elapsed_days += 1.0
+	log_telemetry("training", {"scientist": sci_id, "skill": skill, "cost": cost})
+	_tick_new_day([sci_id])
+	return {"ok": true, "cost": cost, "skill": skill, "value": cur + 1}
 
 func scientist_level(sci_id: String) -> int:
 	for s in scientists:

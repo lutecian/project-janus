@@ -57,6 +57,22 @@ theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
 text = "Traits"
 
+[node name="TrainHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "TRAINING (takes a full day)"
+horizontal_alignment = 1
+
+[node name="train_hint" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 2
+
+[node name="train_container" type="VBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
 [node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
 
