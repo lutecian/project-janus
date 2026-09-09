@@ -30,7 +30,7 @@
     {
       "id": "OP_COUNTER",
       "name": "Counter-Intel",
-      "flavor": "Tighten cover, burn risk. The quiet op that makes the loud ones possible.",
+      "flavor": "Tighten cover, burn risk, sweep saboteurs from the lab. The quiet op that makes the loud ones possible.",
       "cost": 1000,
       "risk_add": 5.0,
       "base_success": 0.9,

@@ -71,7 +71,20 @@ func _display():
 		summary_label.text = "%s captured %s%% of the market while you held only %.1f%%.\n\nYou reached %d days with %d confirmed discoveries — but it was not enough." % [
 			dominant, majority, player_market, days_used, discoveries_confirmed
 		]
-	summary_label.text += "\n\nTitle earned: %s | Run score: %d\n%s" % [GameState.get_run_title(), int(result.get("score", 0)), _epilogue_text(won, reason)]
+	summary_label.text += "\n\nTitle earned: %s | Run score: %d\n%s\n%s" % [GameState.get_run_title(), int(result.get("score", 0)), _run_stats_line(), _epilogue_text(won, reason)]
+
+func _run_stats_line() -> String:
+	var contained := 0
+	for rep in GameState.intelligence_reports:
+		if str((rep as Dictionary).get("text", "")).begins_with("Contained:"):
+			contained += 1
+	return "Run stats: %d experiments, %d incidents, %d crises contained, %d technologies, %d deals closed." % [
+		GameState.experiment_history.size(),
+		GameState.incidents.size(),
+		contained,
+		GameState.unlocked_technologies.size(),
+		GameState.owned_companies.size() + GameState.completed_contracts.size()
+	]
 
 func _epilogue_text(won: bool, reason: String) -> String:
 	var days_used: int = int(GameState.elapsed_days)

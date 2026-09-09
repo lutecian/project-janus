@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.30.0"
+const GAME_VERSION := "0.31.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -2333,6 +2333,8 @@ func apply_scenario(scenario_id: String) -> Dictionary:
 	if sdef.is_empty() or scenario_id == "SCN_SANDBOX":
 		return {"ok": true, "sandbox": true}
 	act = maxi(act, int(sdef.get("start_act", 1)))
+	if act == 3:
+		_rival_endgame_moves()
 	var art_id: String = sdef.get("start_artifact", "")
 	if not art_id.is_empty():
 		for i in range(available_artifacts.size()):
@@ -3134,6 +3136,12 @@ func _apply_espionage_success(op_id: String, target_id: String) -> String:
 	if op_id == "OP_COUNTER":
 		esp_cover = minf(esp_cover + 12.0, 50.0)
 		esp_risk = maxf(esp_risk - 20.0, 0.0)
+		var swept := false
+		if elapsed_days < player_sabotaged_until:
+			player_sabotaged_until = 0.0
+			swept = true
+		if swept:
+			return "Cover tightened, heat burned off, saboteurs swept from the lab."
 		return "Cover tightened. Heat burned off."
 	if op_id == "OP_EXPOSE":
 		for r in rivals:

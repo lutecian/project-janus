@@ -138,6 +138,19 @@
       "rival_bonus": 0.0,
       "remove_scientists": [],
       "knowledge_set": 20
+    },
+    {
+      "id": "SCN_ENDGAME",
+      "name": "Endgame",
+      "flavor": "Skip to the sharp end: Act 3, hot rivals, deep knowledge, one artifact from glory. No warm-up laps.",
+      "start_act": 3,
+      "seed": 31337,
+      "difficulty": "normal",
+      "start_artifact": "J001",
+      "funds_bonus": 15000,
+      "rival_bonus": 20.0,
+      "remove_scientists": [],
+      "knowledge_set": 70
     }
   ]
 }

@@ -1015,6 +1015,14 @@ func _test_espionage():
 	if GameState.budget["funds"] >= funds_before:
 		push_error("esp: ops should cost funds")
 		failures += 1
+	GameState.player_sabotaged_until = GameState.elapsed_days + 3.0
+	var sweep_text: String = GameState._apply_espionage_success("OP_COUNTER", "")
+	if GameState.player_sabotaged_until > GameState.elapsed_days:
+		push_error("esp: counter-intel should sweep active sabotage")
+		failures += 1
+	if "swept" not in sweep_text:
+		push_error("esp: sweep should be reported, got '%s'" % sweep_text)
+		failures += 1
 
 	# --- S2: Steal-tech effect unlocks a locked tech ---
 	var techs_before: int = GameState.unlocked_technologies.size()
@@ -1210,6 +1218,16 @@ func _test_endings():
 	GameState.player_market = GameState.get_majority_target() + 1.0
 	if "Photo Finish" not in go_inst._epilogue_text(true, "market_majority"):
 		push_error("end: thin margin should photo-finish")
+		failures += 1
+	GameState.experiment_history = [{}, {}, {}]
+	GameState.incidents = [{}, {}]
+	GameState.intelligence_reports = [{"text": "Contained: test."}]
+	GameState.unlocked_technologies = ["TECH_A"]
+	GameState.owned_companies = [{}, {}]
+	GameState.completed_contracts = ["CTR_X"]
+	var stats_line: String = go_inst._run_stats_line()
+	if stats_line != "Run stats: 3 experiments, 2 incidents, 1 crises contained, 1 technologies, 3 deals closed.":
+		push_error("end: stats line wrong, got '%s'" % stats_line)
 		failures += 1
 	go_inst.free()
 
@@ -2631,6 +2649,24 @@ func _test_chal():
 		failures += 1
 	if not GameState.is_experiment_unlocked("EXP_J002"):
 		push_error("chal: specialist signature should be runnable day one")
+		failures += 1
+	GameState.initialize_new_campaign({"name": "Scn Endgame"}, "normal", 31337)
+	GameState.apply_scenario("SCN_ENDGAME")
+	if GameState.act != 3:
+		push_error("chal: endgame should start in act 3, got act %d" % GameState.act)
+		failures += 1
+	if int(GameState.budget.get("funds", 0)) != 25000:
+		push_error("chal: endgame war chest should total 25000, got %d" % int(GameState.budget.get("funds", 0)))
+		failures += 1
+	if absf(GameState.get_rival_market("RIV_HELIOS") - 37.0) > 0.001:
+		push_error("chal: endgame should warm helios to 37 (12 + 20 scenario + 5 surge), got %.1f" % GameState.get_rival_market("RIV_HELIOS"))
+		failures += 1
+	var end_moved := false
+	for r in GameState.rivals:
+		if bool((r as Dictionary).get("endgame_move", false)):
+			end_moved = true
+	if not end_moved:
+		push_error("chal: endgame scenario should trigger endgame moves")
 		failures += 1
 
 	# --- H6: Save/load preserves challenge + NG state ---
