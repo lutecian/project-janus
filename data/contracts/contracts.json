@@ -286,6 +286,45 @@
       "market_bonus": 2.0,
       "military": false,
       "event_tag": ""
+    },
+    {
+      "id": "CTR_UNDERSTUDY",
+      "issuer": "National Conservatory",
+      "title": "Rehearsal Archive",
+      "flavor": "They want the void to learn choreography. It only knows yesterday. They consider this a feature.",
+      "days_required": 4,
+      "upfront": 1200,
+      "completion_pay": 1800,
+      "tech_key": "experimental_field_sensor",
+      "market_bonus": 1.5,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_ENTROPY",
+      "issuer": "Municipal Grid Authority",
+      "title": "Entropy Audit",
+      "flavor": "Prove the engine gives more than it takes, in triplicate, before the regulators decide it must be illegal.",
+      "days_required": 6,
+      "upfront": 1800,
+      "completion_pay": 2600,
+      "tech_key": "thermal_containment",
+      "market_bonus": 2.5,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_UNBUILT",
+      "issuer": "Order of Architects",
+      "title": "Unbuilt Wing Survey",
+      "flavor": "The Order disavows the museum's architecture and demands full measured drawings of it anyway.",
+      "days_required": 5,
+      "upfront": 1500,
+      "completion_pay": 2300,
+      "tech_key": "deep_field_probe",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
     }
   ]
 }

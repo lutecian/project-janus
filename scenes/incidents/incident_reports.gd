@@ -56,7 +56,7 @@ func _populate_crises():
 	for c in GameState.active_crises:
 		var cd: Dictionary = c as Dictionary
 		var line := Label.new()
-		line.text = "%s — %d days left. Resolve: $%d, or send a response team (someone may not come back whole)." % [
+		line.text = "%s — %d days left. Resolve: $%d, or send a response team (someone may not come back whole), or study it (+6 knowledge, +10 stress lab-wide)." % [
 			cd.get("name", "?"), int(ceil(float(cd.get("days_left", 0.0)))),
 			int(cd.get("resolve_cost", 0))
 		]
@@ -73,6 +73,10 @@ func _populate_crises():
 		team_btn.text = "Send response team"
 		team_btn.pressed.connect(_on_resolve.bind(cd.get("id", ""), "team"))
 		row.add_child(team_btn)
+		var study_btn := Button.new()
+		study_btn.text = "Study it"
+		study_btn.pressed.connect(_on_resolve.bind(cd.get("id", ""), "study"))
+		row.add_child(study_btn)
 		crises_container.add_child(row)
 
 func _on_resolve(crisis_id: String, method: String):

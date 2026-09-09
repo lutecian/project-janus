@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.25.0"
+const GAME_VERSION := "0.26.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -1770,14 +1770,28 @@ func content_gore() -> bool:
 	return bool(cfg.get_value("content", "graphic", true))
 
 func _log_scientist_intros():
+	var roster := {}
+	for s in scientists:
+		roster[(s as Dictionary).get("id", "")] = true
 	var data: Dictionary = _load_json("res://data/narrative/scientist_beats.json")
 	for sdef in data.get("scientists", []):
 		var sd: Dictionary = sdef as Dictionary
+		if not roster.has(sd.get("id", "")):
+			continue
+		_log_intro_for(sd.get("id", ""))
+
+func _log_intro_for(sci_id: String):
+	var data: Dictionary = _load_json("res://data/narrative/scientist_beats.json")
+	for sdef in data.get("scientists", []):
+		var sd: Dictionary = sdef as Dictionary
+		if sd.get("id", "") != sci_id:
+			continue
 		story_log.append({
 			"day": elapsed_days, "artifact_id": "", "kind": "intro",
-			"title": "Personnel: %s" % _scientist_name(sd.get("id", "")),
+			"title": "Personnel: %s" % _scientist_name(sci_id),
 			"text": sd.get("intro", "")
 		})
+		return
 
 func _scientist_name(sci_id: String) -> String:
 	for s in scientists:
@@ -2083,6 +2097,20 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 				"helios_progress": helios["progress"]
 			})
 			return {"ok": true, "detail": detail}
+		elif method == "study":
+			knowledge["progress"] = mini(int(knowledge.get("progress", 0)) + 6, 100)
+			for s in scientists:
+				var sdst: Dictionary = s as Dictionary
+				if _is_available(sdst):
+					sdst["stress"] = mini(int(sdst.get("stress", 0)) + 10, 100)
+			active_crises.erase(cd)
+			var sdetail := "Studied under pressure: +6 knowledge, but the all-nighters cost +10 stress across the lab."
+			intelligence_reports.append({
+				"day": elapsed_days, "threshold": -2,
+				"text": "Contained: %s. %s" % [cd.get("name", ""), sdetail],
+				"helios_progress": helios["progress"]
+			})
+			return {"ok": true, "detail": sdetail}
 		return {"ok": false, "reason": "bad_method"}
 	return {"ok": false, "reason": "no_crisis"}
 
@@ -2431,6 +2459,7 @@ func hire_scientist(sci_id: String) -> Dictionary:
 	budget["spent"] = int(budget.get("spent", 0)) + bonus
 	scientists.append(def.duplicate(true))
 	hire_pool.erase(sci_id)
+	_log_intro_for(sci_id)
 	EventBus.budget_updated.emit(budget["funds"], budget["spent"])
 	return {"ok": true, "cost": bonus}
 

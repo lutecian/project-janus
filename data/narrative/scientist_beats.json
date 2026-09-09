@@ -26,6 +26,33 @@
         "moderate": "Vasquez stopped humming after this one, and the lab only noticed when the silence got loud. She started again yesterday. Deliberately. Defiantly.",
         "major": "Vasquez looked at the artifact for a long time after this one, the way you look at someone who has hurt you and might do it again. Then she went back to work. There is nothing else to do."
       }
+    },
+    {
+      "id": "SCIENTIST_LUND",
+      "intro": "Dr. Ingrid Lund came from Northwind with her billing honest and her cryogenics colder. She publishes everything, including the things the lab wishes she wouldn't. The artifacts, she insists, deserve accurate footnotes.",
+      "reactions": {
+        "minor": "Lund writes up the incident the same day, methods section first. 'If we cannot describe it precisely,' she says, 'we do not understand it at all.'",
+        "moderate": "Lund requested the raw data, all of it, and read it twice. Her report is nineteen pages. The conclusion is one sentence long and nobody likes it.",
+        "major": "Lund sat with the injured until the medics came, then finished the experiment log before going home. Northwind trained her honestly: the work first, the grief on your own time."
+      }
+    },
+    {
+      "id": "SCIENTIST_OSEI",
+      "intro": "Dr. Kwame Osei left HELIOS over safety margins and has the resignation letter framed as a reminder. Brilliant on field theory, immovable on procedure. He checks the containment seals twice and trusts them never.",
+      "reactions": {
+        "minor": "Osei predicted this exact failure mode in a memo last month. The memo is now taped to the incident board. He says nothing. He does not need to.",
+        "moderate": "Osei ran the safety drill nobody else wanted to run, then ran it again. 'HELIOS taught me what happens,' he says, 'when nobody runs it twice.'",
+        "major": "Osei went pale and then furious, in that order. This is what he left HELIOS over. He stayed at the bench until the room was certified safe, and only then allowed himself to shake."
+      }
+    },
+    {
+      "id": "SCIENTIST_PETROVA",
+      "intro": "Dr. Anya Petrova contracted for Vantage and knows exactly what wildcards do to people. Fast hands, faster instincts, a past she bills by the hour and never discusses. The artifacts do not surprise her. People do, constantly.",
+      "reactions": {
+        "minor": "Petrova had already moved away from the bench before the alarm finished. 'Vantage rule one,' she says. 'Never stand where the money is.'",
+        "moderate": "Petrova laughed, once, without humor. She has seen this shape of disaster before, with a different logo on it. Then she got to work like a professional.",
+        "major": "Petrova went very still, the way people do when something matches a memory. She will not say which memory. She worked the rest of the shift without a break and billed it all."
+      }
     }
   ]
 }

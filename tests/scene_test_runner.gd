@@ -760,8 +760,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 22:
-		push_error("ctr: expected 22-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 25:
+		push_error("ctr: expected 25-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -852,7 +852,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 21:
+	if GameState.contract_deck.size() != 24:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -1703,6 +1703,45 @@ func _test_action():
 		push_error("action: despairing lab should walk out within 30 days")
 		failures += 1
 
+	# --- C9: Studying a crisis trades stress for knowledge ---
+	GameState.initialize_new_campaign({"name": "Action Study"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.knowledge["progress"] = 20
+	for s in GameState.scientists:
+		(s as Dictionary)["stress"] = 0
+	var breach := {
+		"id": "INC_TEST_BR", "name": "Test Breach", "description": "d",
+		"severity": "major", "effects": {"budget_cost": 0, "days_lost": 0},
+		"crisis": {"days": 5, "resolve_cost": 1500, "kind": "breach"}
+	}
+	GameState._apply_incident(breach)
+	var bcid: String = (GameState.active_crises[GameState.active_crises.size() - 1] as Dictionary).get("id", "")
+	var stress_before := {}
+	for s in GameState.scientists:
+		stress_before[(s as Dictionary).get("id", "")] = int((s as Dictionary).get("stress", 0))
+	var sres: Dictionary = GameState.resolve_crisis(bcid, "study")
+	if not bool(sres.get("ok", false)):
+		push_error("action: study should resolve the crisis")
+		failures += 1
+	if not GameState.active_crises.is_empty():
+		push_error("action: studied crisis should be gone")
+		failures += 1
+	if int(GameState.knowledge.get("progress", 0)) != 26:
+		push_error("action: study should grant +6 knowledge, got %d" % int(GameState.knowledge.get("progress", 0)))
+		failures += 1
+	var stress_delta_ok := true
+	for s in GameState.scientists:
+		var sid: String = (s as Dictionary).get("id", "")
+		if int((s as Dictionary).get("stress", 0)) != int(stress_before.get(sid, 0)) + 10:
+			stress_delta_ok = false
+	if not stress_delta_ok:
+		push_error("action: study should add +10 stress lab-wide")
+		failures += 1
+	if GameState.resolve_crisis("NOPE", "study").get("ok", true):
+		push_error("action: studying nothing should fail")
+		failures += 1
+
 	# --- C7: Poaching steals the disloyal, warns the loyal ---
 	GameState.initialize_new_campaign({"name": "Action Poach"}, "normal")
 	GameState.select_artifact(0)
@@ -2250,6 +2289,24 @@ func _test_roster():
 	elif int(lund1.get("loyalty", -1)) != 90:
 		push_error("roster: wins should grant +10 loyalty, lund at %d" % lund1.get("loyalty", -1))
 		failures += 1
+
+	# --- R7: Every rostered and hireable scientist has beats ---
+	var beats_data: Dictionary = GameState._load_json("res://data/narrative/scientist_beats.json")
+	var beat_ids := {}
+	for b in beats_data.get("scientists", []):
+		var bd: Dictionary = b as Dictionary
+		beat_ids[bd.get("id", "")] = bd
+	var need_beats := ["SCIENTIST_CHEN", "SCIENTIST_REED", "SCIENTIST_VASQUEZ",
+		"SCIENTIST_LUND", "SCIENTIST_OSEI", "SCIENTIST_PETROVA"]
+	for sid in need_beats:
+		var bb: Dictionary = beat_ids.get(sid, {})
+		if str(bb.get("intro", "")) == "":
+			push_error("roster: %s missing intro" % sid)
+			failures += 1
+		for band in ["minor", "moderate", "major"]:
+			if str((bb.get("reactions", {}) as Dictionary).get(band, "")) == "":
+				push_error("roster: %s missing %s reaction" % [sid, band])
+				failures += 1
 
 	if failures == 0:
 		print("ROSTER_OK")
