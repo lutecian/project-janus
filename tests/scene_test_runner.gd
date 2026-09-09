@@ -284,6 +284,22 @@ func _test_simulation():
 	if (high[0] as Dictionary)["confidence"] != "high":
 		push_error("quality 1.2 should yield high confidence")
 		sim_failures += 1
+	# Event scheduling must be seeded: same seed deals the same events.
+	GameState.initialize_new_campaign({"name": "Sched A"}, "normal", 777)
+	var sched_a: Array = GameState.event_schedule.duplicate(true)
+	GameState.initialize_new_campaign({"name": "Sched B"}, "normal", 777)
+	var sched_b: Array = GameState.event_schedule.duplicate(true)
+	if sched_a.size() != sched_b.size():
+		push_error("event schedule should deal the same count for one seed")
+		sim_failures += 1
+	else:
+		for i in range(sched_a.size()):
+			var ea: Dictionary = sched_a[i]
+			var eb: Dictionary = sched_b[i]
+			if ea.get("id", "") != eb.get("id", "") or absf(float(ea.get("day", 0.0)) - float(eb.get("day", 0.0))) > 0.001:
+				push_error("event schedule should be identical for one seed")
+				sim_failures += 1
+				break
 	if sim_failures == 0:
 		print("SIM_OK")
 	else:
@@ -2456,7 +2472,7 @@ func _test_chal():
 	if mut_a != GameState.daily_mutator():
 		push_error("chal: daily mutator should be deterministic")
 		failures += 1
-	if not mut_a in ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY"]:
+	if not mut_a in ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY", "MUT_APPRENTICE", "MUT_AUDIT"]:
 		push_error("chal: unknown mutator '%s'" % mut_a)
 		failures += 1
 
@@ -2482,6 +2498,20 @@ func _test_chal():
 	GameState.active_mutators = ["MUT_SPRINT"]
 	if absf(GameState.get_majority_target() - 41.6) > 0.01:
 		push_error("chal: sprint should cut target to 41.6, got %.1f" % GameState.get_majority_target())
+		failures += 1
+	GameState.active_mutators = ["MUT_APPRENTICE"]
+	if GameState.training_cost("SCIENTIST_CHEN", "physics") != int(round((400 + 85 * 15) * 0.5)):
+		push_error("chal: apprentice should halve training, got %d" % GameState.training_cost("SCIENTIST_CHEN", "physics"))
+		failures += 1
+	GameState.active_mutators = ["MUT_AUDIT"]
+	GameState.budget["funds"] = 50000
+	GameState.active_crises = [{"id": "AUDIT-TEST", "name": "Test Audit", "kind": "audit", "days_left": 5.0, "resolve_cost": 2000, "incident_id": ""}]
+	var audit_res: Dictionary = GameState.resolve_crisis("AUDIT-TEST", "pay")
+	if not bool(audit_res.get("ok", false)):
+		push_error("chal: audit resolve should succeed when funded")
+		failures += 1
+	elif int(GameState.budget.get("funds", 0)) != 46000:
+		push_error("chal: audit should double resolve to 4000, funds %d" % int(GameState.budget.get("funds", 0)))
 		failures += 1
 	GameState.active_mutators = []
 

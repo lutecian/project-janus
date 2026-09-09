@@ -210,6 +210,12 @@ All **additive**: the game is winnable via pure research with any system untouch
 - Loans (0.22) are the intended insolvency bridge: $2k/$5k/$10k at 2%/day, 30-day term, $150/day overdue; probes use them.
 - Guided tour (0.22) gates on empty legacy best; lab guide panel moved above the fold with a scrollable lab.
 - Facility tiers run to 3 (0.23); Steam achievement mirror lives in data/meta and is drift-tested (0.23).
+- Signature experiments (0.27): one per artifact, gain 5-8, knowledge gates 15-35, artifact-locked; signature playstyle wins faster (normal d23) and cracks Hard where generic pure loses.
+- Training sink (0.28): +1 skill at 400+15/level, cap 95, costs a full day; +1 influence in recovery (0.29).
+- Crisis triangle (0.26): pay / team / study (+6 knowledge for +10 stress).
+- Probe honesty rule (0.23+): playstyle probes DD-first, pay-resolve crises, and bridge with loans — the benchmark models sane play, not degenerate play.
+- Flavor must not consume sim RNG (0.25): taunt alternation uses day parity.
+- Scenarios carry setup keys (0.24/0.29): funds/loyalty/knowledge/debt/artifact/act/seed.
 
 ## 13. Testing strategy
 

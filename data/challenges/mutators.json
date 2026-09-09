@@ -36,6 +36,26 @@
       "target_mult": 1.0,
       "buyout_mult": 2.0,
       "score_mult": 1.25
+    },
+    {
+      "id": "MUT_APPRENTICE",
+      "name": "Apprenticeship",
+      "flavor": "A teaching grant halves all training costs. Learn fast.",
+      "funding_mult": 1.0,
+      "casualty_mult": 1.0,
+      "target_mult": 1.0,
+      "training_mult": 0.5,
+      "score_mult": 1.15
+    },
+    {
+      "id": "MUT_AUDIT",
+      "name": "Surprise Audit",
+      "flavor": "Overseers double every crisis payout. Keep the lab quiet.",
+      "funding_mult": 1.0,
+      "casualty_mult": 1.0,
+      "target_mult": 1.0,
+      "resolve_mult": 2.0,
+      "score_mult": 1.25
     }
   ]
 }

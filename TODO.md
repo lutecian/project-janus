@@ -58,15 +58,15 @@
 - [x] Technology progression (7-tech tree, unlock conditions)
 - [x] Expanded experiment set (acoustic, laser, vibration, radioactive)
 
-## Phase 4 — Vertical Slice
-- [ ] Polished art direction
-- [ ] Soundscape
-- [ ] Attractive facility
-- [ ] Stronger UI
-- [ ] 5-10 artifacts
-- [ ] Basic commercialization
-- [ ] Campaign progression
-- [ ] Player organization customization
+## Phase 4 — Vertical Slice (content/systems complete at 0.29; remainder is human-only production)
+- [ ] Polished art direction (human: key art, portraits)
+- [ ] Soundscape (human: composed music + listen pass; procedural system ships)
+- [x] Attractive facility (visual floorplan + shaders + lab backgrounds ship; key art still human)
+- [ ] Stronger UI (ongoing; scrollable lab, map, debt/training UI ship)
+- [x] 5-10 artifacts (18 ship, act-gated)
+- [x] Basic commercialization (market majority + contracts + subsidiaries ship)
+- [x] Campaign progression (3 acts + scenarios + NG+ ship)
+- [ ] Player organization customization (deferred: naming only)
 
 ## Phase 5 — Demo
 - [ ] Standalone Steam experience

@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.29.0"
+const GAME_VERSION := "0.30.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -723,7 +723,7 @@ func training_cost(sci_id: String, skill: String) -> int:
 		if sd.get("id", "") != sci_id:
 			continue
 		var cur: int = int((sd.get("skills", {}) as Dictionary).get(skill, 0))
-		return 400 + cur * 15
+		return maxi(int(round(float(400 + cur * 15) * _mut_mult("training_mult", 1.0))), 1)
 	return -1
 
 func train_scientist(sci_id: String, skill: String) -> Dictionary:
@@ -742,7 +742,7 @@ func train_scientist(sci_id: String, skill: String) -> Dictionary:
 	var cur: int = int(skills.get(skill, 0))
 	if cur >= TRAIN_SKILL_CAP:
 		return {"ok": false, "reason": "maxed"}
-	var cost: int = 400 + cur * 15
+	var cost: int = training_cost(sci_id, skill)
 	if int(budget.get("funds", 0)) < cost:
 		return {"ok": false, "reason": "insufficient_funds"}
 	budget["funds"] = int(budget.get("funds", 0)) - cost
@@ -2106,7 +2106,7 @@ func resolve_crisis(crisis_id: String, method: String) -> Dictionary:
 		if cd.get("id", "") != crisis_id:
 			continue
 		if method == "pay":
-			var cost: int = int(cd.get("resolve_cost", 1500))
+			var cost: int = int(round(float(cd.get("resolve_cost", 1500)) * _mut_mult("resolve_mult", 1.0)))
 			if int(budget.get("funds", 0)) < cost:
 				return {"ok": false, "reason": "insufficient_funds"}
 			budget["funds"] = int(budget.get("funds", 0)) - cost
@@ -2287,7 +2287,7 @@ static func daily_seed() -> int:
 	return int(dt.get("year", 2026)) * 10000 + int(dt.get("month", 1)) * 100 + int(dt.get("day", 1))
 
 static func daily_mutator() -> String:
-	var ids := ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY"]
+	var ids := ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY", "MUT_APPRENTICE", "MUT_AUDIT"]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = daily_seed()
 	return ids[rng.randi() % ids.size()]
@@ -2296,7 +2296,7 @@ static func weekly_seed() -> int:
 	return int(Time.get_unix_time_from_system() / 604800.0)
 
 static func weekly_mutator() -> String:
-	var ids := ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY"]
+	var ids := ["MUT_FAMINE", "MUT_GLASS", "MUT_SPRINT", "MUT_BOUNTY", "MUT_APPRENTICE", "MUT_AUDIT"]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = weekly_seed() * 31 + 7
 	return ids[rng.randi() % ids.size()]
@@ -3184,7 +3184,11 @@ func _schedule_events():
 	var ids: Array = []
 	for edef in data.get("events", []):
 		ids.append((edef as Dictionary).get("id", ""))
-	ids.shuffle()
+	for i in range(ids.size() - 1, 0, -1):
+		var j: int = _rng.randi() % (i + 1)
+		var tmp = ids[i]
+		ids[i] = ids[j]
+		ids[j] = tmp
 	event_schedule = []
 	var picks: int = mini(2, ids.size())
 	for i in range(picks):
