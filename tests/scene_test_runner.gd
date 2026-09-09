@@ -814,8 +814,8 @@ func _test_contracts():
 	GameState.select_artifact(0)
 
 	# --- C1: Deck spawns full, nothing pending yet ---
-	if GameState.contract_deck.size() != 25:
-		push_error("ctr: expected 25-contract deck, got %d" % GameState.contract_deck.size())
+	if GameState.contract_deck.size() != 27:
+		push_error("ctr: expected 27-contract deck, got %d" % GameState.contract_deck.size())
 		failures += 1
 	if not GameState.pending_offer.is_empty() or not GameState.active_contract.is_empty():
 		push_error("ctr: should start with no pending/active contract")
@@ -906,7 +906,7 @@ func _test_contracts():
 	if GameState.active_contract.get("id", "") == "":
 		push_error("ctr: active contract lost after save/load")
 		failures += 1
-	if GameState.contract_deck.size() != 24:
+	if GameState.contract_deck.size() != 26:
 		push_error("ctr: deck not preserved after save/load (got %d)" % GameState.contract_deck.size())
 		failures += 1
 
@@ -2591,6 +2591,17 @@ func _test_chal():
 	if max_loyal != 25:
 		push_error("chal: strike season should cap loyalty at 25, got %d" % max_loyal)
 		failures += 1
+	GameState.initialize_new_campaign({"name": "Scn Specialist"}, "normal", 6161)
+	GameState.apply_scenario("SCN_SPECIALIST")
+	if GameState.artifact.get("id", "") != "J002":
+		push_error("chal: specialist should start on J002, got %s" % GameState.artifact.get("id", "?"))
+		failures += 1
+	if int(GameState.knowledge.get("progress", 0)) != 20:
+		push_error("chal: specialist should open at 20 knowledge, got %d" % int(GameState.knowledge.get("progress", 0)))
+		failures += 1
+	if not GameState.is_experiment_unlocked("EXP_J002"):
+		push_error("chal: specialist signature should be runnable day one")
+		failures += 1
 
 	# --- H6: Save/load preserves challenge + NG state ---
 	GameState.active_mutators = ["MUT_GLASS"]
@@ -2706,6 +2717,14 @@ func _test_recovery():
 	GameState._tick_contracts()
 	if GameState.influence <= before_c:
 		push_error("recovery: contracts should raise influence")
+		failures += 1
+	var before_t: float = GameState.influence
+	var tr_rec: Dictionary = GameState.train_scientist(GameState.scientists[0].get("id", ""), "physics")
+	if not bool(tr_rec.get("ok", false)):
+		push_error("recovery: training should be available in recovery")
+		failures += 1
+	elif GameState.influence <= before_t:
+		push_error("recovery: training should raise influence")
 		failures += 1
 
 	# --- Q5: Sabotage vs parent pays influence, exposes risk ---

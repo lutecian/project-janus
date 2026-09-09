@@ -585,6 +585,66 @@
    "Personnel recovered. One personal effect retained by artifact."
   ],
   "discovery_chance_increase": 0.12
+ },
+ {
+  "id": "INC_SHORT_MEETING",
+  "name": "Short Meeting",
+  "description": "A review held around the Tallow Saint ended in eleven minutes with unusual candor.",
+  "graphic_description": "The flame leaned at the deputy director through the entire budget review, steady as a finger. He confessed to padding the capacitor requisition, apologized to the candle specifically, and approved everything else unchallenged. Shortest meeting on record. The minutes note 'the candle dissented' on one line item.",
+  "casualty": 0,
+  "severity": "minor",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.05,
+   "budget_cost": 200,
+   "days_lost": 0
+  },
+  "observations": [
+   "Artifact oriented toward personnel during administrative proceedings.",
+   "Meeting duration anomalously short. Candor anomalously high."
+  ],
+  "discovery_chance_increase": 0.05
+ },
+ {
+  "id": "INC_SPARE_FOUND",
+  "name": "Spare Found",
+  "description": "The Key opened a maintenance closet nobody remembers building.",
+  "graphic_description": "Behind a panel in sub-basement storage, the Key turned a lock with no corresponding keyhole and opened a closet full of spare parts for instruments the lab has never owned. Everything is labeled, everything is new, everything is for machines one generation ahead of ours. Facilities has inventoried it all twice. The inventory keeps gaining items.",
+  "casualty": 0,
+  "severity": "minor",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.05,
+   "budget_cost": 300,
+   "days_lost": 0
+  },
+  "observations": [
+   "Artifact opened unmapped storage containing future-model components.",
+   "Inventory count unstable. Components functional."
+  ],
+  "discovery_chance_increase": 0.05
+ },
+ {
+  "id": "INC_STAPLER_ORBIT",
+  "name": "Stapler Orbit",
+  "description": "The orbiting stapler has been joined by a paperclip.",
+  "graphic_description": "The stapler that never came down after the Whiteout now has company: a paperclip, rising at the same three centimeters per second, settling into a companion orbit. The crew has named them both and tracks conjunctions on the whiteboard. Morale is measurably higher in that corner. Science does not know why. Science is taking notes.",
+  "casualty": 0,
+  "severity": "minor",
+  "trigger_chance": 0.02,
+  "knowledge_state_required": "unknown",
+  "effects": {
+   "observation_quality_reduction": 0.0,
+   "budget_cost": 100,
+   "days_lost": 0
+  },
+  "observations": [
+   "Second object achieved stable upward orbit around artifact.",
+   "Personnel morale elevated in affected area."
+  ],
+  "discovery_chance_increase": 0.05
 }
   ],
   "incident_cooldown_days": 5,

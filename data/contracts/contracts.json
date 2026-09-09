@@ -325,6 +325,32 @@
       "market_bonus": 2.0,
       "military": false,
       "event_tag": ""
+    },
+    {
+      "id": "CTR_VERACITY",
+      "issuer": "Board of Standards",
+      "title": "Veracity Calibration",
+      "flavor": "They want the candle's lean certified as a measurement standard. The candle has not agreed to be a standard.",
+      "days_required": 4,
+      "upfront": 1300,
+      "completion_pay": 1900,
+      "tech_key": "experimental_field_sensor",
+      "market_bonus": 1.5,
+      "military": false,
+      "event_tag": ""
+    },
+    {
+      "id": "CTR_SNOWLINE",
+      "issuer": "Cryogenic Society",
+      "title": "Snowline Preservation",
+      "flavor": "Keep the flake at exactly zero forever, on purpose this time, and document how it was already doing that.",
+      "days_required": 5,
+      "upfront": 1400,
+      "completion_pay": 2000,
+      "tech_key": "cryo_lattice",
+      "market_bonus": 2.0,
+      "military": false,
+      "event_tag": ""
     }
   ]
 }

@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.28.0"
+const GAME_VERSION := "0.29.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -750,6 +750,8 @@ func train_scientist(sci_id: String, skill: String) -> Dictionary:
 	skills[skill] = cur + 1
 	target["stress"] = mini(int(target.get("stress", 0)) + 8, 100)
 	target["experience"] = int(target.get("experience", 0)) + 2
+	if in_recovery:
+		influence = clampf(influence + 1.0, 0.0, 100.0)
 	elapsed_days += 1.0
 	log_telemetry("training", {"scientist": sci_id, "skill": skill, "cost": cost})
 	_tick_new_day([sci_id])
@@ -2345,6 +2347,10 @@ func apply_scenario(scenario_id: String) -> Dictionary:
 	if loyalty_set >= 0:
 		for s in scientists:
 			(s as Dictionary)["loyalty"] = clampi(loyalty_set, 0, 100)
+	var knowledge_set: int = int(sdef.get("knowledge_set", -1))
+	if knowledge_set >= 0:
+		knowledge["progress"] = mini(knowledge_set, 100)
+		_update_knowledge_state()
 	var rb: float = float(sdef.get("rival_bonus", 0.0))
 	if rb != 0.0:
 		for r in rivals:

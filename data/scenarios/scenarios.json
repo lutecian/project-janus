@@ -125,6 +125,19 @@
       "rival_bonus": 0.0,
       "remove_scientists": [],
       "loyalty_set": 25
+    },
+    {
+      "id": "SCN_SPECIALIST",
+      "name": "Specialist",
+      "flavor": "A former lens technician joins with a notebook full of focal-point data. The signature run is available from day one.",
+      "start_act": 1,
+      "seed": 6161,
+      "difficulty": "normal",
+      "start_artifact": "J002",
+      "funds_bonus": 0,
+      "rival_bonus": 0.0,
+      "remove_scientists": [],
+      "knowledge_set": 20
     }
   ]
 }
