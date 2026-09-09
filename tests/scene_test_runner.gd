@@ -305,6 +305,21 @@ func _test_simulation():
 				push_error("event schedule should be identical for one seed")
 				sim_failures += 1
 				break
+	# Fresh init must not inherit cross-run state (helios/artifact/knowledge).
+	GameState.initialize_new_campaign({"name": "Dirty"}, "normal", 111)
+	GameState.helios["progress"] = 77.0
+	GameState.select_artifact(2)
+	GameState.knowledge["progress"] = 50
+	GameState.initialize_new_campaign({"name": "Clean"}, "normal", 111)
+	if float(GameState.helios.get("progress", -1.0)) != 0.0:
+		push_error("fresh init should zero helios progress, got %s" % GameState.helios.get("progress", "?"))
+		sim_failures += 1
+	if GameState.artifact.get("id", "") != "J001":
+		push_error("fresh init should select J001, got %s" % GameState.artifact.get("id", "?"))
+		sim_failures += 1
+	if int(GameState.knowledge.get("progress", -1)) != 0:
+		push_error("fresh init should zero knowledge")
+		sim_failures += 1
 	if sim_failures == 0:
 		print("SIM_OK")
 	else:

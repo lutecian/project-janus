@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.32.0"
+const GAME_VERSION := "0.33.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -227,6 +227,9 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	game_over = {}
 	player_market = 0.0
 	_load_artifact_data()
+	artifact = {}
+	select_artifact(0)
+	selected_scientist_index = 0
 	_load_scientist_data()
 	_reset_knowledge()
 	_reset_discovery()
@@ -241,6 +244,7 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	pending_offer = {}
 	active_contract = {}
 	completed_contracts = []
+	next_offer_day = 0.0
 	_spawn_contracts()
 	event_schedule = []
 	active_event = {}
@@ -293,14 +297,20 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	company_roster.append(late[0])
 	company_roster.append(late[1])
 	_log_scientist_intros()
-	helios["thresholds_hit"] = []
-	helios["discovered_first"] = false
-	helios["discoveries_named"] = []
+	helios = {
+		"progress": 0,
+		"artifact_id": "",
+		"artifact_name": "",
+		"thresholds_hit": [],
+		"discovered_first": false,
+		"discoveries_named": []
+	}
 	experiment_history = []
 	intelligence_reports = []
 	last_intel_threshold = 0
 	unlocked_technologies = []
 	incidents = []
+	incident_cooldown = 0
 	_load_budget_data()
 	budget["funds"] = int(difficulty.get("player_start_budget", budget["funds"]))
 	if use_ng:
@@ -3517,7 +3527,7 @@ func load_save_data(data: Dictionary):
 	incidents = data.get("incidents", [])
 	incident_cooldown = data.get("incident_cooldown", 0)
 	budget = data.get("budget", {"funds": 10000, "spent": 0, "funding_received": 0, "next_funding_index": 0, "events_received": []})
-	difficulty = data.get("difficulty", DIFFICULTIES["normal"])
+	difficulty = (data.get("difficulty", DIFFICULTIES["normal"]) as Dictionary).duplicate(true)
 	if difficulty.is_empty():
 		difficulty = _resolve_difficulty("normal")
 	player_market = data.get("player_market", 0.0)

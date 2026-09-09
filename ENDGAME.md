@@ -216,6 +216,7 @@ All **additive**: the game is winnable via pure research with any system untouch
 - Probe honesty rule (0.23+): playstyle probes DD-first, pay-resolve crises, and bridge with loans — the benchmark models sane play, not degenerate play.
 - Flavor must not consume sim RNG (0.25): taunt alternation uses day parity.
 - Scenarios carry setup keys (0.24/0.29): funds/loyalty/knowledge/debt/artifact/act/seed.
+- Fresh campaigns reset all cross-run state (0.33): helios/artifact/cooldown/offer-day gaps closed after probes caught HELIOS progress and incident cooldown leaking between campaigns in one session. Read pillars, not single lines: probe order can still move ~2 lines.
 
 ## 13. Testing strategy
 
