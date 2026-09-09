@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.31.0"
+const GAME_VERSION := "0.32.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -76,6 +76,7 @@ var tutorial_done: Array = []
 var tour_active: bool = false
 var tour_rewarded: bool = false
 var debts: Array = []
+var trainings_done: int = 0
 
 var last_buyout_day: float = -99.0
 var insolvent_streak: int = 0
@@ -266,6 +267,7 @@ func initialize_new_campaign(org: Dictionary, difficulty_id: String = "normal", 
 	tutorial_done = []
 	tour_active = false
 	tour_rewarded = false
+	trainings_done = 0
 	var legacy_now: Dictionary = _load_legacy()
 	if (legacy_now.get("best", {}) as Dictionary).is_empty():
 		tour_active = true
@@ -656,6 +658,13 @@ func run_experiment(experiment_def: Dictionary, scientist: Dictionary, new_day: 
 		"relevant_skill": experiment_def.get("required_skills", ["observation"])[0]
 	}
 	experiment_history.append(exp_record)
+	if exp_id.begins_with("EXP_J"):
+		var sig_runs := 0
+		for h in experiment_history:
+			if str((h as Dictionary).get("experiment_id", "")).begins_with("EXP_J"):
+				sig_runs += 1
+		if sig_runs >= 5:
+			award_badge("signature_style")
 
 	budget["funds"] -= cost
 	budget["spent"] += cost
@@ -750,6 +759,9 @@ func train_scientist(sci_id: String, skill: String) -> Dictionary:
 	skills[skill] = cur + 1
 	target["stress"] = mini(int(target.get("stress", 0)) + 8, 100)
 	target["experience"] = int(target.get("experience", 0)) + 2
+	trainings_done += 1
+	if trainings_done >= 5:
+		award_badge("mentor")
 	if in_recovery:
 		influence = clampf(influence + 1.0, 0.0, 100.0)
 	elapsed_days += 1.0
@@ -3140,6 +3152,7 @@ func _apply_espionage_success(op_id: String, target_id: String) -> String:
 		if elapsed_days < player_sabotaged_until:
 			player_sabotaged_until = 0.0
 			swept = true
+			award_badge("clean_sweep")
 		if swept:
 			return "Cover tightened, heat burned off, saboteurs swept from the lab."
 		return "Cover tightened. Heat burned off."
@@ -3443,6 +3456,7 @@ func get_save_data() -> Dictionary:
 		"tour_active": tour_active,
 		"tour_rewarded": tour_rewarded,
 		"debts": debts,
+		"trainings_done": trainings_done,
 		"insolvent_streak": insolvent_streak,
 		"in_recovery": in_recovery,
 		"acquirer_id": acquirer_id,
@@ -3552,6 +3566,7 @@ func load_save_data(data: Dictionary):
 	tour_active = data.get("tour_active", false)
 	tour_rewarded = data.get("tour_rewarded", false)
 	debts = data.get("debts", [])
+	trainings_done = data.get("trainings_done", 0)
 	insolvent_streak = data.get("insolvent_streak", 0)
 	in_recovery = data.get("in_recovery", false)
 	acquirer_id = data.get("acquirer_id", "")

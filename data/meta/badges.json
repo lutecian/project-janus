@@ -16,6 +16,9 @@
     {"id": "survivor", "name": "Survivor", "description": "Win after continuing past a victory."},
     {"id": "tycoon", "name": "Tycoon", "description": "Own 3 subsidiaries at once."},
     {"id": "spymaster", "name": "Spymaster", "description": "Succeed at 5 espionage operations in one campaign."},
-    {"id": "turncoat", "name": "Turncoat Season", "description": "Lose a scientist to a rival poach."}
+    {"id": "turncoat", "name": "Turncoat Season", "description": "Lose a scientist to a rival poach."},
+    {"id": "signature_style", "name": "Signature Style", "description": "Run signature experiments 5 times in one campaign."},
+    {"id": "mentor", "name": "Mentor", "description": "Train scientists 5 times in one campaign."},
+    {"id": "clean_sweep", "name": "Clean Sweep", "description": "Sweep saboteurs out with counter-intel."}
   ]
 }

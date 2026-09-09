@@ -119,6 +119,27 @@
    "name": "Turncoat Season",
    "description": "Lose a scientist to a rival poach.",
    "hidden": false
+  },
+  {
+   "api_name": "SIGNATURE_STYLE",
+   "badge_id": "signature_style",
+   "name": "Signature Style",
+   "description": "Run signature experiments 5 times in one campaign.",
+   "hidden": false
+  },
+  {
+   "api_name": "MENTOR",
+   "badge_id": "mentor",
+   "name": "Mentor",
+   "description": "Train scientists 5 times in one campaign.",
+   "hidden": false
+  },
+  {
+   "api_name": "CLEAN_SWEEP",
+   "badge_id": "clean_sweep",
+   "name": "Clean Sweep",
+   "description": "Sweep saboteurs out with counter-intel.",
+   "hidden": false
   }
  ]
 }

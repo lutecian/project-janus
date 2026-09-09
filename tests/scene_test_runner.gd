@@ -190,6 +190,11 @@ func _test_logic():
 		if not bool(dd.get("dangerous", false)):
 			push_error("logic: %s should be dangerous" % did)
 			failures += 1
+	for i in range(4):
+		GameState.run_experiment(j002def, GameState.scientists[0])
+	if "signature_style" not in GameState.run_badges:
+		push_error("logic: five signature runs should earn Signature Style")
+		failures += 1
 
 	if failures == 0:
 		print("LOGIC_OK")
@@ -1022,6 +1027,9 @@ func _test_espionage():
 		failures += 1
 	if "swept" not in sweep_text:
 		push_error("esp: sweep should be reported, got '%s'" % sweep_text)
+		failures += 1
+	if "clean_sweep" not in GameState.run_badges:
+		push_error("esp: sweeping should earn Clean Sweep")
 		failures += 1
 
 	# --- S2: Steal-tech effect unlocks a locked tech ---
@@ -3238,6 +3246,13 @@ func _test_ability():
 	GameState.budget["funds"] = 0
 	if GameState.train_scientist(chen_id, "physics").get("reason", "") != "insufficient_funds":
 		push_error("ability: broke lab should not train")
+		failures += 1
+	GameState.budget["funds"] = 100000
+	GameState.incident_cooldown = 100
+	for i in range(4):
+		GameState.train_scientist(chen_id, "observation")
+	if "mentor" not in GameState.run_badges:
+		push_error("ability: five trainings should earn Mentor")
 		failures += 1
 	for s in GameState.scientists:
 		if (s as Dictionary).get("id", "") == chen_id:
