@@ -6,19 +6,27 @@
     },
     {
       "title": "RESEARCH",
-      "body": "Pick an artifact, assign scientists, run experiments to raise knowledge. At 30% a discovery is SUSPECTED; at 70% it CONFIRMS (or gather 4 matching evidence observations for secondaries). Confirmations pay market share and unlock technologies. Queue one experiment per scientist per day, then Run Day. Rest stressed scientists (stress over 70 hurts quality)."
+      "body": "Pick an artifact, assign scientists, run experiments to raise knowledge. At 30% a discovery is SUSPECTED; at 70% it CONFIRMS (or gather 4 matching evidence observations for secondaries). Confirmations pay market share and unlock technologies. Queue one experiment per scientist per day, then Run Day. Rest stressed scientists (stress over 70 hurts quality). Every artifact has a SIGNATURE experiment (see below) that out-gains generics once knowledge passes its threshold."
     },
     {
       "title": "RIVALS & MARKET",
-      "body": "Four rivals grow every day; HELIOS is fastest. Watch them in Rival Intelligence. Slow them with sabotage and exposes, buy them out (needs 10% standing, board approval weekly), or outgrow them 2.5-to-1. Wildcards can implode; leaders absorb weaklings."
+      "body": "Six rivals grow every day (HELIOS plus three dealt rivals); HELIOS is fastest. Watch them in Rival Intelligence. Slow them with sabotage and exposes, buy them out (needs 10% standing, board approval weekly), or leave them below 0.4x your share. Wildcards can implode; leaders absorb weaklings. At 40 share a rival makes a signature move; in Act 3 every rival makes an endgame move."
     },
     {
       "title": "MONEY & DEALS",
-      "body": "Experiments and overhead burn cash daily; grants arrive on schedule. Acquire labs (check diligence first), sign one contract at a time, build facilities, hire from candidates when someone dies. Going broke three days straight gets Janus acquired — which opens a hidden second chance."
+      "body": "Experiments and overhead burn cash daily; grants arrive on schedule. Acquire labs (check diligence first), sign one contract at a time, build facilities up to tier 3, hire from candidates when someone dies. Short on cash? Borrow $2k/$5k/$10k in Budget — 2% daily interest, due in 30 days, collectors charge $150/day overdue. Going broke three days straight gets Janus acquired — which opens a hidden second chance."
     },
     {
       "title": "DANGER",
-      "body": "Radioactive and crisis work injures people. INJURED scientists work poorly; the dead stay dead (memorialized). Keep cover up, resolve crises fast, and never let all three starters die with no hires waiting."
+      "body": "Dangerous experiments and crisis work injure people. INJURED scientists work poorly; the dead stay dead (memorialized, treatable in the Infirmary). Crises resolve three ways: pay cash, send a team (injury risk), or study it (+6 knowledge for +10 stress lab-wide). Keep cover up, resolve crises fast, and never let the roster wipe with no hires waiting."
+    },
+    {
+      "title": "SIGNATURE RUNS",
+      "body": "Each artifact has one signature experiment, unlocked by knowledge (15-35%) and runnable only on its own artifact. Safe ones (gain 5) suit quiet days; standard ones (gain 6-7) beat every generic; four are DANGEROUS (gain 8, marked, can trigger equipment failure — the field stabilizer tech calms them). Match the required skill to your scientist: physicists for resonance work, engineers for load and apparatus, observers for watch-and-record."
+    },
+    {
+      "title": "STAFF & LOYALTY",
+      "body": "Scientists have loyalty as well as health and stress. Deaths and incidents drain it; rest and victories restore it. At zero loyalty a scientist resigns and frees a hiring slot. Despairing labs (average loyalty under 30) risk walkout crises. Hire from ex-rival candidates when slots open — Lund, Osei and Petrova each carry their old employer's habits with them."
     }
   ]
 }

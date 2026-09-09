@@ -137,6 +137,60 @@ func _test_logic():
 		push_error("field stabilizer should halve budget cost (charged 500)")
 		failures += 1
 
+	# --- Unique artifact experiments: locked to their artifact, tiered gains ---
+	var uniques := {}
+	for e in GameState.load_experiment_definitions():
+		var ed: Dictionary = e as Dictionary
+		if ed.has("artifact_id"):
+			uniques[ed.get("id", "")] = ed
+	if uniques.size() != 18:
+		push_error("logic: expected 18 unique experiments, got %d" % uniques.size())
+		failures += 1
+	for uid in uniques:
+		var ud: Dictionary = uniques[uid]
+		if int(ud.get("knowledge_gain", 0)) < 5:
+			push_error("logic: unique %s should out-gain generics" % uid)
+			failures += 1
+		if GameState._get_experiment_cost(uid) < 500:
+			push_error("logic: unique %s should carry signature pricing" % uid)
+			failures += 1
+	GameState.initialize_new_campaign({"name": "Unique Lock"}, "normal")
+	GameState.select_artifact(0)
+	GameState.knowledge["progress"] = 100
+	if not GameState.is_experiment_unlocked("EXP_J001"):
+		push_error("logic: J001 signature should unlock on J001 at 100 knowledge")
+		failures += 1
+	if GameState.is_experiment_unlocked("EXP_J002"):
+		push_error("logic: J002 signature should stay locked while on J001")
+		failures += 1
+	GameState.select_artifact(1)
+	GameState.knowledge["progress"] = 100
+	if not GameState.is_experiment_unlocked("EXP_J002"):
+		push_error("logic: J002 signature should unlock after switching to J002")
+		failures += 1
+	if GameState.is_experiment_unlocked("EXP_J001"):
+		push_error("logic: J001 signature should lock after leaving J001")
+		failures += 1
+	GameState.knowledge["progress"] = 20
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	var j002def := {}
+	for e in GameState.load_experiment_definitions():
+		if (e as Dictionary).get("id", "") == "EXP_J002":
+			j002def = e as Dictionary
+	GameState.run_experiment(j002def, GameState.scientists[0])
+	if int(GameState.knowledge.get("progress", 0)) < 26:
+		push_error("logic: signature run should gain >=6 knowledge, at %d" % int(GameState.knowledge.get("progress", 0)))
+		failures += 1
+	for did in ["EXP_J003", "EXP_J006", "EXP_J011", "EXP_J014"]:
+		var dd := {}
+		for e in GameState.load_experiment_definitions():
+			if (e as Dictionary).get("id", "") == did:
+				dd = e as Dictionary
+		if not bool(dd.get("dangerous", false)):
+			push_error("logic: %s should be dangerous" % did)
+			failures += 1
+
 	if failures == 0:
 		print("LOGIC_OK")
 	else:

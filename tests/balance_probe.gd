@@ -39,6 +39,8 @@ func _run_all():
 	_probe_recovery_other("rec-bermant", 4244)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
+	_probe_signature("normal-signature", "normal", 4321)
+	_probe_signature("hard-signature", "hard", 4322)
 
 func _probe(tag: String, difficulty_id: String, seed: int, use_contracts: bool, use_acq: bool, use_esp: bool):
 	GameState.initialize_new_campaign({"name": "Probe " + tag}, difficulty_id, seed)
@@ -90,6 +92,57 @@ func _probe(tag: String, difficulty_id: String, seed: int, use_contracts: bool, 
 		GameState.owned_companies.size(),
 		sabotages,
 		GameState.esp_risk
+	])
+
+func _probe_signature(tag: String, difficulty_id: String, seed: int):
+	GameState.initialize_new_campaign({"name": "Probe " + tag}, difficulty_id, seed)
+	GameState.select_artifact(0)
+	_sci = GameState.scientists[0]
+	var sig := {}
+	for e in GameState.load_experiment_definitions():
+		if (e as Dictionary).get("id", "") == "EXP_J001":
+			sig = e as Dictionary
+	var heat_cost: int = GameState._get_experiment_cost("EXP_HEATING")
+	var bailouts := 0
+	var sig_runs := 0
+	var days := 0.0
+	while days < 300 and not GameState.is_game_over():
+		_sci = _living_pick()
+		if _sci.is_empty():
+			print("PROBE %s: STAFF_WIPE at day %.0f" % [tag, days])
+			return
+		for c in GameState.active_crises.duplicate():
+			var cd: Dictionary = c as Dictionary
+			var rc: int = int(cd.get("resolve_cost", 1500))
+			if int(GameState.budget.get("funds", 0)) >= rc + 1000:
+				GameState.resolve_crisis(cd.get("id", ""), "pay")
+		if int(GameState.budget.get("funds", 0)) < 1000 and GameState.debts.size() < 3:
+			GameState.request_loan(2000)
+		var pick: Dictionary = _exp_def
+		var need: int = heat_cost
+		if GameState.is_experiment_unlocked("EXP_J001"):
+			var sig_cost: int = GameState._get_experiment_cost("EXP_J001")
+			if int(GameState.budget.get("funds", 0)) >= sig_cost:
+				pick = sig
+				need = sig_cost
+		if int(GameState.budget.get("funds", 0)) < need:
+			GameState.budget["funds"] = int(GameState.budget.get("funds", 0)) + 200
+			bailouts += 1
+		if (pick as Dictionary).get("id", "") == "EXP_J001":
+			sig_runs += 1
+		GameState.run_experiment(pick, _sci)
+		days = GameState.elapsed_days
+	var go: Dictionary = GameState.game_over
+	print("PROBE %s: %s type=%s days=%.0f player=%.1f helios=%.1f funds=%d bailouts=%d sigruns=%d" % [
+		tag,
+		"WIN" if go.get("won", false) else "LOSE",
+		go.get("type", go.get("reason", "?")),
+		days,
+		GameState.get_player_market(),
+		GameState.get_rival_market("RIV_HELIOS"),
+		int(GameState.budget.get("funds", 0)),
+		bailouts,
+		sig_runs
 	])
 
 func _probe_skilled(tag: String, difficulty_id: String, seed: int):

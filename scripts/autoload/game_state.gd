@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.26.0"
+const GAME_VERSION := "0.27.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -555,9 +555,9 @@ func _reset_discovery():
 	}
 
 func is_experiment_unlocked(experiment_id: String) -> bool:
-	var threshold: int = EXPERIMENT_UNLOCK_THRESHOLDS.get(experiment_id, 999)
-	if knowledge["progress"] < threshold:
-		return false
+	if EXPERIMENT_UNLOCK_THRESHOLDS.has(experiment_id):
+		if knowledge["progress"] < int(EXPERIMENT_UNLOCK_THRESHOLDS[experiment_id]):
+			return false
 	# Per-experiment unlock thresholds from data drive (Acoustic, Laser, etc.)
 	var exps := load_experiment_definitions()
 	for exp in exps:
@@ -568,6 +568,9 @@ func is_experiment_unlocked(experiment_id: String) -> bool:
 				return false
 			var requires_tech: String = exp_dict.get("requires_tech", "")
 			if not requires_tech.is_empty() and not _has_technology(requires_tech):
+				return false
+			var only_artifact: String = exp_dict.get("artifact_id", "")
+			if only_artifact != "" and only_artifact != artifact.get("id", ""):
 				return false
 			return true
 	return false

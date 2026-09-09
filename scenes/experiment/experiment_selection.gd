@@ -190,9 +190,13 @@ func _populate_experiments():
 
 	var unlocked := GameState.get_unlocked_experiments(experiments)
 
+	var current_art: String = GameState.artifact.get("id", "")
 	for exp in experiments:
 		var exp_dict: Dictionary = exp as Dictionary
 		var exp_id: String = exp_dict.get("id", "")
+		var only_art: String = exp_dict.get("artifact_id", "")
+		if only_art != "" and only_art != current_art:
+			continue
 		var is_unlocked: bool = GameState.is_experiment_unlocked(exp_id)
 		var obs_count: int = GameState.knowledge["experiment_counts"].get(exp_id, 0)
 		var cost: int = GameState._get_experiment_cost(exp_id)
@@ -207,6 +211,8 @@ func _populate_experiments():
 				obs_count,
 				cost
 			]
+			if bool(exp_dict.get("dangerous", false)):
+				btn.text += " [DANGEROUS]"
 			btn.disabled = not affordable
 			if not affordable:
 				btn.text += " [INSUFFICIENT FUNDS]"

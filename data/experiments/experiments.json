@@ -113,6 +113,208 @@
       "unlock_threshold": 50,
       "requires_tech": "TECH_THERMAL_CONTAINMENT",
       "dangerous": true
+    },
+    {
+      "id": "EXP_J001",
+      "artifact_id": "J001",
+      "name": "Harmonic Lattice Mapping",
+      "description": "Drive the Sphere at its lattice resonance and map the standing harmonics. The signature run for the Sphere.",
+      "category": "active",
+      "required_skills": ["physics"],
+      "result_template": "em_resonance",
+      "knowledge_gain": 7,
+      "unlock_threshold": 20
+    },
+    {
+      "id": "EXP_J002",
+      "artifact_id": "J002",
+      "name": "Focal Point Survey",
+      "description": "Track what the Lens focuses when nobody is looking through it. Careful, patient work.",
+      "category": "active",
+      "required_skills": ["observation"],
+      "result_template": "laser",
+      "knowledge_gain": 6,
+      "unlock_threshold": 15
+    },
+    {
+      "id": "EXP_J003",
+      "artifact_id": "J003",
+      "name": "Resonant Overdrive",
+      "description": "Push the Cylinder past its rated resonance. Enormous insight. Occasional equipment fires.",
+      "category": "active",
+      "required_skills": ["physics"],
+      "result_template": "em_resonance",
+      "knowledge_gain": 8,
+      "unlock_threshold": 30,
+      "dangerous": true
+    },
+    {
+      "id": "EXP_J004",
+      "artifact_id": "J004",
+      "name": "Choral Transcription",
+      "description": "Record the Choir Glass at full voice and transcribe what it is trying to say. Bring ear protection and an open mind.",
+      "category": "active",
+      "required_skills": ["observation"],
+      "result_template": "acoustic",
+      "knowledge_gain": 6,
+      "unlock_threshold": 20
+    },
+    {
+      "id": "EXP_J005",
+      "artifact_id": "J005",
+      "name": "Germination Watch",
+      "description": "Sit with the Winter Seed and observe, hour by hour, what it refuses to become. Slow, safe, cumulative.",
+      "category": "passive",
+      "required_skills": ["observation"],
+      "result_template": "passive_observation",
+      "knowledge_gain": 5,
+      "unlock_threshold": 15
+    },
+    {
+      "id": "EXP_J006",
+      "artifact_id": "J006",
+      "name": "Event Horizon Probe",
+      "description": "Lower instruments toward the Torus aperture until telemetry disagrees with itself. Do not lower hands.",
+      "category": "active",
+      "required_skills": ["physics"],
+      "result_template": "xray",
+      "knowledge_gain": 8,
+      "unlock_threshold": 35,
+      "dangerous": true
+    },
+    {
+      "id": "EXP_J007",
+      "artifact_id": "J007",
+      "name": "Brine Evaporation Trial",
+      "description": "Evaporate Choir salt under controlled heat and weigh what the song leaves behind.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "heating",
+      "knowledge_gain": 6,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J008",
+      "artifact_id": "J008",
+      "name": "Audit the Ledger",
+      "description": "Reconcile the Stone's tallies against the lab's own books. Discrepancies are the data.",
+      "category": "active",
+      "required_skills": ["observation"],
+      "result_template": "passive_observation",
+      "knowledge_gain": 6,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J009",
+      "artifact_id": "J009",
+      "name": "Failure Offering",
+      "description": "Feed the Lantern a curated failed run and measure the flare. Waste nothing, especially failure.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "electrical_exposure",
+      "knowledge_gain": 7,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J010",
+      "artifact_id": "J010",
+      "name": "Attention Farming",
+      "description": "Observe the Orchard in measured doses and harvest the lumen fruit. Watch the watcher back.",
+      "category": "active",
+      "required_skills": ["observation"],
+      "result_template": "laser",
+      "knowledge_gain": 6,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J011",
+      "artifact_id": "J011",
+      "name": "Hadal Toll",
+      "description": "Strike the Bell at full amplitude under full shielding. Eleven kilometers down, on purpose, briefly.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "acoustic",
+      "knowledge_gain": 8,
+      "unlock_threshold": 35,
+      "dangerous": true
+    },
+    {
+      "id": "EXP_J012",
+      "artifact_id": "J012",
+      "name": "Cold Light Harvest",
+      "description": "Collect the Paper Sun's flameless emission and meter it against the room's falling temperature.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "cooling",
+      "knowledge_gain": 7,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J013",
+      "artifact_id": "J013",
+      "name": "Rehearsal Observation",
+      "description": "Stage precise gestures and return tomorrow to watch the void perform them. Scheduling is everything.",
+      "category": "passive",
+      "required_skills": ["observation"],
+      "result_template": "passive_observation",
+      "knowledge_gain": 5,
+      "unlock_threshold": 20
+    },
+    {
+      "id": "EXP_J014",
+      "artifact_id": "J014",
+      "name": "Full Load Draw",
+      "description": "Draw full shaft work from the Pale Engine for one hour and account for every missing joule.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "electrical_exposure",
+      "knowledge_gain": 8,
+      "unlock_threshold": 35,
+      "dangerous": true
+    },
+    {
+      "id": "EXP_J015",
+      "artifact_id": "J015",
+      "name": "Eighth Door Survey",
+      "description": "Map the museum's rooms from the threshold without crossing. Measure twice, enter never.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "vibration",
+      "knowledge_gain": 7,
+      "unlock_threshold": 30
+    },
+    {
+      "id": "EXP_J016",
+      "artifact_id": "J016",
+      "name": "Interrogation by Candlelight",
+      "description": "Hold reviews around the Saint and log where the flame leans. The candle conducts the meeting.",
+      "category": "active",
+      "required_skills": ["observation"],
+      "result_template": "laser",
+      "knowledge_gain": 6,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J017",
+      "artifact_id": "J017",
+      "name": "Lock Census",
+      "description": "Present the Key to every lock in the building, catalogued, and record what each one surrenders.",
+      "category": "active",
+      "required_skills": ["engineering"],
+      "result_template": "vibration",
+      "knowledge_gain": 6,
+      "unlock_threshold": 25
+    },
+    {
+      "id": "EXP_J018",
+      "artifact_id": "J018",
+      "name": "Upward Drift Measurement",
+      "description": "Meter the rising dust around the flake to four decimals and ask gravity, politely, to explain.",
+      "category": "passive",
+      "required_skills": ["physics"],
+      "result_template": "cooling",
+      "knowledge_gain": 5,
+      "unlock_threshold": 20
     }
   ]
 }
