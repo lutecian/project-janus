@@ -39,6 +39,8 @@ func _run_all():
 	_probe_recovery("rec-saboteur", 4243, true)
 	_probe("expert-pure", "expert", 300, false, false, false)
 	_probe("expert-systems", "expert", 300, true, true, true)
+	_probe("expert-systems-b", "expert", 301, true, true, true)
+	_probe("expert-systems-c", "expert", 302, true, true, true)
 	_probe("expert-thrifty", "expert", 300, true, false, true)
 	_probe_domination("domination-hard", "hard", 400)
 	_probe_domination("domination-normal", "normal", 401)
@@ -46,6 +48,8 @@ func _run_all():
 	_probe_recovery_other("rec-bermant", 4244)
 	_probe_skilled("hard-skilled", "hard", 200)
 	_probe_skilled("hard-skilled-b", "hard", 777)
+	_probe_skilled("hard-skilled-c", "hard", 555)
+	_probe_skilled("hard-skilled-d", "hard", 3141)
 	_probe_signature("normal-signature", "normal", 4321)
 	_probe_signature("hard-signature", "hard", 4322)
 
@@ -173,11 +177,13 @@ func _probe_skilled(tag: String, difficulty_id: String, seed: int):
 		if GameState.owned_companies.size() > buys:
 			buys = GameState.owned_companies.size()
 		var helios_active: bool = GameState.get_rival_market("RIV_HELIOS") > 0.0
-		if helios_active and GameState.esp_risk < 30.0:
+		# Sane-player ops: only run operations with a $4000 buffer behind them.
+		var op_budget: bool = int(GameState.budget.get("funds", 0)) > 4000
+		if helios_active and op_budget and GameState.esp_risk < 30.0:
 			var ex: Dictionary = GameState.perform_espionage_op("OP_EXPOSE", "RIV_HELIOS")
 			if ex.get("ok", false):
 				ops += 1
-		elif helios_active and GameState.esp_risk < 50.0:
+		elif helios_active and op_budget and GameState.esp_risk < 50.0:
 			var sb: Dictionary = GameState.perform_espionage_op("OP_SABOTAGE", "RIV_HELIOS")
 			if sb.get("ok", false):
 				ops += 1

@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.33.0"
+const GAME_VERSION := "0.34.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
