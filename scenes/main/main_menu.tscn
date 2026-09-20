@@ -37,13 +37,25 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"accent_card"
 
-[node name="VBox" type="VBoxContainer" parent="Card"]
+[node name="Scroll" type="ScrollContainer" parent="Card"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="Card/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 20
 
-[node name="title_label" type="Label" parent="Card/VBox"]
+[node name="logo_rect" type="TextureRect" parent="Card/Scroll/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 200)
+size_flags_horizontal = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="title_label" type="Label" parent="Card/Scroll/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
 theme_override_colors/font_color = Color(0.2, 0.84, 1, 1)
@@ -53,70 +65,70 @@ theme_override_constants/shadow_offset_y = 2
 text = "PROJECT JANUS"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Card/VBox"]
+[node name="Subtitle" type="Label" parent="Card/Scroll/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Scientific Research Simulation"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Card/VBox"]
+[node name="Spacer" type="Control" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 40)
 size_flags_vertical = 3
 
-[node name="btn_new_campaign" type="Button" parent="Card/VBox"]
+[node name="btn_new_campaign" type="Button" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(250, 50)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "New Campaign"
 
-[node name="btn_load_campaign" type="Button" parent="Card/VBox"]
+[node name="btn_load_campaign" type="Button" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(250, 50)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Load Campaign"
 
-[node name="btn_settings" type="Button" parent="Card/VBox"]
+[node name="btn_settings" type="Button" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(250, 50)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Settings"
 
-[node name="btn_quit" type="Button" parent="Card/VBox"]
+[node name="btn_quit" type="Button" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(250, 50)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Quit"
 
-[node name="btn_daily" type="Button" parent="Card/VBox"]
+[node name="btn_daily" type="Button" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(250, 50)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Daily Challenge"
 
-[node name="btn_weekly" type="Button" parent="Card/VBox"]
+[node name="btn_weekly" type="Button" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(250, 50)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
 text = "Weekly Challenge"
 
-[node name="slot_row" type="HBoxContainer" parent="Card/VBox"]
+[node name="slot_row" type="HBoxContainer" parent="Card/Scroll/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="btn_slot_prev" type="Button" parent="Card/VBox/slot_row"]
+[node name="btn_slot_prev" type="Button" parent="Card/Scroll/VBox/slot_row"]
 layout_mode = 2
 custom_minimum_size = Vector2(60, 40)
 text = "<"
 
-[node name="slot_label" type="Label" parent="Card/VBox/slot_row"]
+[node name="slot_label" type="Label" parent="Card/Scroll/VBox/slot_row"]
 layout_mode = 2
 custom_minimum_size = Vector2(170, 40)
 theme_override_font_sizes/font_size = 15
@@ -124,17 +136,17 @@ text = "Save Slot 1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="btn_slot_next" type="Button" parent="Card/VBox/slot_row"]
+[node name="btn_slot_next" type="Button" parent="Card/Scroll/VBox/slot_row"]
 layout_mode = 2
 custom_minimum_size = Vector2(60, 40)
 text = ">"
 
-[node name="Spacer2" type="Control" parent="Card/VBox"]
+[node name="Spacer2" type="Control" parent="Card/Scroll/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
 size_flags_vertical = 3
 
-[node name="legacy_label" type="Label" parent="Card/VBox"]
+[node name="legacy_label" type="Label" parent="Card/Scroll/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
@@ -142,7 +154,7 @@ text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="status_label" type="Label" parent="Card/VBox"]
+[node name="status_label" type="Label" parent="Card/Scroll/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = ""

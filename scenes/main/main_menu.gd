@@ -1,17 +1,18 @@
 extends Control
 
-@onready var btn_new: Button = $Card/VBox/btn_new_campaign
-@onready var btn_load: Button = $Card/VBox/btn_load_campaign
-@onready var btn_settings: Button = $Card/VBox/btn_settings
-@onready var btn_quit: Button = $Card/VBox/btn_quit
-@onready var btn_daily: Button = $Card/VBox/btn_daily
-@onready var btn_weekly: Button = $Card/VBox/btn_weekly
-@onready var btn_slot_prev: Button = $Card/VBox/slot_row/btn_slot_prev
-@onready var btn_slot_next: Button = $Card/VBox/slot_row/btn_slot_next
-@onready var slot_label: Label = $Card/VBox/slot_row/slot_label
-@onready var title_label: Label = $Card/VBox/title_label
-@onready var status_label: Label = $Card/VBox/status_label
-@onready var legacy_label: Label = $Card/VBox/legacy_label
+@onready var btn_new: Button = $Card/Scroll/VBox/btn_new_campaign
+@onready var btn_load: Button = $Card/Scroll/VBox/btn_load_campaign
+@onready var btn_settings: Button = $Card/Scroll/VBox/btn_settings
+@onready var btn_quit: Button = $Card/Scroll/VBox/btn_quit
+@onready var btn_daily: Button = $Card/Scroll/VBox/btn_daily
+@onready var btn_weekly: Button = $Card/Scroll/VBox/btn_weekly
+@onready var btn_slot_prev: Button = $Card/Scroll/VBox/slot_row/btn_slot_prev
+@onready var btn_slot_next: Button = $Card/Scroll/VBox/slot_row/btn_slot_next
+@onready var slot_label: Label = $Card/Scroll/VBox/slot_row/slot_label
+@onready var title_label: Label = $Card/Scroll/VBox/title_label
+@onready var logo_rect: TextureRect = $Card/Scroll/VBox/logo_rect
+@onready var status_label: Label = $Card/Scroll/VBox/status_label
+@onready var legacy_label: Label = $Card/Scroll/VBox/legacy_label
 
 var _confirm_dialog: ConfirmationDialog
 var _pending_daily := false
@@ -27,7 +28,15 @@ func _ready():
 	btn_slot_prev.pressed.connect(_on_slot_step.bind(-1))
 	btn_slot_next.pressed.connect(_on_slot_step.bind(1))
 	_update_slot_ui()
-	title_label.text = "PROJECT JANUS " + GameState.GAME_VERSION
+	var logo_tex: Texture2D = load("res://assets/art/keyart/logo_transparent.png") as Texture2D
+	if logo_tex != null:
+		logo_rect.texture = logo_tex
+		logo_rect.visible = true
+		title_label.text = "v" + GameState.GAME_VERSION
+		title_label.add_theme_font_size_override("font_size", 16)
+	else:
+		logo_rect.visible = false
+		title_label.text = "PROJECT JANUS " + GameState.GAME_VERSION
 	status_label.text = ""
 	legacy_label.text = GameState.get_legacy_line()
 	AudioManager.start_music("menu")
