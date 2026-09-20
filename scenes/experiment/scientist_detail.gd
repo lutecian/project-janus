@@ -5,6 +5,7 @@ extends Control
 @onready var skills_label: Label = $ScrollContainer/VBox/skills_label
 @onready var traits_label: Label = $ScrollContainer/VBox/traits_label
 @onready var train_hint: Label = $ScrollContainer/VBox/train_hint
+@onready var staff_image: TextureRect = $ScrollContainer/VBox/staff_image
 @onready var train_container: VBoxContainer = $ScrollContainer/VBox/train_container
 @onready var status_label: Label = $ScrollContainer/VBox/status_label
 @onready var history_label: RichTextLabel = $ScrollContainer/VBox/history_label
@@ -26,6 +27,13 @@ func _display_scientist():
 		scientist.get("first_name", "?"),
 		scientist.get("last_name", "?")
 	]
+	var portrait_key: String = scientist.get("id", "").replace("SCIENTIST_", "").to_lower()
+	var portrait: Texture2D = load("res://assets/art/staff/%s.png" % portrait_key) as Texture2D
+	if portrait != null:
+		staff_image.texture = portrait
+		staff_image.visible = true
+	else:
+		staff_image.visible = false
 	specialty_label.text = "Specialty: %s" % scientist.get("primary_specialty", "unknown").replace("_", " ").capitalize()
 
 	var skills: Dictionary = scientist.get("skills", {})

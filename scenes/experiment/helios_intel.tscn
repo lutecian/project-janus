@@ -46,6 +46,17 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "Rival Information"
 
+[node name="DirectorsHeader" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "PERSONS OF INTEREST"
+horizontal_alignment = 1
+
+[node name="directors_row" type="HBoxContainer" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
 [node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
 

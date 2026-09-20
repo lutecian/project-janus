@@ -37,6 +37,13 @@ theme_override_font_sizes/font_size = 16
 text = "Specialty"
 horizontal_alignment = 1
 
+[node name="staff_image" type="TextureRect" parent="ScrollContainer/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 300)
+size_flags_horizontal = 3
+expand_mode = 1
+stretch_mode = 5
+
 [node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
 

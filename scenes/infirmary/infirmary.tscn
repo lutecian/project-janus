@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://inf00001"]
+[gd_scene load_steps=3 format=3 uid="uid://inf00001"]
 
 [ext_resource type="Script" path="res://scenes/infirmary/infirmary.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/art/places/memorial.png" id="2_art"]
 
 [node name="Infirmary" type="Control"]
 layout_mode = 3
@@ -76,6 +77,14 @@ theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
 text = "MEMORIAL WALL"
 horizontal_alignment = 1
+
+[node name="memorial_image" type="TextureRect" parent="ScrollContainer/VBox"]
+texture = ExtResource("2_art")
+layout_mode = 2
+custom_minimum_size = Vector2(0, 200)
+size_flags_horizontal = 3
+expand_mode = 1
+stretch_mode = 5
 
 [node name="memorial_label" type="RichTextLabel" parent="ScrollContainer/VBox"]
 layout_mode = 2

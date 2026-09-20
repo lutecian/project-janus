@@ -3,6 +3,7 @@ extends Control
 @onready var title_label: Label = $ScrollContainer/VBox/title_label
 @onready var market_bars: Control = $ScrollContainer/VBox/market_bars
 @onready var helios_info: Label = $ScrollContainer/VBox/helios_info
+@onready var directors_row: HBoxContainer = $ScrollContainer/VBox/directors_row
 @onready var reports_label: RichTextLabel = $ScrollContainer/VBox/reports_label
 @onready var btn_back: Button = $ScrollContainer/VBox/ButtonRow/btn_back
 
@@ -29,6 +30,7 @@ func _display_intel():
 			rd.get("name", "?"), float(rd.get("share", 0))
 		]
 	helios_info.text = market_text
+	_populate_directors(ordered)
 
 	var reports_text := ""
 	var reports: Array = GameState.intelligence_reports
@@ -43,6 +45,34 @@ func _display_intel():
 				report.get("text", "")
 			]
 	reports_label.text = reports_text
+
+func _populate_directors(ordered: Array):
+	for child in directors_row.get_children():
+		child.queue_free()
+	for r in ordered:
+		var rd: Dictionary = r as Dictionary
+		if rd.get("acquired_by_player", false) or rd.get("status", "active") != "active":
+			continue
+		var key: String = rd.get("id", "").replace("RIV_", "").to_lower()
+		var tex: Texture2D = load("res://assets/art/directors/%s.png" % key) as Texture2D
+		if tex == null:
+			continue
+		var cell := VBoxContainer.new()
+		cell.add_theme_constant_override("separation", 2)
+		var img := TextureRect.new()
+		img.texture = tex
+		img.custom_minimum_size = Vector2(96, 120)
+		img.expand_mode = 1
+		img.stretch_mode = 5
+		cell.add_child(img)
+		var name := Label.new()
+		name.text = rd.get("director", rd.get("name", "?"))
+		name.add_theme_font_size_override("font_size", 11)
+		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name.autowrap_mode = 2
+		name.custom_minimum_size = Vector2(96, 0)
+		cell.add_child(name)
+		directors_row.add_child(cell)
 
 func _on_back():
 	get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")

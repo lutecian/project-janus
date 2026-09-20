@@ -2,6 +2,7 @@ extends Control
 
 @onready var title_label: Label = $ScrollContainer/VBox/title_label
 @onready var portrait_rect: ColorRect = $ScrollContainer/VBox/portrait_rect
+@onready var art_image: TextureRect = $ScrollContainer/VBox/art_image
 @onready var desc_label: RichTextLabel = $ScrollContainer/VBox/desc_label
 
 const PORTRAIT_STYLE := {
@@ -37,7 +38,14 @@ func _ready():
 	_display_artifact()
 
 func _apply_portrait():
-	var style: Dictionary = PORTRAIT_STYLE.get(GameState.artifact.get("id", "J001"), PORTRAIT_STYLE["J001"])
+	var art_id: String = GameState.artifact.get("id", "J001")
+	var tex: Texture2D = load("res://assets/art/artifacts/%s.png" % art_id.to_lower()) as Texture2D
+	if tex != null:
+		art_image.texture = tex
+		art_image.visible = true
+	else:
+		art_image.visible = false
+	var style: Dictionary = PORTRAIT_STYLE.get(art_id, PORTRAIT_STYLE["J001"])
 	var shader := load("res://assets/shaders/artifact_portrait.gdshader") as Shader
 	if shader == null:
 		return
