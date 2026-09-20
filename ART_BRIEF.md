@@ -5,8 +5,16 @@
 
 ## Priority 1 — key art + store
 1. **Main capsule (landscape 16:9):** containment laboratory at night, six anomalous objects in glass cells receding into darkness (metallic sphere, basalt rock, hollow iron ring, singing glass pane, frost-covered seed, black torus), three researchers as silhouettes in foreground, one red warning light. Dread, scale, mystery.
-2. **Logo lockup:** "PROJECT JANUS" in a cold technical sans-serif, letterspaced, cyan on black, subtle scanline fracture through the letter U.
-3. **Hero background (16:9, very dark, low contrast — UI sits on top):** out-of-focus lab depth, bokeh instrument lights, vignette to black at edges.
+2. **Logo lockup:** "PROJECT JANUS" in a cold technical sans-serif, letterspaced, cyan on black, subtle scanline fracture through the letter U. ALSO REQUIRED: transparent-background version (Library Logo, PNG up to 1280 wide / 720 high).
+3. **Hero background (16:9, very dark, low contrast — UI sits on top):** out-of-focus lab depth, bokeh instrument lights, vignette to black at edges. NO logo or text baked in (Steam overlays the separate logo); key content inside the central safe area.
+
+## Steam capsule specs (verified against Steamworks docs, 2026-09-20 — old sizes rejected)
+- Header Capsule 920x430 · Small Capsule 462x174 · Main Capsule 1232x706 · Vertical Capsule 748x896
+- Library Capsule 600x900 · Library Hero 3840x1240 PNG · Library Logo transparent PNG (1280w and/or 720h)
+- Screenshots minimum 1920x1080 16:9 (our harness shoots 1024x768 — recapture bigger for store)
+- Page Background optional 1438x810 · Client icon 32x32, App icon 184x184
+- Copy rule: title (+ eventual subtitle) ONLY. No review scores, awards, quotes, discount text — violations cost visibility/featuring.
+- Design small-capsule-first: it displays at ~231px in lists; logo must nearly fill it and read at thumbnail size. Wide and vertical capsules are NOT crops of each other — compose separately.
 
 ## Priority 2 — artifact portraits (square 1:1, object centered, black void background; hue hints match the in-game shader palettes)
 1. **J001 Lattice Sphere** (cyan): seamless metallic sphere, faint gravitational lensing ripple around it, cyan rim light.
@@ -44,6 +52,12 @@
 
 ## Palette lock
 Backgrounds #0a1420–#050a12 · Primary cyan #33d6ff · Healthy green #66ff99 · Warning amber #ffcc44 · Blood/injury red #ff5544 · Rival HELIOS red, Bermant steel-blue, Northwind green, Vantage gold.
+
+## Production rules (hard)
+- Key art is the canonical visual reference; all later generations match it (no numeric seed guarantee from the generator — the approved capsule is the source of truth, not a seed).
+- Same characters keep facial identity, wardrobe logic, lighting language, rendering style across generations.
+- Spoiler protection: the recovery/acquired-company branch must NEVER appear in public-facing artwork.
+- Capsule copy restricted to PROJECT JANUS (+ official subtitle if ever established).
 
 ## Avoid
 Photoreal gore close-ups, text in images, bright daylight, cartoon or anime styles, cluttered compositions (UI overlays everything).
