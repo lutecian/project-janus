@@ -153,6 +153,7 @@ func _populate_scientists():
 
 		var btn := Button.new()
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.toggle_mode = true
 		var stag := ""
 		if s.get("status", "ACTIVE") == "DECEASED":
 			stag = " (DECEASED)"
@@ -203,6 +204,8 @@ func _populate_experiments():
 		var affordable: bool = GameState.can_afford_experiment(exp_id)
 
 		var btn := Button.new()
+		btn.toggle_mode = true
+		btn.set_meta("exp_id", exp_id)
 		if is_unlocked:
 			btn.text = "%s (%s, +%d knowledge) [%d done] $%d" % [
 				exp_dict.get("name", "?"),
@@ -238,6 +241,7 @@ func _populate_experiments():
 	_update_experiment_buttons()
 
 func _on_scientist_selected(index: int):
+	selected_scientist_index = index
 	GameState.selected_scientist_index = index
 	_update_scientist_buttons()
 	_update_run_button()
@@ -262,9 +266,8 @@ func _update_scientist_buttons():
 func _update_experiment_buttons():
 	for i in range(experiment_container.get_child_count()):
 		var btn: Button = experiment_container.get_child(i)
-		if i < experiments.size():
-			var exp: Dictionary = experiments[i] as Dictionary
-			btn.button_pressed = (exp.get("id", "") == selected_experiment_id)
+		if btn.has_meta("exp_id"):
+			btn.button_pressed = (str(btn.get_meta("exp_id")) == selected_experiment_id)
 
 func _update_queue_ui():
 	if day_plan.is_empty():

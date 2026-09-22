@@ -224,6 +224,7 @@ func _test_next():
 		_test_sec()
 		_test_acts()
 		_test_batch()
+		await _test_experiment_ui()
 		_test_roster()
 		_test_replay()
 		_test_chal()
@@ -2258,6 +2259,67 @@ func _test_batch():
 		print("BATCH_OK")
 	else:
 		print("%d BATCH FAILURES" % failures)
+
+func _test_experiment_ui():
+	var failures: int = 0
+	GameState.initialize_new_campaign({"name": "UI Click Test"}, "normal")
+	GameState.select_artifact(0)
+	GameState.budget["funds"] = 50000
+	GameState.incident_cooldown = 100
+	var pack: PackedScene = load("res://scenes/experiment/experiment_selection.tscn")
+	var inst: Node = pack.instantiate()
+	add_child(inst)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	# Clicking a scientist must highlight AND arm the run button.
+	inst._on_scientist_selected(0)
+	if GameState.selected_scientist_index != 0:
+		push_error("ui: scientist click should sync the shared index")
+		failures += 1
+	var sci_btn: Button = (inst.scientist_container.get_child(0) as HBoxContainer).get_child(0)
+	if not sci_btn.button_pressed:
+		push_error("ui: clicked scientist should highlight")
+		failures += 1
+	# Run needs BOTH picks: with experiment missing it must stay disabled but explicit.
+	if not inst.btn_run.disabled:
+		push_error("ui: run must stay unarmed with experiment missing")
+		failures += 1
+	if "Select Scientist" not in inst.btn_run.text and "Experiment" not in inst.btn_run.text:
+		push_error("ui: unarmed run button should say what is missing, got '%s'" % inst.btn_run.text)
+		failures += 1
+	# Clicking an experiment must highlight the RIGHT button and arm run.
+	inst._on_experiment_selected("EXP_HEATING")
+	var heat_found := false
+	for i in range(inst.experiment_container.get_child_count()):
+		var b: Button = inst.experiment_container.get_child(i)
+		var should: bool = b.has_meta("exp_id") and str(b.get_meta("exp_id")) == "EXP_HEATING"
+		if b.button_pressed != should:
+			push_error("ui: only the heating button should highlight")
+			failures += 1
+			break
+		if should:
+			heat_found = true
+	if not heat_found:
+		push_error("ui: heating button missing from list")
+		failures += 1
+	if inst.btn_run.disabled:
+		push_error("ui: run should arm once scientist + experiment are picked")
+		failures += 1
+	# Queue path uses the same picks.
+	inst._on_queue_pressed()
+	if inst.day_plan.size() != 1:
+		push_error("ui: queue should hold one leg after queue press")
+		failures += 1
+	if inst.btn_run_day.disabled:
+		push_error("ui: run-day should arm once the plan is non-empty")
+		failures += 1
+	remove_child(inst)
+	inst.free()
+
+	if failures == 0:
+		print("UI_OK")
+	else:
+		print("%d UI FAILURES" % failures)
 
 func _test_roster():
 	var failures: int = 0
