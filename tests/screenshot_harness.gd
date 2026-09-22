@@ -15,6 +15,7 @@ var screens: Array = [
 	{"path": "res://scenes/incidents/incident_reports.tscn", "state": true},
 	{"path": "res://scenes/experiment/experiment_selection.tscn", "state": true},
 	{"path": "res://scenes/experiment/scientist_detail.tscn", "state": true},
+	{"path": "res://scenes/experiment/results/experiment_result.tscn", "state": true},
 	{"path": "res://scenes/experiment/artifact_detail.tscn", "state": true},
 	{"path": "res://scenes/experiment/helios_intel.tscn", "state": true},
 	{"path": "res://scenes/settings/settings.tscn", "state": true},

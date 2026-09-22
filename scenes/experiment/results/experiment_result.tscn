@@ -38,6 +38,7 @@ layout_mode = 2
 layout_mode = 2
 custom_minimum_size = Vector2(0, 180)
 scroll_following = true
+fit_content = true
 
 [node name="skill_breakdown" type="RichTextLabel" parent="ScrollContainer/VBox"]
 layout_mode = 2
@@ -48,6 +49,7 @@ theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
 text = ""
 scroll_active = false
 autowrap_mode = 2
+fit_content = true
 
 [node name="Sep1b" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
@@ -71,6 +73,7 @@ bbcode_enabled = false
 theme_override_font_sizes/normal_font_size = 14
 scroll_active = false
 autowrap_mode = 2
+fit_content = true
 
 [node name="Sep2" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2

@@ -81,9 +81,10 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 100)
 bbcode_enabled = false
 theme_override_font_sizes/normal_font_size = 13
-text = "Three days ago, a deep-sea mining operation off the coast of Greenland recovered an anomalous object from a depth of 4,200 meters. The object was embedded in basaltic rock estimated at 60 million years old.\n\nInitial analysis confirms the object does not match any known natural or artificial material. It has been designated OBJECT J-001 and transferred to your facility for investigation.\n\nYou have been given primary research authority. HELIOS Research Authority has also expressed interest."
+text = "Three days ago, a deep-sea mining operation off the coast of Greenland recovered an anomalous object from a depth of 4,200 meters. The object has been designated OBJECT J-001 and transferred to your facility for investigation.\n\nInitial analysis confirms the object does not match any known natural or artificial material. It has been designated OBJECT J-001 and transferred to your facility for investigation.\n\nYou have been given primary research authority. HELIOS Research Authority has also expressed interest."
 scroll_active = false
 autowrap_mode = 2
+fit_content = true
 
 [node name="BriefingDismiss" type="Button" parent="ScrollContainer/VBox/briefing_panel"]
 layout_mode = 2
@@ -99,6 +100,7 @@ theme_override_font_sizes/normal_font_size = 13
 text = "OBJECT J-001"
 scroll_active = false
 autowrap_mode = 2
+fit_content = true
 
 [node name="Sep1" type="HSeparator" parent="ScrollContainer/VBox"]
 layout_mode = 2
