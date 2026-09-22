@@ -1,6 +1,6 @@
 extends Node
 
-const GAME_VERSION := "0.41.0"
+const GAME_VERSION := "0.42.0"
 const ObservationSimulator = preload("res://scripts/simulation/observation_simulator.gd")
 
 var campaign_id: String = ""
@@ -3376,6 +3376,9 @@ func _complete_contract():
 
 func is_game_over() -> bool:
 	return not game_over.is_empty()
+
+func has_active_campaign() -> bool:
+	return not organization.is_empty() and not available_artifacts.is_empty()
 
 func get_game_over() -> Dictionary:
 	return game_over.duplicate(true)

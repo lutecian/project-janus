@@ -225,6 +225,7 @@ func _test_next():
 		_test_acts()
 		_test_batch()
 		await _test_experiment_ui()
+		await _test_menu_lab()
 		_test_roster()
 		_test_replay()
 		_test_chal()
@@ -2320,6 +2321,72 @@ func _test_experiment_ui():
 		print("UI_OK")
 	else:
 		print("%d UI FAILURES" % failures)
+
+func _test_menu_lab():
+	var failures: int = 0
+	GameState.organization = {}
+	GameState.available_artifacts = []
+	if GameState.has_active_campaign():
+		push_error("ui: no campaign should be active on a blank state")
+		failures += 1
+	var mpack: PackedScene = load("res://scenes/main/main_menu.tscn")
+	var menu0: Node = mpack.instantiate()
+	add_child(menu0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if (menu0.get_node("Card/Scroll/VBox/btn_continue") as Button).visible:
+		push_error("ui: continue should hide with no campaign")
+		failures += 1
+	remove_child(menu0)
+	menu0.free()
+	GameState.initialize_new_campaign({"name": "Menu Continue"}, "normal")
+	GameState.select_artifact(0)
+	if not GameState.has_active_campaign():
+		push_error("ui: fresh campaign should count as active")
+		failures += 1
+	var menu1: Node = mpack.instantiate()
+	add_child(menu1)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not (menu1.get_node("Card/Scroll/VBox/btn_continue") as Button).visible:
+		push_error("ui: continue should show with an active campaign")
+		failures += 1
+	remove_child(menu1)
+	menu1.free()
+	var lpack: PackedScene = load("res://scenes/laboratory/laboratory.tscn")
+	var lab: Node = lpack.instantiate()
+	add_child(lab)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var art_rows: Array = lab.get_node("MarginContainer/Scroll/VBox/artifacts_panel/artifacts_vbox/artifact_container").get_children()
+	if art_rows.size() != GameState.available_artifacts.size():
+		push_error("ui: lab should show one row per artifact, got %d" % art_rows.size())
+		failures += 1
+	for row in art_rows:
+		var found_tex := false
+		for kid in (row as Node).get_children():
+			if kid is TextureRect and (kid as TextureRect).texture != null:
+				found_tex = true
+		if not found_tex:
+			push_error("ui: every artifact row should carry a portrait")
+			failures += 1
+			break
+	var sci_rows: Array = lab.get_node("MarginContainer/Scroll/VBox/scientists_panel/scientists_vbox/scientist_container").get_children()
+	var sci_tex := 0
+	for row in sci_rows:
+		for kid in (row as Node).get_children():
+			if kid is TextureRect and (kid as TextureRect).texture != null:
+				sci_tex += 1
+	if sci_tex != GameState.scientists.size():
+		push_error("ui: every scientist row should carry a face, got %d faces" % sci_tex)
+		failures += 1
+	remove_child(lab)
+	lab.free()
+
+	if failures == 0:
+		print("MENULAB_OK")
+	else:
+		print("%d MENULAB FAILURES" % failures)
 
 func _test_roster():
 	var failures: int = 0

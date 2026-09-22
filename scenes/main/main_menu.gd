@@ -10,6 +10,7 @@ extends Control
 @onready var btn_slot_next: Button = $Card/Scroll/VBox/slot_row/btn_slot_next
 @onready var slot_label: Label = $Card/Scroll/VBox/slot_row/slot_label
 @onready var title_label: Label = $Card/Scroll/VBox/title_label
+@onready var btn_continue: Button = $Card/Scroll/VBox/btn_continue
 @onready var logo_rect: TextureRect = $Card/Scroll/VBox/logo_rect
 @onready var status_label: Label = $Card/Scroll/VBox/status_label
 @onready var legacy_label: Label = $Card/Scroll/VBox/legacy_label
@@ -19,6 +20,8 @@ var _pending_daily := false
 var _pending_weekly := false
 
 func _ready():
+	btn_continue.pressed.connect(_on_continue_pressed)
+	btn_continue.visible = GameState.has_active_campaign()
 	btn_new.pressed.connect(_on_new_pressed)
 	btn_load.pressed.connect(_on_load_pressed)
 	btn_settings.pressed.connect(_on_settings_pressed)
@@ -69,6 +72,12 @@ func _on_load_pressed():
 		get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 	else:
 		status_label.text = "Failed to load save file."
+
+func _on_continue_pressed():
+	if GameState.is_game_over():
+		get_tree().change_scene_to_file("res://scenes/endgame/game_over.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/laboratory/laboratory.tscn")
 
 func _on_settings_pressed():
 	get_tree().change_scene_to_file("res://scenes/settings/settings.tscn")

@@ -65,6 +65,9 @@ func _ready():
 	EventBus.market_updated.connect(_on_market_updated)
 	EventBus.scientist_died.connect(_on_scientist_died)
 	AudioManager.start_music("lab")
+	if GameState.is_game_over():
+		get_tree().change_scene_to_file("res://scenes/endgame/game_over.tscn")
+		return
 	_refresh_ui()
 	_maybe_memorial()
 
@@ -176,22 +179,44 @@ func _on_market_updated(_player_market: float, _rivals: Array):
 func _on_game_over(_result: Dictionary):
 	get_tree().change_scene_to_file("res://scenes/endgame/game_over.tscn")
 
+func _portrait_rect(path: String, dim: float, bright: float = 1.0) -> TextureRect:
+	var r := TextureRect.new()
+	r.custom_minimum_size = Vector2(dim, dim)
+	r.expand_mode = 1
+	r.stretch_mode = 5
+	var tex: Texture2D = load(path) as Texture2D
+	if tex != null:
+		r.texture = tex
+	r.modulate = Color(bright, bright, bright, 1.0)
+	return r
+
 func _populate_artifacts():
 	for child in artifact_container.get_children():
 		child.queue_free()
 
 	for i in range(GameState.available_artifacts.size()):
 		var art: Dictionary = GameState.available_artifacts[i]
+		var aid: String = art.get("id", "?")
+		var unlocked: bool = GameState.is_artifact_unlocked(aid)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		row.add_child(_portrait_rect(
+			"res://assets/art/artifacts/%s.png" % aid.to_lower(), 56.0,
+			1.0 if unlocked else 0.35
+		))
 		var label := Label.new()
 		var status := ""
-		var matched: bool = art.get("id", "") == GameState.artifact.get("id", "")
-		if not GameState.is_artifact_unlocked(art.get("id", "")):
+		var matched: bool = aid == GameState.artifact.get("id", "")
+		if not unlocked:
 			status = " (LOCKED — ACT %d)" % (GameState.act + 1)
 		elif matched:
 			status = " (SELECTED)"
-		label.text = "OBJECT %s — %s%s" % [art.get("id", "?"), art.get("display_name", "?"), status]
+		label.text = "OBJECT %s — %s%s" % [aid, art.get("display_name", "?"), status]
 		label.add_theme_font_size_override("font_size", 15)
-		artifact_container.add_child(label)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		row.add_child(label)
+		artifact_container.add_child(row)
 
 func _populate_scientists():
 	for child in scientist_container.get_children():
@@ -199,6 +224,13 @@ func _populate_scientists():
 
 	for s in GameState.scientists:
 		var sci: Dictionary = s as Dictionary
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var skey: String = sci.get("id", "").replace("SCIENTIST_", "").to_lower()
+		var bright := 1.0
+		if sci.get("status", "ACTIVE") != "ACTIVE":
+			bright = 0.4
+		row.add_child(_portrait_rect("res://assets/art/staff/%s.png" % skey, 56.0, bright))
 		var label := Label.new()
 		var skills: Dictionary = sci.get("skills", {})
 		var condition := ""
@@ -229,7 +261,11 @@ func _populate_scientists():
 			condition
 		]
 		label.add_theme_font_size_override("font_size", 14)
-		scientist_container.add_child(label)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.autowrap_mode = 2
+		row.add_child(label)
+		scientist_container.add_child(row)
 
 func _populate_candidates():
 	for child in candidates_container.get_children():
@@ -246,6 +282,8 @@ func _populate_candidates():
 			continue
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
+		var ckey: String = str(cid).replace("SCIENTIST_", "").to_lower()
+		row.add_child(_portrait_rect("res://assets/art/staff/%s.png" % ckey, 48.0))
 		var line := Label.new()
 		line.text = "%s %s (%s, bonus $%d)\n%s" % [
 			cdef.get("first_name", "?"), cdef.get("last_name", "?"),
